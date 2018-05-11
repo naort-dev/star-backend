@@ -1,0 +1,251 @@
+<style>
+.imgs {
+    background-size: cover;
+     background-position: 50%;
+     float:left;
+     height:180px;
+     width:150px;
+     margin-left:2px;
+     overflow:hidden;
+}
+.imgs img{
+    max-height:130px !important;
+}
+.del {
+    display: inline-block;
+    text-align: center;
+    width: 110px;
+    background-color: #FFF;
+    float: left;
+    position: absolute;
+    top: 10px;
+    border: 1px solid #000;
+    color:#000 !important;
+}
+img.crop-img{
+    max-width:100%;
+}
+input.jcrop-keymgr {
+    display: none !important;
+}
+img.img-responsive {
+    padding-top: 10px;
+}
+</style>
+<div class="post">
+      <!-- /.user-block -->
+    <div class="row margin-bottom">
+        <div class="col-sm-12">
+        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modal-default">
+Upload</button>
+        </div>
+    </div>
+      <div class="row margin-bottom">
+        <!-- /.col -->
+        <div class="col-sm-12">
+
+            {% for key, value in images.items %}
+            <div class="well imgs" id="pf-{{key}}">
+              <img class="img-responsive" src="{{ value }}" key="{{key}}">
+                <a href="javascript:void(0);" onclick="delete_image({{key}}, {{ id }});" class="del">Delete</a>
+                {% if img_count > 1 %}
+                <div class="form-group"><label>
+                  <input type="radio" name="primary_image" class="flat-red primary-{{key}}" key="{{key}}">
+                    Primary
+                </label>
+                </div>
+                {% endif %}
+
+            </div>
+            {% endfor %}
+            <!-- /.col -->
+          </div>
+          <!-- /.row -->
+        </div>
+        <!-- /.col -->
+      </div>
+      <!-- /.row -->
+    <input name="profile_image" id="profile_image" type="hidden">
+    </div>
+
+<div id="myModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Crop Image</h4>
+      </div>
+      <div class="modal-body">
+          {% for key, value in images.items %}
+            <div class="hide popups" id="popup-{{key}}" style="text-align:center;">
+              <img class="crop-img" src="{{ value }}">
+            </div>
+            {% endfor %}
+      </div>
+      <div class="modal-footer">
+          <div class="inline-labels">
+            <input type="hidden" size="4" id="x1" name="x1" />
+            <input type="hidden" size="4" id="y1" name="y1" />
+            <input type="hidden" size="4" id="x2" name="x2" />
+            <input type="hidden" size="4" id="y2" name="y2" />
+          </div>
+          <input type="hidden" id="pro-img-id" name="profile_id" value="">
+          <img src="/media/web-images/loader.gif" class="hide loaderGif" height="50px">
+        <button type="button" class="btn btn-primary" id="croper">Crop and Upload</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal fade" id="modal-default">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Upload Image</h4>
+          </div>
+          <div class="modal-body">
+              <div class="alert alert-success hide"></div>
+              <input type="file" name="image" value=""/>
+              <input type="hidden" name="user_id" value="{{ id }}"/>
+              <input type="hidden" name="image_count" value="{{ img_count }}"/>
+          </div>
+          <div class="modal-footer">
+              <img src="/media/web-images/loader.gif" class="hide loaderGif" height="50px">
+            <button type="button" id="UploadImage" class="btn btn-primary">Upload</button>
+          </div>
+        </div>
+      </div>
+</div>
+<script>
+
+avatar = '{{ avatar_id }}';
+
+
+if (!isNaN(avatar)) {
+    $('#profile_image').val(avatar);
+    $('.primary-'+avatar).prop("checked", true);
+  }
+
+function delete_image(id, user_id){
+$.ajax({
+        type: 'GET',
+        url:"/api/v1/ajax/delete/?id="+id+"&user_id="+user_id,
+        cache       : false,
+        success: function(returnval) {
+            $('#pf-'+id).remove();
+            alert(returnval);
+        },
+        error: function(html){
+            alert(html.responseText);
+        }
+    });
+}
+
+ jQuery(function($){
+
+    var jcrop_api;
+
+    $('.crop-img').Jcrop({
+      onChange: showCoords,
+      onSelect: showCoords,
+      boxWidth: 450,
+      boxHeight: 400
+    },function(){
+      jcrop_api = this;
+    });
+
+    $('#coords').on('change','input',function(e){
+      var x1 = $('#x1').val(),
+          x2 = $('#x2').val(),
+          y1 = $('#y1').val(),
+          y2 = $('#y2').val();
+      jcrop_api.setSelect([x1,y1,x2,y2]);
+    });
+  function showCoords(c)
+  {
+    $('#x1').val(c.x);
+    $('#y1').val(c.y);
+    $('#x2').val(c.x2);
+    $('#y2').val(c.y2);
+  };
+ });
+
+
+$('#croper').on('click',function(){
+
+    $.ajax({
+        type: 'POST',
+        url         :"/api/v1/ajax/crop/",
+        data        : new FormData($('form')[0]),
+        cache       : false,
+        contentType : false,
+        processData : false,
+        beforeSend: function(){
+            $('.loaderGif').removeClass('hide');
+        },
+        success: function(returnval) {
+            alert(returnval);
+            location.reload();
+         }
+    });
+});
+
+$('.flat-red').on('click', function(){
+$('#profile_image').val($(this).attr('key'));
+    $.ajax({
+        type: 'POST',
+        url         :"/api/v1/ajax/avatar/",
+        data        : new FormData($('form')[0]),
+        cache       : false,
+        contentType : false,
+        processData : false,
+        success: function(returnval) {
+            alert(returnval);
+            location.reload();
+         }
+    });
+});
+
+
+jQuery('.img-responsive').on('click',function(){
+    $('.popups').addClass('hide');
+    $('#popup-'+$(this).attr('key')).removeClass('hide');
+    $('#pro-img-id').val($(this).attr('key'));
+    $('#x1').val('');
+    $('#y1').val('');
+    $('#x2').val('');
+    $('#y2').val('');
+    $('#myModal').modal({show:true});
+});
+
+
+$(document).ready(function(){
+$('#UploadImage').click(function() {
+    $.ajax({
+        type: 'POST',
+        url:"/api/v1/ajax/upload/",
+        mimeType: "multipart/form-data",
+        data        : new FormData($('form')[0]),
+        cache       : false,
+        contentType : false,
+        processData : false,
+        beforeSend: function(){
+            $('.loaderGif').removeClass('hide');
+        },
+        success: function(returnval) {
+        $('.alert-success').removeClass('hide');
+        $('.loaderGif').addClass('hide');
+            $('.alert-success').html(returnval);
+            setTimeout(function(){location.reload()}, 2000);
+         }
+    });
+});
+
+});
+</script>

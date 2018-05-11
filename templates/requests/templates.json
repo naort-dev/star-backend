@@ -1,0 +1,36 @@
+{
+  "type": {
+    "1":{
+      "type": 1,
+      "date": true,
+      "milestone": true,
+      "specifically": false,
+      "message": false,
+      "from_where": false
+    },
+    "2":{
+      "type": 2,
+      "date": false,
+      "milestone": false,
+      "specifically": true,
+      "message": false,
+      "from_where": false
+    },
+    "3":{
+      "type": 3,
+      "date": false,
+      "milestone": false,
+      "specifically": false,
+      "message": true,
+      "from_where": false
+    },
+    "4":{
+      "type": 4,
+      "date": true,
+      "milestone": false,
+      "specifically": false,
+      "message": false,
+      "from_where": true
+    }
+  }
+}

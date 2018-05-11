@@ -1,0 +1,10 @@
+TRANSACTION_PROCESSING_STATUS = "225"
+REDIRECT_URL = 'https://app.starsona.com/api/v1/payments/oauth/connect'
+CLIENT_ID = 'ca_BNfb7u3x359uOFXsnY6LB9FtlB8SAd21'
+SECRET_KEY = 'sk_live_DOlCrnTiEZJSpsHhT18L67xv'
+PENDING_TRANSACTIONS = "1"
+PAID_TRANSACTIONS = "2"
+
+# Notification Constants
+NOTIFICATION_REQUEST_SUCCESS_TITLE = 'New starsona booking'
+NOTIFICATION_REQUEST_SUCCESS_BODY = 'You have a new Starsona booking request'

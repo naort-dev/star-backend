@@ -1,0 +1,90 @@
+[
+  {
+    "model": "role.feature",
+    "pk": 1,
+    "fields": {
+      "code": "F1001",
+      "name": "User Profile Retrieve"
+    }
+  },
+  {
+    "model": "role.feature",
+    "pk": 2,
+    "fields": {
+      "code": "F1002",
+      "name": "Celebrity Retrieve"
+    }
+  },
+  {
+    "model": "role.feature",
+    "pk": 3,
+    "fields": {
+      "code": "F1003",
+      "name": "Fan Request List"
+    }
+  },
+  {
+    "model": "role.feature",
+    "pk": 4,
+    "fields": {
+      "code": "F1004",
+      "name": "Fan Request Retrieve"
+    }
+  },
+  {
+    "model": "role.feature",
+    "pk": 5,
+    "fields": {
+      "code": "F1005",
+      "name": "Profile Image URL Add"
+    }
+  },
+  {
+    "model": "role.feature",
+    "pk": 6,
+    "fields": {
+      "code": "F1006",
+      "name": "User Profile Update"
+    }
+  },
+  {
+    "model": "role.feature",
+    "pk": 7,
+    "fields": {
+      "code": "F1007",
+      "name": "Fan Request Delete"
+    }
+  },
+  {
+    "model": "role.feature",
+    "pk": 8,
+    "fields": {
+      "code": "F1008",
+      "name": "Stargram Video Create"
+    }
+  },
+  {
+    "model": "role.feature",
+    "pk": 9,
+    "fields": {
+      "code": "F1009",
+      "name": "Stargram Video Update"
+    }
+  },
+  {
+    "model": "role.feature",
+    "pk": 10,
+    "fields": {
+      "code": "F1010",
+      "name": "Stargram Video Delete"
+    }
+  },
+  {
+    "model": "role.feature",
+    "pk": 11,
+    "fields": {
+      "code": "F1011",
+      "name": "Profile Image URL Delete"
+    }
+  }
+]

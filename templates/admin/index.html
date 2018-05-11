@@ -1,0 +1,451 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}" />{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-lg-3 col-xs-6">
+          <!-- small box -->
+          <div class="small-box bg-yellow">
+            <div class="inner">
+              <h3 id="total_users">0</h3>
+
+              <p>Total Users</p>
+            </div>
+            <div class="icon">
+              <i class="ion ion-person-add"></i>
+            </div>
+            <a href="#" class="small-box-footer">
+              More info <i class="fa fa-arrow-circle-right"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-xs-6">
+          <!-- small box -->
+          <div class="small-box bg-green">
+            <div class="inner">
+              <h3 id="fan_count">0</h3>
+
+              <p>Fan Users</p>
+            </div>
+            <div class="icon">
+              <i class="ion ion-person-add"></i>
+            </div>
+            <a href="/admin/users/fanuser/" class="small-box-footer">
+              More info <i class="fa fa-arrow-circle-right"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-xs-6">
+          <!-- small box -->
+          <div class="small-box bg-blue">
+            <div class="inner">
+              <h3 id="celebrity_count">0</h3>
+
+              <p>Celebrity Users</p>
+            </div>
+            <div class="icon">
+              <i class="ion ion-person-add"></i>
+            </div>
+            <a href="/admin/users/celebrityuser/" class="small-box-footer">
+              More info <i class="fa fa-arrow-circle-right"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-xs-6">
+          <!-- small box -->
+          <div class="small-box bg-red">
+            <div class="inner">
+              <h3 id="requests_count">0</h3>
+
+              <p>Total Requests</p>
+            </div>
+            <div class="icon">
+              <i class="ion ion-ios-paper"></i>
+            </div>
+            <a href="/admin/stargramz/stargramrequest/" class="small-box-footer">
+              More info <i class="fa fa-arrow-circle-right"></i>
+            </a>
+          </div>
+        </div>
+    </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="box">
+            <div class="box-header with-border">
+              <h3 class="box-title">Monthly Recap Report</h3>
+
+              <div class="box-tools pull-right">
+                <div class="input-group date col-md-4 pull-right">
+                  <div class="input-group-addon">
+                    <i class="fa fa-calendar"></i>
+                  </div>
+                  <input type="text" class="form-control pull-right" placeholder="Select Month" id="datepicker">
+                </div>
+                <!--<button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>-->
+                <!--</button>-->
+                <!--<div class="btn-group">-->
+                  <!--<button type="button" class="btn btn-box-tool dropdown-toggle" data-toggle="dropdown">-->
+                    <!--<i class="fa fa-wrench"></i></button>-->
+                  <!--<ul class="dropdown-menu" role="menu">-->
+                    <!--<li><a href="#">Action</a></li>-->
+                    <!--<li><a href="#">Another action</a></li>-->
+                    <!--<li><a href="#">Something else here</a></li>-->
+                    <!--<li class="divider"></li>-->
+                    <!--<li><a href="#">Separated link</a></li>-->
+                  <!--</ul>-->
+                <!--</div>-->
+                <!--<button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>-->
+              </div>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+              <div class="row">
+                <div class="col-md-8">
+                  <div class="chart">
+                    <!-- Sales Chart Canvas -->
+                    <div id="chart_div" style="height: 250px;"></div>
+                  </div>
+                  <!-- /.chart-responsive -->
+                </div>
+                <!-- /.col -->
+                <div class="col-md-4">
+                  <p class="text-center">
+                    <strong>Requests Completion</strong>
+                  </p>
+
+                  <div class="progress-group">
+                    <span class="progress-text">Pending Requests</span>
+                    <span class="progress-number" id="pending"></span>
+
+                    <div class="progress sm">
+                      <div class="progress-bar progress-bar-aqua" id="pending-pgs"></div>
+                    </div>
+                  </div>
+                  <!-- /.progress-group -->
+                  <div class="progress-group">
+                    <span class="progress-text">Cancelled Requests</span>
+                    <span class="progress-number" id="cancelled"></span>
+
+                    <div class="progress sm">
+                      <div class="progress-bar progress-bar-red" id="cancelled-pgs" ></div>
+                    </div>
+                  </div>
+                  <!-- /.progress-group -->
+                  <div class="progress-group">
+                    <span class="progress-text">Completed Requests</span>
+                    <span class="progress-number" id="completed"></span>
+
+                    <div class="progress sm">
+                      <div class="progress-bar progress-bar-green" id="completed-pgs"></div>
+                    </div>
+                  </div>
+                  <!-- /.progress-group -->
+                  <div class="progress-group">
+                    <span class="progress-text">In-complete Requests</span>
+                    <span class="progress-number" id="incomplete"></span>
+
+                    <div class="progress sm">
+                      <div class="progress-bar progress-bar-yellow" id="incomplete-pgs"></div>
+                    </div>
+                  </div>
+                  <!-- /.progress-group -->
+                </div>
+                <!-- /.col -->
+              </div>
+              <!-- /.row -->
+            </div>
+            <!-- ./box-body -->
+            <div class="box-footer">
+              <div class="row">
+                <div class="col-sm-3 col-xs-6">
+                  <div class="description-block border-right">
+                    <h5 class="description-header" id="total-revenue"></h5>
+                    <span class="description-text">REVENUE</span>
+                  </div>
+                  <!-- /.description-block -->
+                </div>
+                <!-- /.col -->
+                <div class="col-sm-3 col-xs-6">
+                  <div class="description-block border-right">
+                    <h5 class="description-header" id="paid-out"></h5>
+                    <span class="description-text">PAID OUT</span>
+                  </div>
+                  <!-- /.description-block -->
+                </div>
+                <!-- /.col -->
+                <div class="col-sm-3 col-xs-6">
+                  <div class="description-block border-right">
+                    <h5 class="description-header" id="refunded"></h5>
+                    <span class="description-text">REFUNDED</span>
+                  </div>
+                  <!-- /.description-block -->
+                </div>
+                <!-- /.col -->
+                <div class="col-sm-3 col-xs-6">
+                  <div class="description-block">
+                    <h5 class="description-header" id="profit"></h5>
+                    <span class="description-text">PROFIT</span>
+                  </div>
+                  <!-- /.description-block -->
+                </div>
+              </div>
+              <!-- /.row -->
+            </div>
+            <!-- /.box-footer -->
+          </div>
+          <!-- /.box -->
+        </div>
+        <!-- /.col -->
+      </div>
+<div class="row">
+      <div class="col-md-8">
+        <div class="box box-info">
+            <div class="box-header with-border">
+              <h3 class="box-title">Stargramz Requests</h3>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body">
+              <div class="table-responsive">
+                <table class="table no-margin" id="GramzReq">
+                  <thead>
+                  <tr>
+                    <th>Request ID</th>
+                    <th>Requested By</th>
+                    <th>Requested To</th>
+                    <th>Status</th>
+                    <th>Created Date</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+              </div>
+              <!-- /.table-responsive -->
+            </div>
+            <!-- /.box-body -->
+            <div class="box-footer clearfix">
+              <a href="/admin/stargramz/stargramrequest/" class="btn btn-sm btn-default btn-flat pull-right">View All Requests</a>
+            </div>
+            <!-- /.box-footer -->
+          </div>
+        </div>
+      <div class="col-md-4">
+
+        <div class="col-md-12 col-sm-12 col-xs-12">
+          <div class="info-box">
+            <span class="info-box-icon bg-red"><i class="fa fa-flag-o"></i></span>
+
+            <div class="info-box-content">
+              <span class="info-box-text">Reported Abuses</span>
+              <span class="info-box-number" id="abuse_reported">0</span>
+            </div>
+            <!-- /.info-box-content -->
+          </div>
+          <!-- /.info-box -->
+        </div>
+
+        <div class="col-md-12 col-sm-12 col-xs-12">
+          <div class="info-box">
+            <span class="info-box-icon bg-yellow"><i class="fa fa-list"></i></span>
+
+            <div class="info-box-content">
+              <span class="info-box-text">Pending Bookings</span>
+              <span class="info-box-number" id="pending_req">0</span>
+            </div>
+            <!-- /.info-box-content -->
+          </div>
+          <!-- /.info-box -->
+        </div>
+
+        <div class="col-md-12 col-sm-12 col-xs-12">
+          <div class="info-box">
+            <span class="info-box-icon bg-green"><i class="fa fa-list"></i></span>
+
+            <div class="info-box-content">
+              <span class="info-box-text">Completed Bookings</span>
+              <span class="info-box-number" id="completed_request">0</span>
+            </div>
+            <!-- /.info-box-content -->
+          </div>
+          <!-- /.info-box -->
+        </div>
+    </div>
+  </div>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+$(document).ready(function(){
+
+      function Dashboard(){
+
+        data = {'date': $('#datepicker').val()}
+        $.ajax({url: "/api/v1/ajax/stargramzlist/", success: function(data){
+        request = data.data.request;
+
+          var html='';
+          $.each( request, function( key, value ) {
+            html +='<tr><td><a href="/admin/stargramz/stargramrequest/'+value.id+'/">Request - '+value.id+'</a></td>'+
+            '<td>'+value.fan+'</td><td>'+value.celebrity+'</td>'+
+            '<td><span class="label label-success">'+value.request_status+'</span></td><td>'+value.created_date+'</td>'+
+            '</tr>';
+          });
+            $("#GramzReq tbody").html(html);
+        }});
+
+        $.ajax({url: "/api/v1/ajax/usercount/",
+         data: {'date': $('#datepicker').val()},
+         success: function(data){
+          details = data.data;
+          $("#celebrity_count").html(details.celebrity_approved+"/"+details.total_celebrity);
+          $("#fan_count").html(details.total_fans);
+          $("#requests_count").html(details.total_requests);
+          $("#total_users").html(details.total_users);
+          $("#abuse_reported").html(details.total_abuses+"/"+details.all_abuses);
+          $('#pending_req').html(details.pending_req);
+          $('#completed_request').html(details.completed_request);
+
+          $('#total-revenue').html('$'+details.report.total_amount);
+          $('#paid-out').html('$'+details.report.total_paid_out);
+          $('#refunded').html('$'+details.report.refunded_amount);
+          $('#profit').html('$'+details.report.profit);
+
+
+          $('#pending').html('<b>'+details.report.month_pending_request+'</b>/'+details.report.month_request);
+          $('#completed').html('<b>'+details.report.month_completed_request+'</b>/'+details.report.month_request);
+          $('#cancelled').html('<b>'+details.report.month_cancelled_request+'</b>/'+details.report.month_request);
+          $('#incomplete').html('<b>'+details.report.month_incomplete_requests+'</b>/'+details.report.month_request);
+
+
+          pending = details.report.month_pending_request/details.report.month_request * 100;
+          $('#pending-pgs').css('width', checkNaN(pending)+'%');
+
+          completed = details.report.month_completed_request/details.report.month_request * 100;
+          $('#completed-pgs').css('width', checkNaN(completed)+'%');
+
+          cancelled = details.report.month_cancelled_request/details.report.month_request * 100;
+          $('#cancelled-pgs').css('width', checkNaN(cancelled)+'%');
+
+          incomplete = details.report.month_incomplete_requests/details.report.month_request * 100;
+          $('#incomplete-pgs').css('width', checkNaN(incomplete)+'%');
+
+          google.charts.load('current', {'packages':['corechart']});
+          google.charts.setOnLoadCallback(drawChart);
+          function drawChart() {
+            var data = google.visualization.arrayToDataTable(details.report.graph);
+
+            var options = {
+              title: 'Bookings',
+              hAxis: {title: 'Month',  titleTextStyle: {color: '#333'}},
+              vAxis: {minValue: 0}
+            };
+
+            var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
+            chart.draw(data, options);
+          }
+
+        }});
+      }
+
+      function checkNaN(val){
+        return isNaN(val) ? 0 : val
+      }
+      Dashboard();
+
+      $('#datepicker').on('change',function(){
+        Dashboard();
+      });
+
+            var d = new Date();
+           var currMonth = d.getMonth();
+           var currYear = d.getFullYear();
+           var startDate = new Date(currYear, currMonth, 1);
+
+        $('#datepicker').datepicker({
+          setDate: startDate,
+          autoclose: true,
+          dateFormat: 'dd-mm-yy',
+        })
+});
+</script>
+
+
+<!--div id="content-main">
+{% if app_list %}
+    {% for app in app_list %}
+        <div class="app-{{ app.app_label }} module box-body table-responsive no-padding">
+        <table class="table table-hover">
+        <caption>
+            <a href="{{ app.app_url }}" class="section" title="{% blocktrans with name=app.name %}Models in the {{ name }} application{% endblocktrans %}">{{ app.name }}</a>
+        </caption>
+        {% for model in app.models %}
+            <tr class="model-{{ model.object_name|lower }}">
+            {% if model.admin_url %}
+                <th scope="row"><a href="{{ model.admin_url }}">{{ model.name }}</a></th>
+            {% else %}
+                <th scope="row">{{ model.name }}</th>
+            {% endif %}
+
+            {% if model.add_url %}
+                <td><a href="{{ model.add_url }}" class="addlink">{% trans 'Add' %}</a></td>
+            {% else %}
+                <td>&nbsp;</td>
+            {% endif %}
+
+            {% if model.admin_url %}
+                <td><a href="{{ model.admin_url }}" class="changelink">{% trans 'Change' %}</a></td>
+            {% else %}
+                <td>&nbsp;</td>
+            {% endif %}
+            </tr>
+        {% endfor %}
+        </table>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>{% trans "You don't have permission to edit anything." %}</p>
+{% endif %}
+</div-->
+{% endblock %}
+
+{% block sidebar %}
+<!--div id="content-related">
+    <div class="module" id="recent-actions-module">
+        <h2>{% trans 'Recent actions' %}</h2>
+        <h3>{% trans 'My actions' %}</h3>
+            {% load log %}
+            {% get_admin_log 10 as admin_log for_user user %}
+            {% if not admin_log %}
+            <p>{% trans 'None available' %}</p>
+            {% else %}
+            <ul class="actionlist">
+            {% for entry in admin_log %}
+            <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
+                {% if entry.is_deletion or not entry.get_admin_url %}
+                    {{ entry.object_repr }}
+                {% else %}
+                    <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+                {% endif %}
+                <br/>
+                {% if entry.content_type %}
+                    <span class="mini quiet">{% filter capfirst %}{{ entry.content_type }}{% endfilter %}</span>
+                {% else %}
+                    <span class="mini quiet">{% trans 'Unknown content' %}</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+            </ul>
+            {% endif %}
+    </div>
+</div-->
+{% endblock %}

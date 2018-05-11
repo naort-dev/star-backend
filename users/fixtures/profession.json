@@ -1,0 +1,947 @@
+[
+  {
+    "model": "users.profession",
+    "pk": 1,
+    "fields": {
+      "title": "Sports",
+      "file": "Athlete.png",
+      "parent": null,
+      "order": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 2,
+    "fields": {
+      "title": "Movies / TV",
+      "file": "Broadcaster.png",
+      "parent": null,
+      "order": 2
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 3,
+    "fields": {
+      "title": "Music",
+      "file": "Musician.png",
+      "parent": null,
+      "order": 3
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 4,
+    "fields": {
+      "title": "Comedians",
+      "file": "Actor.png",
+      "parent": null,
+      "order": 6
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 5,
+    "fields": {
+      "title": "Social / YouTube",
+      "file": "Musician.png",
+      "parent": null,
+      "order": 5
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 6,
+    "fields": {
+      "title": "Everyday Stars",
+      "file": "Author.png",
+      "parent": null,
+      "order": 7
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 7,
+    "fields": {
+      "title": "Impersonators",
+      "file": "Model.png",
+      "parent": null,
+      "order": 8
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 8,
+    "fields": {
+      "title": "Radio podcasts",
+      "file": "",
+      "parent": null,
+      "order": 4
+    }
+  },
+  
+  {
+    "model": "users.profession",
+    "pk": 9,
+    "fields": {
+      "title": "Announcer",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 10,
+    "fields": {
+      "title": "Reporter / Commentator",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 11,
+    "fields": {
+      "title": "Mascot",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 12,
+    "fields": {
+      "title": "Football",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 13,
+    "fields": {
+      "title": "Basketball",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 14,
+    "fields": {
+      "title": "Baseball",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 15,
+    "fields": {
+      "title": "Hockey",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 16,
+    "fields": {
+      "title": "Golf",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 17,
+    "fields": {
+      "title": "Soccer",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 18,
+    "fields": {
+      "title": "Tennis",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 19,
+    "fields": {
+      "title": "eSports",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 20,
+    "fields": {
+      "title": "Olympic Sports",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 21,
+    "fields": {
+      "title": "Other NCAA",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 22,
+    "fields": {
+      "title": "MMA",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 23,
+    "fields": {
+      "title": "Boxing",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 24,
+    "fields": {
+      "title": "Nascar",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 25,
+    "fields": {
+      "title": "Jayski",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 26,
+    "fields": {
+      "title": "Auto Racing",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 27,
+    "fields": {
+      "title": "Horse Racing",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 28,
+    "fields": {
+      "title": "Bicycle Racing",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 29,
+    "fields": {
+      "title": "X Games",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 30,
+    "fields": {
+      "title": "Ninja & Spartan",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 31,
+    "fields": {
+      "title": "Rugby",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 32,
+    "fields": {
+      "title": "Cricket",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 33,
+    "fields": {
+      "title": "Bull Riding",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 34,
+    "fields": {
+      "title": "Bowling",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 35,
+    "fields": {
+      "title": "Special Olympics",
+      "file": null,
+      "parent": 1
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 36,
+   "fields": {
+     "title": "Actor",
+     "file": null,
+     "parent": 2
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 37,
+   "fields": {
+     "title": "Voice Over Artist",
+     "file": null,
+     "parent": 2
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 38,
+   "fields": {
+     "title": "Host",
+     "file": null,
+     "parent": 2
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 39,
+   "fields": {
+     "title": "Radio Personality",
+     "file": null,
+     "parent": 2
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 40,
+   "fields": {
+     "title": "Makeup & Effects",
+     "file": null,
+     "parent": 2
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 41,
+   "fields": {
+     "title": "Producer",
+     "file": null,
+     "parent": 2
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 42,
+   "fields": {
+     "title": "Director",
+     "file": null,
+     "parent": 2
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 43,
+   "fields": {
+     "title": "Screenwriter",
+     "file": null,
+     "parent": 2
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 44,
+   "fields": {
+     "title": "Production Designer",
+     "file": null,
+     "parent": 2
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 45,
+   "fields": {
+     "title": "Art Director",
+     "file": null,
+     "parent": 2
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 46,
+   "fields": {
+     "title": "Costume Designer",
+     "file": null,
+     "parent": 2
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 47,
+   "fields": {
+     "title": "Cinematographer",
+     "file": null,
+     "parent": 2
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 48,
+   "fields": {
+     "title": "Editor",
+     "file": null,
+     "parent": 2
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 49,
+   "fields": {
+     "title": "Music Supervisor",
+     "file": null,
+     "parent": 2
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 50,
+   "fields": {
+     "title": "Songwriter / Composer",
+     "file": null,
+     "parent": 3
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 51,
+   "fields": {
+     "title": "Pop",
+     "file": null,
+     "parent": 3
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 52,
+   "fields": {
+     "title": "Rock",
+     "file": null,
+     "parent": 3
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 53,
+   "fields": {
+     "title": "Country",
+     "file": null,
+     "parent": 3
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 54,
+   "fields": {
+     "title": "R&B, Hip Hop, Rap",
+     "file": null,
+     "parent": 3
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 55,
+   "fields": {
+     "title": "Dance, Electronic",
+     "file": null,
+     "parent": 3
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 56,
+   "fields": {
+     "title": "Latin",
+     "file": null,
+     "parent": 3
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 57,
+   "fields": {
+     "title": "Reggae",
+     "file": null,
+     "parent": 3
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 58,
+   "fields": {
+     "title": "Christian / Gospel",
+     "file": null,
+     "parent": 3
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 59,
+   "fields": {
+     "title": "A cappella",
+     "file": null,
+     "parent": 3
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 60,
+   "fields": {
+     "title": "Broadway",
+     "file": null,
+     "parent": 3
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 61,
+   "fields": {
+     "title": "New Age",
+     "file": null,
+     "parent": 3
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 62,
+   "fields": {
+     "title": "Jazz / Blues",
+     "file": null,
+     "parent": 3
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 63,
+   "fields": {
+     "title": "Classical",
+     "file": null,
+     "parent": 3
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 64,
+   "fields": {
+     "title": "Opera",
+     "file": null,
+     "parent": 3
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 65,
+   "fields": {
+     "title": "World",
+     "file": null,
+     "parent": 3
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 66,
+    "fields": {
+      "title": "Music",
+      "file": null,
+      "parent": 5
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 67,
+    "fields": {
+      "title": "Comedy",
+      "file": null,
+      "parent": 5
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 68,
+    "fields": {
+      "title": "Film, Entertainment",
+      "file": null,
+      "parent": 5
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 69,
+    "fields": {
+      "title": "Gaming",
+      "file": null,
+      "parent": 5
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 70,
+    "fields": {
+      "title": "Beauty & Fashion",
+      "file": null,
+      "parent": 5
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 71,
+    "fields": {
+      "title": "Sports",
+      "file": null,
+      "parent": 5
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 72,
+    "fields": {
+      "title": "Tech",
+      "file": null,
+      "parent": 5
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 73,
+    "fields": {
+      "title": "Cooking / Health",
+      "file": null,
+      "parent": 5
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 74,
+    "fields": {
+      "title": "News / Politics",
+      "file": null,
+      "parent": 5
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 75,
+    "fields": {
+      "title": "Other Social / YouTube",
+      "file": null,
+      "parent": 5
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 76,
+    "fields": {
+      "title": "Writer",
+      "file": null,
+      "parent": 6
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 77,
+    "fields": {
+      "title": "Artist",
+      "file": null,
+      "parent": 6
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 78,
+    "fields": {
+      "title": "Dancer",
+      "file": null,
+      "parent": 6
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 79,
+    "fields": {
+      "title": "Fashion",
+      "file": null,
+      "parent": 6
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 80,
+    "fields": {
+      "title": "Beauty",
+      "file": null,
+      "parent": 6
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 81,
+    "fields": {
+      "title": "Model",
+      "file": null,
+      "parent": 6
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 82,
+    "fields": {
+      "title": "Scientist",
+      "file": null,
+      "parent": 6
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 83,
+    "fields": {
+      "title": "Astronaut",
+      "file": null,
+      "parent": 6
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 84,
+    "fields": {
+      "title": "Other Academics",
+      "file": null,
+      "parent": 6
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 85,
+    "fields": {
+      "title": "Business",
+      "file": null,
+      "parent": 6
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 86,
+    "fields": {
+      "title": "Chef / Baker",
+      "file": null,
+      "parent": 6
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 87,
+    "fields": {
+      "title": "Game Designer",
+      "file": null,
+      "parent": 6
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 88,
+    "fields": {
+      "title": "Inspirational speaker",
+      "file": null,
+      "parent": 6
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 89,
+    "fields": {
+      "title": "Doctor",
+      "file": null,
+      "parent": 6
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 90,
+    "fields": {
+      "title": "Lawyer",
+      "file": null,
+      "parent": 6
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 91,
+    "fields": {
+      "title": "Architect",
+      "file": null,
+      "parent": 6
+    }
+  },
+  {
+    "model": "users.profession",
+    "pk": 92,
+    "fields": {
+      "title": "Government / Politics",
+      "file": null,
+      "parent": 6
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 93,
+   "fields": {
+     "title": "Actors",
+     "file": null,
+     "parent": 7
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 94,
+   "fields": {
+     "title": "Musicians",
+     "file": null,
+     "parent": 7
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 95,
+   "fields": {
+     "title": "Politicians",
+     "file": null,
+     "parent": 7
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 96,
+   "fields": {
+     "title": "Historical figures",
+     "file": null,
+     "parent": 7
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 97,
+   "fields": {
+     "title": "Other celebrities",
+     "file": null,
+     "parent": 7
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 98,
+   "fields": {
+     "title": "Super Heroes",
+     "file": null,
+     "parent": 7
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 99,
+   "fields": {
+     "title": "Fairy Tales",
+     "file": null,
+     "parent": 7
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 100,
+   "fields": {
+     "title": "Other entertainment inspired",
+     "file": null,
+     "parent": 7
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 101,
+   "fields": {
+     "title": "Comedian",
+     "file": null,
+     "parent": 4
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 102,
+   "fields": {
+     "title": "Engineer",
+     "file": null,
+     "parent": 6
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 103,
+   "fields": {
+     "title": "Anchor / Reporter",
+     "file": null,
+     "parent": 2
+    }
+  },
+  {
+   "model": "users.profession",
+   "pk": 104,
+   "fields": {
+     "title": "Commentator / Contributor",
+     "file": null,
+     "parent": 2
+    }
+  }
+]

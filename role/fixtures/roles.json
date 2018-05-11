@@ -1,0 +1,26 @@
+[
+  {
+    "model": "role.role",
+    "pk": 1,
+    "fields": {
+      "code": "R1001",
+      "name": "Fan"
+    }
+  },
+  {
+    "model": "role.role",
+    "pk": 2,
+    "fields": {
+      "code": "R1002",
+      "name": "Celebrity"
+    }
+  },
+  {
+    "model": "role.role",
+    "pk": 3,
+    "fields": {
+      "code": "R1003",
+      "name": "Admin"
+    }
+  }
+]

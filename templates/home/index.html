@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html prefix="og: http://ogp.me/ns#">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Get your personlised video</title>
+    <link rel="shortcut icon" type="image/png" href="/media/web-images/favicon.png"/>
+    <link rel='shortcut icon' type='image/x-icon' href="/media/web-images/favicon.ico"/>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Starsona">
+    <meta name="keywords" content="Starsona, celebrity">
+    <link rel="stylesheet" href="/media/css/style.min.css">
+    <meta name="theme-color" content="#ffffff">
+    <meta property="og:url" content="https://Starsona.com/">
+    <meta property="og:title" content="Starsona">
+    <meta property="og:description" content="Get your personlised video from your favorite celebrity">
+    <meta property="og:image" content="/media/web-images/star.png" />
+    {% include "home/apps.html" with request='reset' arg='reset_id' %}
+</head>
+<body>
+    <canvas id="world"></canvas>
+    <div id="wrapper">
+        <div id="welcome">
+            <div id="warp2">
+                <img id="heartbeat5" src="/media/web-images/star.png" style="width:40px !important; height:40px !important;">
+                <h2 id="intro" style="color:#c38d7c;"><img id="heartbeat5" src="/media/web-images/starsona.png"></h2>
+                <p id="smallp2"><span style="color:#ffffff; font-weight:500; font-size: 1em;">Get your personlised video from your favorite celebrity</span>
+                </p>
+                <div id="help">
+                    <h3 style="margin-top:50px;"><a id="share3" href="https://itunes.apple.com/us/app/starsona/id1294478616?ls=1&mt=8" target="_blank"><img src="/media/web-images/ios.png"></a>
+                    <a id="share3" href="https://play.google.com/store/apps/details?id=com.starsona.app" target="_blank"><img src="/media/web-images/android.png"></a></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+<script src="/media/js/jquery.min.js"></script>
+<script src="/media/js/index.min.js"></script>
+
+<script type="text/javascript">
+    var height = $(window).height();
+    document.getElementsByTagName("body")[0].style.height = height+"px";
+    document.getElementById("wrapper").style.height = height+"px";
+
+    if( /Android/i.test(navigator.userAgent) ) {
+        setTimeout(function(){
+            window.location = 'https://play.google.com/store/apps/details?id=com.starsona.app&hl=en';
+        }, 2000);
+
+        if (get('reset_id')){
+            window.location = android_package+'://reset/?reset_id='+get('reset_id');
+        }else {
+            window.location = android_package+'://home/';
+        }
+
+    }
+
+    if (/iPad|iPhone|iPod/i.test(navigator.userAgent) && !window.MSStream) {
+        setTimeout(function(){
+            window.location = 'https://itunes.apple.com/app/id1294478616';
+        }, 2000);
+
+        if (get('reset_id')) {
+            window.location = ios_package+'://reset/?reset_id='+get('reset_id');
+        } else {
+            window.location = ios_package+'://home/';
+        }
+    }
+
+    function get(name){
+        if(name=(new RegExp('[?&]'+encodeURIComponent(name)+'=([^&]*)')).exec(location.search))
+        return decodeURIComponent(name[1]);
+    }
+</script>
+</body>
+</html>

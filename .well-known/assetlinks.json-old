@@ -1,0 +1,11 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.stargram.app",
+    "sha256_cert_fingerprints":
+    ["D8:D0:A5:C5:C1:A9:4F:45:3E:51:EE:F1:09:A4:4A:B7:8E:9D:04:8D:D8:4B:A8:C5:59:F2:7E:62:CE:9F:31:C9"]
+  }
+}]
+
+

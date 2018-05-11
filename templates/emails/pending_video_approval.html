@@ -1,0 +1,10 @@
+{% include "emails/header.html" %}
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Hi</p>
+
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">
+There are {{ requests }} booking waiting for video approval, please verify the video and complete the bookings.
+</p>
+    <p style="text-align:center">
+        <a href="{{base_url}}/admin/stargramz/stargramrequest/?request_status__exact=4" class="button">View bookings</a>
+    </p>
+{% include "emails/footer.html" %}

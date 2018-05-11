@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html prefix="og: http://ogp.me/ns#">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Get your personlised video</title>
+    <link rel="shortcut icon" type="image/png" href="/media/web-images/favicon.png"/>
+    <link rel='shortcut icon' type='image/x-icon' href="/media/web-images/favicon.ico"/>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Starsona">
+    <meta name="keywords" content="Starsona, celebrity">
+    <meta name="theme-color" content="#ffffff">
+    <meta property="og:url" content="https://Starsona.com/">
+    <meta property="og:title" content="Starsona">
+    <meta property="og:description" content="Get your personlised video from your favorite celebrity">
+    <meta property="og:image" content="/media/web-images/star.png" />
+    {% include "home/apps.html" with request='connect' arg='1' %}
+</head>
+<body>
+    <div id="wrapper">
+        <div id="welcome">
+            <div id="warp2">
+                <p id="smallp2">
+                </p>
+                <h5>Redirecting to Starsona App...</h5>
+            </div>
+        </div>
+    </div>
+<script src="/media/js/jquery.min.js"></script>
+<script src="/media/js/index.min.js"></script>
+<script type="text/javascript">
+    if( /Android/i.test(navigator.userAgent) ) {
+        window.location = android_package+'://connect/';
+    }
+
+    if (/iPad|iPhone|iPod/i.test(navigator.userAgent) && !window.MSStream) {
+        window.location = ios_package+'://connect/';
+    }
+</script>
+</body>
+</html>

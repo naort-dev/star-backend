@@ -1,0 +1,14 @@
+{
+    "applinks": {
+        "apps": [],
+        "details": [
+            {
+                "appID": "2RAH5ZZCTZ.com.starsona.development.app",
+                "paths": ["/applinks/*", "/video/*"]
+            }
+        ]
+    },
+    "webcredentials": {
+        "apps": ["2RAH5ZZCTZ.com.starsona.development.app"]
+    }
+}

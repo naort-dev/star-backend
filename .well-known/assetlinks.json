@@ -1,0 +1,18 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.starsona.development.app",
+    "sha256_cert_fingerprints":
+    ["15:66:6D:D3:D2:AD:0C:3E:D8:85:8D:65:79:BA:89:C9:2B:DE:51:17:A1:3D:75:C5:32:97:2E:A0:73:DA:24:7B"]
+  }
+  },
+  {
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.starsona.app",
+    "sha256_cert_fingerprints":
+    ["21:5A:31:F0:1A:F3:62:CF:10:9A:1A:5D:D9:FF:14:A9:E8:C7:BF:00:9C:54:7D:0F:9C:62:65:D9:29:2F:2F:75"]
+  }
+}]

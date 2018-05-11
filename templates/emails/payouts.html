@@ -1,0 +1,11 @@
+{% include "emails/header.html" %}
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Hi {{ name }},</p>
+
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">
+Your payment for this month has been transferred to your stripe account.<br/><br/>
+<b>Number of Bookings: {{ pay_count }}</b><br/>
+<b>Amount: ${{ amount }}</b><br/><br/>
+
+Thanks,<br/>Starsona Team
+</p>
+{% include "emails/footer.html" %}

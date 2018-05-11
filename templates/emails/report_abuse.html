@@ -1,0 +1,10 @@
+{% include "emails/header.html" %}
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Hi ,</p>
+
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">
+{{ reporter_name }} has recently reported an abuse on a booking.<br/><br/>
+</p>
+<p style="text-align:center">
+    <a href="{{base_url}}/admin/stargramz/stargramrequest/{{ booking_id }}/change/" class="button">View booking</a>
+</p>
+{% include "emails/footer.html" %}

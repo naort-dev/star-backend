@@ -1,0 +1,240 @@
+[
+  {
+    "model": "stargramz.occasion",
+    "pk": 19,
+    "fields": {
+    "title": "Activism",
+    "occasion_image": "",
+    "request_type": 2,
+    "date_required": false,
+    "other_check": true,
+    "type": 6,
+    "created_date": "2017-10-18T11:47:11.719Z",
+    "relationships": []
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 20,
+    "fields": {
+    "title": "Book Club",
+    "occasion_image": "",
+    "request_type": 2,
+    "date_required": false,
+    "other_check": true,
+    "type": 6,
+    "created_date": "2017-10-18T11:47:11.719Z",
+    "relationships": []
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 21,
+    "fields": {
+    "title": "Charity / Fundraisers",
+    "occasion_image": "",
+    "request_type": 2,
+    "date_required": false,
+    "other_check": true,
+    "type": 6,
+    "created_date": "2017-10-18T11:47:11.719Z",
+    "relationships": []
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 22,
+    "fields": {
+    "title": "Game Day/Night",
+    "occasion_image": "",
+    "request_type": 2,
+    "date_required": false,
+    "other_check": true,
+    "type": 6,
+    "created_date": "2017-10-18T11:47:11.719Z",
+    "relationships": []
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 23,
+    "fields": {
+    "title": "Graduation",
+    "occasion_image": "",
+    "request_type": 2,
+    "date_required": false,
+    "other_check": true,
+    "type": 6,
+    "created_date": "2017-10-18T11:47:11.719Z",
+    "relationships": []
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 24,
+    "fields": {
+    "title": "Other Event/Party",
+    "occasion_image": "",
+    "request_type": 2,
+    "date_required": false,
+    "other_check": true,
+    "type": 6,
+    "created_date": "2017-10-18T11:47:11.719Z",
+    "relationships": []
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 25,
+    "fields": {
+    "title": "Reunion",
+    "occasion_image": "",
+    "request_type": 2,
+    "date_required": false,
+    "other_check": true,
+    "type": 6,
+    "created_date": "2017-10-18T11:47:11.719Z",
+    "relationships": []
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 26,
+    "fields": {
+    "title": "Baby Shower",
+    "occasion_image": "",
+    "request_type": 2,
+    "date_required": false,
+    "other_check": true,
+    "type": 7,
+    "created_date": "2017-10-18T11:47:11.719Z",
+    "relationships": []
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 26,
+    "fields": {
+    "title": "Bachelor/ette Party",
+    "occasion_image": "",
+    "request_type": 2,
+    "date_required": false,
+    "other_check": true,
+    "type": 7,
+    "created_date": "2017-10-18T11:47:11.719Z",
+    "relationships": []
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 27,
+    "fields": {
+    "title": "Bar/Bat Mitzvah",
+    "occasion_image": "",
+    "request_type": 2,
+    "date_required": false,
+    "other_check": true,
+    "type": 7,
+    "created_date": "2017-10-18T11:47:11.719Z",
+    "relationships": []
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 28,
+    "fields": {
+    "title": "Birthday",
+    "occasion_image": "",
+    "request_type": 2,
+    "date_required": false,
+    "other_check": true,
+    "type": 7,
+    "created_date": "2017-10-18T11:47:11.719Z",
+    "relationships": []
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 29,
+    "fields": {
+    "title": "Birthday",
+    "occasion_image": "",
+    "request_type": 2,
+    "date_required": false,
+    "other_check": true,
+    "type": 7,
+    "created_date": "2017-10-18T11:47:11.719Z",
+    "relationships": []
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 30,
+    "fields": {
+    "title": "Bridal Shower",
+    "occasion_image": "",
+    "request_type": 2,
+    "date_required": false,
+    "other_check": true,
+    "type": 7,
+    "created_date": "2017-10-18T11:47:11.719Z",
+    "relationships": []
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 31,
+    "fields": {
+    "title": "Retirement",
+    "occasion_image": "",
+    "request_type": 2,
+    "date_required": false,
+    "other_check": true,
+    "type": 7,
+    "created_date": "2017-10-18T11:47:11.719Z",
+    "relationships": []
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 32,
+    "fields": {
+    "title": "Sweet 16",
+    "occasion_image": "",
+    "request_type": 2,
+    "date_required": false,
+    "other_check": true,
+    "type": 7,
+    "created_date": "2017-10-18T11:47:11.719Z",
+    "relationships": []
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 33,
+    "fields": {
+    "title": "Wedding",
+    "occasion_image": "",
+    "request_type": 2,
+    "date_required": false,
+    "other_check": true,
+    "type": 7,
+    "created_date": "2017-10-18T11:47:11.719Z",
+    "relationships": []
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 34,
+    "fields": {
+    "title": "Live Question and Answer",
+    "occasion_image": "",
+    "request_type": 3,
+    "date_required": false,
+    "other_check": true,
+    "type": 8,
+    "created_date": "2017-10-18T11:47:11.719Z",
+    "relationships": []
+    }
+  }
+]

@@ -1,0 +1,192 @@
+[
+  {
+    "model": "config.config",
+    "pk": 1,
+    "fields": {
+      "key": "sender_email",
+      "value": "info@starsona.com",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 2,
+    "fields": {
+      "key": "reset_password_link",
+      "value": "https://stargramz.qburst.build/applinks/reset?reset_id=",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 3,
+    "fields": {
+      "key": "min_weekly_request",
+      "value": "4",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 4,
+    "fields": {
+      "key": "max_weekly_request",
+      "value": "8",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 5,
+    "fields": {
+      "key": "min_rate",
+      "value": "10",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 6,
+    "fields": {
+      "key": "max_rate",
+      "value": "500",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 7,
+    "fields": {
+      "key": "base_url",
+      "value": "https://stargramz.qburst.build/",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 8,
+    "fields": {
+      "key": "profile_images",
+      "value": "images/profile/",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 9,
+    "fields": {
+      "key": "thumb_images",
+      "value": "images/thumb/",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 10,
+    "fields": {
+      "key": "authentication_videos",
+      "value": "videos/profile_videos/",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 11,
+    "fields": {
+      "key": "stargram_videos",
+      "value": "videos/stargram_videos/",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 12,
+    "fields": {
+      "key": "android_version",
+      "value": "2.0.0",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 13,
+    "fields": {
+      "key": "ios_version",
+      "value": "2.0.0",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 14,
+    "fields": {
+      "key": "request_expiration_days",
+      "value": "7",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 15,
+    "fields": {
+      "key": "decline_comments",
+      "value": "Cannot pronounce name,Request unclear,Inappropriate request/audio clip,Request is too long",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 16,
+    "fields": {
+      "key": "support_email",
+      "value": "support@starsona.com",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 17,
+    "fields": {
+      "key": "admin_email",
+      "value": "admin@starsona.com",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 18,
+    "fields": {
+      "key": "booking_edit_time",
+      "value": "15",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 19,
+    "fields": {
+      "key": "decline_reasons",
+      "value": "{\"personlised\":[\"Cannot pronounce name\",\"Request unclear\",\"Inappropriate request/audio clip\",\"Request is too long\"],\"event\":[\"Cannot pronounce name\",\"Request unclear\",\"Inappropriate request/audio clip\",\"Request is too long\"],\"q_and_a\":[\"Video not Clear\",\"Not audible\"]}",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  }
+]
