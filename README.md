@@ -34,7 +34,7 @@ make setup env=live
 
 ## Versioning
 
-We use [GitLab](https://code.qburst.com/akhilns/Stargramz/) for versioning.
+We use [Github](https://github.com/Starsona/Starsona-backend) for versioning.
 
 
 <!--## Authors-->
