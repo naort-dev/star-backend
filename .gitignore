@@ -11,7 +11,6 @@ media/combined_videos/*
 !media/js/
 !media/audios/
 !media/uploads/
-main/settings/common.py
 main/settings/credentials.py
 .well-known/apple-app-site-association
 templates/home/apps.html
