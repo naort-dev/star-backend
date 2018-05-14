@@ -1,9 +1,9 @@
 import os
 
 DEBUG = True
-ALLOWED_HOSTS = ['https://stargramz.qburst.build', '127.0.0.1',]
+ALLOWED_HOSTS = ['127.0.0.1',]
 ENV_DIR = ''
-CLIENT_SITE_ADDR = 'https://stargramz.qburst.build:8000'
+CLIENT_SITE_ADDR = 'http://127.0.0.1:8000'
 
 
 # Database
@@ -12,11 +12,11 @@ CLIENT_SITE_ADDR = 'https://stargramz.qburst.build:8000'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'stargramzqb',
-        'USER': 'ustargramzqb',
-        'PASSWORD': '11uubts1',
+        'NAME': 'stargramz',
+        'USER': 'postgres',
+        'PASSWORD': 'root',
         'HOST': 'localhost',
         'PORT': '',
     }
 }
-EMAIL_HOST_USER = 'obtbs123@gmail.com'
+EMAIL_HOST_USER = 'support@starsona.com'
