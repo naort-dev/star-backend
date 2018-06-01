@@ -5,7 +5,7 @@ from users.serializer import *
 from users.models import StargramzUser, Profession, CelebrityFollow, CelebrityView, DeviceTokens, \
     CelebrityAvailableAlert
 from utilities.utils import SendMail, get_user_role_details, ROLES, check_user_role, change_fcm_device_status, \
-    check_celebrity_profile_exist
+    check_celebrity_profile_exist, generate_branch_io_url
 from django.template.loader import get_template
 import uuid
 from users.constants import EMAIL_HOST_USER
@@ -202,8 +202,15 @@ class ForgotPassword(APIView, ResponseViewMixin):
             ctx = {
                 'base_url': base_url,
                 'username': user.first_name + ' ' + user.last_name,
-                'reset_link': reset_password_link+str(user.reset_id)
+                'reset_link': generate_branch_io_url(
+                    mob_url='reset/?reset_id=%s' % str(user.reset_id),
+                    title="Reset password for %s" % user.get_short_name(),
+                    desc="Reset password for %s" % user.get_short_name(),
+                    image_url='%s/media/web-images/starsona_logo.png' % base_url,
+                    desktop_url=reset_password_link+str(user.reset_id)
+                )
             }
+
             html_template = get_template('../templates/emails/forgot_password.html')
             html_content = html_template.render(ctx)
             mail_status = SendMail(subject, html_content, sender_email=config_email, to=user.username)
@@ -380,8 +387,7 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
         response_data = dict(user=data)
         data['is_follow'] = True if user_followed else False
         data['authentication_token'] = None
-        data['share_url'] = '%sapplinks/profile/%s/?timestamp=%d' % \
-                            (BASE_URL, str(hashids.encode(user.pk)), int(time.time()))
+        data['share_url'] = '%sapplinks/profile/%s/' % (BASE_URL, str(hashids.encode(user.pk)))
         data['celebrity'] = check_celebrity_profile_exist(user)
 
         if user_logged_in:
@@ -601,3 +607,39 @@ class AlertFan(APIView, ResponseViewMixin):
             return self.jp_response(s_code='HTTP_200_OK', data='Notification would be send when celebrity is available')
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE', 'Invalid Celebrity User')
+
+
+class ValidateSocialSignup(APIView, ResponseViewMixin):
+    """
+        Validate user is already register for social media logins
+    """
+    authentication_classes = ()
+    permission_classes = (CustomPermission,)
+
+    def post(self, request):
+        serializer = ValidateSocialSignupSerializer(data=request.data)
+        if serializer.is_valid():
+            sign_up_source = serializer.validated_data.get('signup_source')
+            social_id = serializer.validated_data.get('social_id')
+            email = serializer.validated_data.get('email')
+            try:
+                if sign_up_source == SIGN_UP_SOURCE_CHOICES.facebook:
+                    user = StargramzUser.objects.get(Q(fb_id=social_id) | Q(username=email))
+                elif sign_up_source == SIGN_UP_SOURCE_CHOICES.instagram:
+                    user = StargramzUser.objects.get(Q(in_id=social_id) | Q(username=email))
+                elif sign_up_source == SIGN_UP_SOURCE_CHOICES.google:
+                    user = StargramzUser.objects.get(Q(gp_id=social_id) | Q(username=email))
+
+                return self.jp_response(s_code='HTTP_200_OK', data={'message': 'User is already registered'})
+            except Exception:
+                return self.jp_error_response(
+                    'HTTP_400_BAD_REQUEST',
+                    'INVALID_LOGIN',
+                    'User doesnt exist'
+                )
+        else:
+            return self.jp_error_response(
+                'HTTP_400_BAD_REQUEST',
+                'INVALID_LOGIN',
+                self.error_msg_string(serializer.errors)
+            )

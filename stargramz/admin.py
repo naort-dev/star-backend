@@ -43,7 +43,7 @@ class TransactionsInline(admin.StackedInline):
 class StargramVideosInline(admin.StackedInline):
     model = StargramVideo
     fields = ('stragramz_request', 'video_thumbnail', 'video_link', 'video',
-              'duration', 'featured', 'created_date')
+              'duration', 'created_date')
     readonly_fields = ('created_date', 'video_thumbnail', 'video_link', 'status')
     min_num = 0
     max_num = 5
@@ -174,14 +174,17 @@ class StargramrequestAdmin(admin.ModelAdmin):
 
 class StargramVideosAdmin(admin.ModelAdmin):
 
-    list_display = ('id', 'stragramz_request', 'duration', 'status', 'featured', 'created_date')
+    list_display = ('id', 'stragramz_request', 'video_duration', 'status', 'created_date')
 
     fieldsets = (
         (_('Stargramz info'), {'fields': ('stragramz_request', 'video_thumbnail', 'video_link', 'video')}),
-        (_('Video info'), {'fields': ('duration', 'featured', 'created_date',)}),
+        (_('Video info'), {'fields': ('duration', 'created_date',)}),
     )
     readonly_fields = ('created_date', 'video_thumbnail', 'video_link', 'status')
     search_fields = ('featured', 'stragramz_request', 'video')
+
+    def video_duration(self, obj):
+        return obj.duration.strftime("%H:%M:%S")
 
     def video_thumbnail(self, instance):
         """

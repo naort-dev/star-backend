@@ -71,10 +71,10 @@
         <li class="header">MAIN NAVIGATION</li>
         {% for app in apps %}
         <li class="treeview"><a href="#">
-        <i class="fa fa-dashboard"></i><span>
+        <i class="fa {{ app.icon }}"></i><span>
         {% trans app.name %}
         </span>
-            <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
+            <span class="pull-right-container"><i class="fa fa-angle-right pull-right"></i></span>
           </a>
         <ul class="treeview-menu">
         {% for model in app.models %}

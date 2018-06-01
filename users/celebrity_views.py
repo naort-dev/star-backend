@@ -1,11 +1,13 @@
 from django.template.loader import get_template
 from rest_framework.views import APIView
 from utilities.mixins import ResponseViewMixin
+from rest_framework.viewsets import GenericViewSet
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from .models import StargramzUser, Celebrity, UserRoleMapping, Role, CelebrityProfession
+from utilities.pagination import CustomOffsetPagination
+from .models import StargramzUser, Celebrity, UserRoleMapping, Role, CelebrityProfession, Campaign
 from config.models import Config
-from .serializer import CelebrityProfileSerializer, CelebrityProfessionSerializer
+from .serializer import CelebrityProfileSerializer, CelebrityProfessionSerializer, ReferralUserSerializer
 from utilities.utils import removefromdict, ROLES
 from utilities.permissions import CustomPermission
 from utilities.utils import SendMail
@@ -171,3 +173,66 @@ class NotifyAdmin(APIView, ResponseViewMixin):
         else:
             return self.jp_error_response('HTTP_502_BAD_GATEWAY', 'UNKNOWN_QUERY',
                                           'Email was not send due to temperory errors')
+
+
+class ReferralRequest(APIView, ResponseViewMixin):
+    """
+        Send email notification to admin to request the referral activation
+    """
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def post(self, request):
+        try:
+            user = StargramzUser.objects.get(username=request.user)
+
+            config_email = Config.objects.get(key='sender_email').value
+
+            ctx = {
+                'celebrity_name': user.get_short_name(),
+                'base_url': BASE_URL,
+            }
+
+            html_template = get_template('../templates/emails/referral_activation.html')
+            html_content = html_template.render(ctx)
+            mail_status = SendMail('Starsona Referral Activation', html_content, sender_email=config_email, to=config_email)
+            if mail_status:
+                return self.jp_response(s_code='HTTP_200_OK', data={'message': 'Successfully notified'})
+            else:
+                return self.jp_error_response('HTTP_502_BAD_GATEWAY', 'UNKNOWN_QUERY',
+                                              'Email was not send due to temperory errors')
+        except StargramzUser.DoesNotExist:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
+
+
+class ReferralList(GenericViewSet, ResponseViewMixin):
+    """
+        The list of celebrities and celebrity search
+    """
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+    pagination_class = CustomOffsetPagination
+    serializer_class = ReferralUserSerializer
+
+    def list(self, request):
+        user = StargramzUser.objects.get(username=request.user)
+        query_set = StargramzUser.objects.filter(refer_referee__referrer_id=user.id)
+        page = self.paginate_queryset(query_set)
+        serializer = self.get_serializer(page, many=True)
+        return self.paginator.get_paginated_response(serializer.data, key_name='referral_list')
+
+
+class ReferralValidate(APIView, ResponseViewMixin):
+    """
+        Validate the Referral promo code is valid with to celebrities
+    """
+    authentication_classes = ()
+    permission_classes = (CustomPermission,)
+
+    def post(self, request):
+        try:
+            referral_code = request.data.get('referral_code', None)
+            StargramzUser.objects.values_list('id', flat=True).get(referral_code=referral_code, referral_active=True)
+            return self.jp_response(s_code='HTTP_200_OK', data={'message': 'Valid promo code'})
+        except StargramzUser.DoesNotExist:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Invalid Promo code')

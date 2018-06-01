@@ -27,7 +27,7 @@ STATUS_TYPES = Konstants(
 )
 
 VIDEO_STATUS = Konstants(
-    K(pending=1, label='Pending'),
+    K(completed=1, label='Completed'),
     K(approved=2, label='Approved'),
     K(rejected=3, label='Rejected'),
     K(live_question=4, label='Live Question'),
@@ -201,7 +201,7 @@ class StargramVideo(models.Model):
     thumbnail = models.CharField('Thumbnail Image', max_length=600, null=True, blank=True)
     duration = models.TimeField('Duration', blank=True, null=True)
     read_status = models.BooleanField(default=False)
-    status = models.IntegerField(choices=VIDEO_STATUS.choices(), default=VIDEO_STATUS.pending)
+    status = models.IntegerField(choices=VIDEO_STATUS.choices(), default=VIDEO_STATUS.completed)
     featured = models.BooleanField(default=False)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
     modified_date = models.DateTimeField('Modified Date', auto_now=True)

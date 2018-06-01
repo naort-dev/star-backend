@@ -8,7 +8,7 @@ from users.models import StargramzUser, Celebrity
 from .serializer import EphemeralKeySerializer, ChargeSerializer, AttachDetachSourceSerializer, \
     StarsonaTransactionSerializer
 import stripe
-from .models import StarsonaTransaction, LogEvent, TRANSACTION_STATUS, PAYOUT_STATUS, StripeAccount
+from .models import StarsonaTransaction, LogEvent, TRANSACTION_STATUS, PAYOUT_STATUS, StripeAccount, PaymentPayout
 from stargramz.models import Stargramrequest, STATUS_TYPES
 from config.models import Config
 from django.db.models import Q
@@ -355,12 +355,18 @@ class EarningsList(GenericViewSet, ResponseViewMixin):
         except Celebrity.DoesNotExist:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', 'Not an celebrity User')
         # Filter with the celebrity and request status which is complete
-        celebrity_request_status_filter = {'celebrity_id': user.id, 'starsona__request_status': STATUS_TYPES.completed}
+        celebrity_request_status_filter = {
+            'celebrity_id': user.id,
+            'starsona__request_status': STATUS_TYPES.completed,
+            'transaction_payout__referral_payout': False
+        }
         # Filter all completed transactions captured
         completed_custom_filter = {'transaction_status': TRANSACTION_STATUS.captured}
         # Filter the transactions with paid_out completed
         paid_custom_filter = {'transaction_payout__status__in': [PAYOUT_STATUS.transferred,
-                                                                 PAYOUT_STATUS.check_transferred]}
+                                                                 PAYOUT_STATUS.check_transferred],
+                              'transaction_payout__referral_payout': False
+                              }
         query_set = StarsonaTransaction.objects.filter(**celebrity_request_status_filter)
 
         filter_by_status = request.GET.get("status")
@@ -377,6 +383,11 @@ class EarningsList(GenericViewSet, ResponseViewMixin):
         total_amount = int(completed_stasonas_amount['amount__sum']) if completed_stasonas_amount['amount__sum'] else 0
         pending_amount = int(pending_starsonas_amount['amount__sum']) if pending_starsonas_amount['amount__sum'] else 0
 
+        # Referral amount
+        users_amount = PaymentPayout.objects.filter(celebrity=user, referral_payout=True)\
+            .aggregate(payed_out=Sum('fund_payed_out'))
+        referral_payed_out = float(0 if not users_amount.get('payed_out', None) else users_amount.get('payed_out'))
+
         if filter_by_status:
             if filter_by_status == PENDING_TRANSACTIONS:
                 query_set = pending_starsonas
@@ -387,7 +398,7 @@ class EarningsList(GenericViewSet, ResponseViewMixin):
             paid_stasonas_transactions = paid_starsonas[:5]
             result['Paid'] = self.get_serializer(paid_stasonas_transactions, many=True).data
             result['Paid_amount'] = paid_amount
-            result['Total_amount'] = total_amount
+            result['Total_amount'] = total_amount + referral_payed_out
             pending_starsonas_transactions = pending_starsonas[:5]
             result['Pending'] = self.get_serializer(pending_starsonas_transactions, many=True).data
             result['Pending_amount'] = pending_amount

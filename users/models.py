@@ -6,11 +6,13 @@ from django.dispatch import receiver
 from django.db.models import F
 from role.models import Role
 from utilities.konstants import Konstants, K, ROLES, NOTIFICATION_TYPES as device_notify
+from .utils import generate_referral_unique_code
 from django.core.validators import MaxValueValidator, MinValueValidator
 from .constants import *
 from stargramz.models import Stargramrequest
 from .tasks import alert_fans_celebrity_available, alert_admin_celebrity_updates
 from django.apps import apps
+from django.db.models.signals import pre_save
 import datetime
 
 
@@ -111,6 +113,9 @@ class StargramzUser(AbstractBaseUser, PermissionsMixin):
     show_nick_name = models.BooleanField('Show Stage Name over legal name', default=False)
     completed_view_count = models.IntegerField('Completed videos count', default=0)
     order = models.IntegerField('list order', blank=True, null=True)
+    referral_active = models.BooleanField('Activate referral for this user', default=False)
+    referral_code = models.CharField('Referral Code', max_length=25, blank=True, null=True)
+    referral_campaign = models.ForeignKey('Campaign', blank=True, null=True, related_name='campaign')
 
     objects = StargramzUserManager()
 
@@ -143,7 +148,16 @@ class StargramzUser(AbstractBaseUser, PermissionsMixin):
             self.username = self.email
         if self.username:
             self.email = self.username
+
         super(StargramzUser, self).save(*args, **kwargs)
+
+
+def pre_save_generate_referral_code(sender, instance, *args, **kwargs):
+    if not instance.referral_code:
+        instance.referral_code = generate_referral_unique_code(instance)
+
+
+pre_save.connect(pre_save_generate_referral_code, sender=StargramzUser)
 
 
 class AdminUser(StargramzUser):
@@ -377,3 +391,27 @@ class CelebrityAvailableAlert(models.Model):
     fan = models.ForeignKey('StargramzUser', related_name='alert_fan')
     notification_send = models.BooleanField('Notification Send', default=False)
     created_date = models.DateTimeField(auto_now_add=True)
+
+
+class Campaign(models.Model):
+    title = models.CharField('Campaign Title', max_length=100)
+    description = models.CharField('Campaign Description', max_length=255)
+    discount = models.IntegerField('Referral revenue (%)', default=0)
+    enable_two_way = models.BooleanField('Enable two way rewards', default=False,
+                                         help_text="Referee can avail 100% revenue*")
+    valid_from = models.DateField('Campaign Valid from')
+    valid_till = models.DateField('Campaign Valid to')
+    valid_for_days = models.IntegerField('No of days referral can earn')
+    request_for_user = models.IntegerField('No of requests for which referred person can avail 100% revenue')
+    max_referral_amount = models.IntegerField('Maximum referral amount referrer can earn')
+    created_date = models.DateTimeField('Created Date', auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+
+class Referral(models.Model):
+    referrer = models.ForeignKey('StargramzUser', related_name='refer_referrer')
+    referee = models.ForeignKey('StargramzUser', related_name='refer_referee')
+    source = models.CharField('Source', max_length=100)
+    created_date = models.DateTimeField('Created Date', auto_now_add=True)

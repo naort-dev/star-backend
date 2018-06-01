@@ -11,7 +11,7 @@ from .constants import NOTIFICATION_REQUEST_FIVE_DAY_BODY, NOTIFICATION_REQUEST_
     REQUEST_CANCEL_COMMENT, NOTIICATION_AUTOMATIC_CANCEL_TITLE, NOTIICATION_AUTOMATIC_CANCEL_BODY
 from payments.tasks import create_request_refund
 from config.models import Config
-from utilities.utils import SendMail
+from utilities.utils import SendMail, generate_branch_io_url
 from django.template.loader import get_template
 from job.tasks import notify_email
 from hashids import Hashids
@@ -63,13 +63,20 @@ def cancel_starsona_celebrity_no_response():
         subject = "We're so sorry!"
         sender_email = Config.objects.get(key='sender_email').value
         base_url = Config.objects.get(key='base_url').value
+
         ctx = {
             'base_url': base_url,
             'celebrity_name': request.celebrity.get_short_name(),
             'fan_name': request.fan.get_short_name(),
-            'id': hashids.encode(request.celebrity.id)
+            'id': hashids.encode(request.celebrity.id),
+            'app_url': generate_branch_io_url(
+                title="%s was unable to fulfill your booking request" % request.celebrity.get_short_name(),
+                desc="%s was unable to fulfill your booking request." % request.celebrity.get_short_name(),
+                mob_url='profile/?profile_id=%s' % hashids.encode(request.celebrity.id),
+                desktop_url='%s/applinks/profile/%s' % (base_url, hashids.encode(request.celebrity.id)),
+                image_url='%s/media/web-images/starsona_logo.png' % base_url,
+            )
         }
-
         html_template = get_template('../templates/emails/request_cancellation_expiry.html')
         html_content = html_template.render(ctx)
 

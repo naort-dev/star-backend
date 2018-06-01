@@ -78,7 +78,7 @@ def alert_admin_celebrity_updates(celebrity_id, type_id):
                                'Thanks,<br/>The Starsona Team' % celebrity.user.get_short_name(),
                      }
     subject = email_content['subject_%s' % type_id]
-    receiver_email = celebrity.user.email if type_id == 3 else admin_email
+    receiver_email = admin_email
 
     ctx = {
         'base_url': base_url,

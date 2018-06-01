@@ -99,7 +99,7 @@ class CelebrityList(GenericViewSet, ResponseViewMixin):
             else:
                 query_set = query_set.order_by(*sort_list)
         else:
-            query_set = query_set.order_by('order', 'celebrity_user__created_date')
+            query_set = query_set.order_by('order', '-celebrity_user__view_count', 'celebrity_user__created_date')
 
         page = self.paginate_queryset(query_set.distinct())
         serializer = self.get_serializer(page, many=True)
@@ -305,6 +305,8 @@ class CelebritySuggestionList(APIView, ResponseViewMixin):
         min_rate = request.GET.get('lrate') if request.GET.get('lrate') else MIN_RATE
         max_rate = request.GET.get('urate') if request.GET.get('urate') else MAX_RATE
         available = request.GET.get('available')
+        if float(max_rate) >= 500:
+            max_rate = 100000
 
         query_set = StargramzUser.objects.filter(celebrity_user__admin_approval=True,
                                                  celebrity_user__rate__range=(min_rate, max_rate))
@@ -317,6 +319,6 @@ class CelebritySuggestionList(APIView, ResponseViewMixin):
                 query_set = query_set.filter(Q(first_name__icontains=term) |
                                              Q(last_name__icontains=term) |
                                              Q(nick_name__icontains=term))
-        query_set = query_set[:10]
+        # query_set = query_set[:10]
         data = SuggestionSerializer(query_set, many=True).data
         return self.jp_response('HTTP_200_OK', data={"suggestion_list": data})

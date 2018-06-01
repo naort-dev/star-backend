@@ -9,8 +9,7 @@ from utilities.konstants import INPUT_DATE_FORMAT, OUTPUT_DATE_FORMAT, ROLES
 from config.models import Config
 from config.constants import *
 from .models import StargramzUser, SIGN_UP_SOURCE_CHOICES, Celebrity, Profession, UserRoleMapping, ProfileImage, \
-    CelebrityAbuse, CelebrityProfession, CelebrityFollow, DeviceTokens, SettingsNotifications, FanRating, \
-    Stargramrequest
+    CelebrityAbuse, CelebrityProfession, CelebrityFollow, DeviceTokens, SettingsNotifications, FanRating, Referral
 from .impersonators import IMPERSONATOR
 from role.models import Role
 from datetime import datetime, timedelta
@@ -23,9 +22,10 @@ import re
 from utilities.permissions import CustomValidationError, error_function
 from rest_framework import status
 from stargramz.models import Stargramrequest, STATUS_TYPES
-from django.db.models import Q
+from django.db.models import Q, Sum
 from utilities.constants import BASE_URL
 from .tasks import welcome_email
+from payments.models import PaymentPayout
 
 
 class ProfilePictureSerializer(serializers.ModelSerializer):
@@ -75,12 +75,14 @@ class RegisterSerializer(serializers.ModelSerializer):
     avatar_photo = ProfilePictureSerializer(read_only=True)
     show_nick_name = serializers.BooleanField(read_only=True)
     completed_fan_unseen_count = serializers.IntegerField(read_only=True, source="completed_view_count")
+    referral_code = serializers.CharField(required=False, allow_blank=True, write_only=True)
+    promo_code = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = StargramzUser
         fields = ('first_name', 'last_name', 'nick_name', 'id', 'email', 'password', 'date_of_birth',
                   'authentication_token', 'status', 'sign_up_source', 'role_details', 'images', 'profile_photo',
-                  'role', 'avatar_photo', 'show_nick_name', 'completed_fan_unseen_count')
+                  'role', 'avatar_photo', 'show_nick_name', 'completed_fan_unseen_count', 'referral_code', 'promo_code')
         depth = 1
 
     def validate(self, data):
@@ -99,6 +101,9 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return data
 
+    def get_promo_code(self, obj):
+        return obj.referral_code if obj.referral_active and obj.referral_campaign else None
+
     def create(self, validated_data):
         email = validated_data.get('email')
         password = validated_data.get('password')
@@ -107,6 +112,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         nick_name = validated_data.get('nick_name')
         dob = validated_data.get('date_of_birth', '')
         roles = validated_data.get('role', '')
+        referral_code = validated_data.get('referral_code', '')
+
         try:
             user = StargramzUser.objects.create(username=email, email=email, nick_name=nick_name,
                                                 first_name=first_name, last_name=last_name)
@@ -134,6 +141,9 @@ class RegisterSerializer(serializers.ModelSerializer):
             old_user_roles = UserRoleMapping.objects.filter(user=user).exclude(id=user_role.id)
             old_user_roles.delete()
 
+            # Referral Program
+            create_referral(referral_code=referral_code, user=user)
+
             user = authenticate(username=email, password=password)
             (token, created) = Token.objects.get_or_create(user=user)  # token.key has the key
             user.authentication_token = token.key
@@ -145,6 +155,20 @@ class RegisterSerializer(serializers.ModelSerializer):
             except Exception:
                 pass
             raise serializers.ValidationError(str(e))
+
+
+def create_referral(referral_code, user):
+    """
+        Links the referrer and referee
+    """
+    if referral_code:
+        try:
+            referrer_id = StargramzUser.objects.values_list('id', flat=True) \
+                .get(referral_code=referral_code, referral_active=True)
+            Referral.objects.create(referrer_id=referrer_id, referee=user, source="branch.io")
+        except StargramzUser.DoesNotExist:
+            pass
+    return True
 
 
 class LoginSerializer(serializers.ModelSerializer):
@@ -205,7 +229,7 @@ class SocialSignupSerializer(serializers.ModelSerializer):
         model = StargramzUser
         fields = ('first_name', 'last_name', 'id', 'email', 'username', 'date_of_birth', 'authentication_token',
                   'sign_up_source', 'role_details', 'profile_photo', 'nick_name', 'fb_id', 'gp_id', 'in_id', 'role',
-                  'avatar_photo', 'show_nick_name', 'completed_fan_unseen_count')
+                  'avatar_photo', 'show_nick_name', 'completed_fan_unseen_count', 'referral_code')
 
     def validate(self, data):
         errors = dict()
@@ -231,6 +255,7 @@ class SocialSignupSerializer(serializers.ModelSerializer):
         gp_id = validated_data.get('gp_id')
         in_id = validated_data.get('in_id')
         roles = validated_data.get('role', '')
+        referral_code = validated_data.get('referral_code', '')
         try:
             if sign_up_source == SIGN_UP_SOURCE_CHOICES.facebook and fb_id:
                 user = StargramzUser.objects.get(Q(fb_id=fb_id) | Q(username=email))
@@ -275,8 +300,7 @@ class SocialSignupSerializer(serializers.ModelSerializer):
                 if role.code == ROLES.fan:
                     is_complete = True
 
-
-
+                create_referral(referral_code=referral_code, user=user)
                 user_role, created = UserRoleMapping.objects.get_or_create(user=user, role=role,
                                                                            is_complete=is_complete)
                 if is_complete:
@@ -635,3 +659,30 @@ class RoleUpdateSerializer(serializers.Serializer):
     class Meta:
         model = UserRoleMapping
         fields = ('role', 'role_details')
+
+
+class ReferralUserSerializer(serializers.ModelSerializer):
+    celebrity_profession = CelebrityProfessionSerializer(read_only=True, many=True)
+    avatar_photo = ProfilePictureSerializer(read_only=True)
+    show_nick_name = serializers.BooleanField(read_only=True)
+    referral_amounts = serializers.SerializerMethodField(read_only=True, required=False)
+
+    def get_referral_amounts(self, obj):
+        users_amount = PaymentPayout.objects.filter(transaction__celebrity_id=obj.id, referral_payout=True)\
+            .aggregate(payed_out=Sum('fund_payed_out'))
+
+        return float(0 if not users_amount.get('payed_out', None) else users_amount.get('payed_out')).__format__('.2f')
+
+    class Meta:
+        model = StargramzUser
+        fields = ('id', 'first_name', 'last_name', 'nick_name', 'celebrity_profession',
+                  'avatar_photo', 'show_nick_name', 'referral_amounts')
+
+
+class ValidateSocialSignupSerializer(serializers.Serializer):
+    signup_source = serializers.ChoiceField(choices=SIGN_UP_SOURCE_CHOICES.choices(), required=True, write_only=True)
+    social_id = serializers.CharField(required=True, write_only=True)
+    email = serializers.EmailField(required=False, write_only=True, allow_blank=True)
+
+    class Meta:
+        fields = ('sign_up_source', 'social_id', 'email')

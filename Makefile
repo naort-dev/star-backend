@@ -10,14 +10,18 @@ ifndef env
 	$(error env is undefined "make env=dev setup")
 endif
 
-	#Removing the files
+	# Removing the files
+	#rm -rf main/settings/credentials.py
 	rm -rf .well-known/apple-app-site-association
+	#rm -rf payments/constants.py
 	rm -rf templates/home/apps.html
 	rm -rf config/fixtures/config.json
 	rm -rf utilities/constants.py
 
 	# Copying the file based on environment
+	#cp main/settings/credentials.py.$(env) main/settings/credentials.py
 	cp .well-known/apple-app-site-association.$(env) .well-known/apple-app-site-association
+	#cp payments/constants.py.$(env) payments/constants.py
 	cp templates/home/apps.html.$(env) templates/home/apps.html
 	cp config/fixtures/config.json.$(env) config/fixtures/config.json
 	cp utilities/constants.py.$(env) utilities/constants.py

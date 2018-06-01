@@ -79,6 +79,7 @@ class PaymentPayout(models.Model):
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
     modified_date = models.DateTimeField('Modified Date', auto_now=True)
     comments = models.TextField('Comments', max_length=200, blank=True)
+    referral_payout = models.BooleanField('Referral Payout', default=False)
 
     def __str__(self):
         return str(self.pk)

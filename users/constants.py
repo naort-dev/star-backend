@@ -9,7 +9,7 @@ FIRST_NAME_ERROR_CODE = 312
 SORT = {'lpf': 'celebrity_user__rate',
         'hpf': '-celebrity_user__rate',
         'sr': '-celebrity_user__rating',
-        'featured': 'order,-celebrity_user__view_count',
+        'featured': 'order,-celebrity_user__view_count,celebrity_user__created_date',
         'az': 'search_name',
         'za': '-search_name'
         }

@@ -802,7 +802,6 @@ def profile_detail(request, user_id):
     """
         Get the web view for Profile details
     """
-
     try:
         profile_id = int(hashids.decode(user_id)[0])
     except Exception as e:
@@ -834,11 +833,8 @@ def profile_detail(request, user_id):
                            (profile.get("user__first_name"), profile.get("user__last_name")),
             "image": get_pre_signed_get_url(picture.get('thumbnail'), config.value, 1314000),
             "url": "%sapplinks/profile/%s" % (BASE_URL, user_id),
-            "title": "%s %s %s" % (
-                profile.get("user__first_name"),
-                profile.get("user__last_name"),
-                profile.get("user__nick_name")
-                )
+            "title": "%s" % (profile.get("user__first_name")+' '+profile.get("user__last_name") if not profile.get("user__nick_name", None)
+                             else profile.get("user__nick_name", None))
             }
 
     except Celebrity.DoesNotExist:

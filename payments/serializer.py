@@ -24,7 +24,7 @@ class AttachDetachSourceSerializer(serializers.Serializer):
 
 class StarsonaTransactionSerializer(serializers.ModelSerializer):
     starsona = TransactionStargramzSerializer(read_only=True)
-    amount = serializers.IntegerField(read_only=True)
+    amount = serializers.DecimalField(read_only=True, max_digits=7, decimal_places=2)
     id = serializers.CharField(read_only=True, source='order_id')
 
     class Meta:

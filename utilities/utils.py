@@ -5,6 +5,8 @@ from users.models import UserRoleMapping
 from utilities.konstants import ROLES
 import string
 import random
+import requests
+import json
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 from django.core.mail import send_mail
@@ -78,8 +80,8 @@ def get_pre_signed_post_url(filename, expires, expiry=3600, private=False):
     """
         Get Pre Signed url to upload a file.
     """
-    s3 = boto3.client('s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+    s3 = boto3.client('s3', aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+                      aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
 
     if private:
         acl = 'private'
@@ -109,7 +111,7 @@ def get_pre_signed_post_url(filename, expires, expiry=3600, private=False):
     ]
 
     post = s3.generate_presigned_post(
-        Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+        Bucket=os.environ.get('AWS_STORAGE_BUCKET_NAME'),
         Key=filename,
         Fields=fields,
         Conditions=conditions,
@@ -122,12 +124,12 @@ def get_pre_signed_get_url(filename, folder, expires_in=3600):
     """
         Get pre signed url to download a file.
     """
-    s3 = boto3.client('s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+    s3 = boto3.client('s3', aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+                      aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
     url = s3.generate_presigned_url(
         ClientMethod='get_object',
         Params={
-            'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
+            'Bucket': os.environ.get('AWS_STORAGE_BUCKET_NAME'),
             'Key': folder+filename
         },
         ExpiresIn=expires_in
@@ -139,9 +141,9 @@ def upload_image_s3(path, filename):
     """
         Upload the file to s3 server
     """
-    s3 = boto3.client('s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
-    s3.upload_file(path, settings.AWS_STORAGE_BUCKET_NAME, filename)
+    s3 = boto3.client('s3', aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+                      aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
+    s3.upload_file(path, os.environ.get('AWS_STORAGE_BUCKET_NAME'), filename)
 
 
 def generate_password(size=8, chars=string.ascii_uppercase + string.ascii_lowercase + string.digits):
@@ -362,3 +364,43 @@ def sent_email(to_email, subject, template, ctx):
         return SendMail(subject, html_content, sender_email=sender_email, to=to_email)
     except Exception as e:
         print(str(e))
+
+
+def generate_branch_io_url(mob_url='', title='', desc='', image_url='', desktop_url=''):
+    """
+        Generate url to track via branch io
+
+        :param mob_url: URL used to navigate to profile in Mobile app
+        :param title: Title of the page for Social media sharing
+        :param desc: Description of page for Social media sharing
+        :param image_url: Image URL of the page for Social media sharing
+        :param desktop_url: Desktop URL top navigate for desktop clients
+        :return: URL
+    """
+    headers = {'Content-Type': 'application/json'}
+    links = mob_url.split("/") if len(mob_url) > 1 else ''
+    payload = {
+        'branch_key': os.environ.get('BRANCH_IO_KEY'),
+        'data': {
+            '$deeplink_path': mob_url,
+            '$canonical_identifier': mob_url,
+            '$canonical_url': desktop_url,
+            '$ios_deeplink_path': mob_url,
+            '$android_deeplink_path': mob_url,
+            '$og_title': title,
+            '$og_description': desc,
+            '$og_image_url': image_url,
+            '$desktop_url': desktop_url,
+            'nav_to': links[0] if links[0] else '',
+
+        }
+    }
+
+    url = 'https://api.branch.io/v1/url'
+    try:
+        data = json.dumps(payload)
+        response = requests.post(url=url, data=data, headers=headers)
+        return_data = response.json()
+        return return_data['url']
+    except Exception:
+        return desktop_url

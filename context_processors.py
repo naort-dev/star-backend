@@ -19,6 +19,19 @@ def app_list(request):
     """
         Get all models and add them to the context apps variable.
     """
+
+    icons = {
+        'role': 'fa-user-secret',
+        'authtoken': 'fa-th-list',
+        'users': 'fa-users',
+        'config': 'fa-wrench',
+        'promocode': 'fa-bell',
+        'payments': 'fa-credit-card',
+        'fcm_django': 'fa-flag',
+        'news': 'fa-newspaper-o',
+        'stargramz': 'fa-random',
+        'notification': 'fa-commenting-o'
+    }
     user = request.user
     app_dict = {}
     admin_class = ModelAdmin
@@ -43,7 +56,8 @@ def app_list(request):
                     app_dict[app_label]['models'].append(model_dict)
                 else:
                     app_dict[app_label] = {
-                        'name': app_label.title(),
+                        'icon': icons[app_label] if app_label in icons else 'fa-dashboard',
+                        'name': model._meta.app_config.verbose_name,
                         'app_url': app_label + '/',
                         'has_module_perms': has_module_perms,
                         'models': [model_dict],

@@ -89,13 +89,13 @@ class WidgetView(APIView, ResponseViewMixin):
 
             rows = []
             with connection.cursor() as cursor:
-                cursor.execute("select to_char(created_date,'Mon') AS month,"
+                cursor.execute("select date_trunc('month', created_date) AS month,"
                                " sum(case when request_status = 6 then 1 else 0 end) completed,"
                                " sum(case when request_status = 5 then 1 else 0 end) cancelled"
                                " from stargramz_stargramrequest where created_date <= '%s' "
-                               "group by month "
-                               "order by month ASC LIMIT 3" % dates)
+                               "group by 1 order by 1 DESC LIMIT 3" % dates)
                 rows = cursor.fetchall()
+                rows[:] = [[datetime.date(row[0]).strftime('%B'), row[1], row[2]] for row in reversed(rows)]
 
             rows = [['Month', 'Completed', 'Cancelled']] + rows
 

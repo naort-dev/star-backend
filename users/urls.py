@@ -2,11 +2,11 @@ from django.conf.urls import url, include
 from rest_framework.routers import DefaultRouter
 from users.authenticate_views import UserRegister, UserLogin, EmailValidate, SocialSignup, ForgotPassword, \
     ResetPassword, Professions, ProfileImages, UserDetails, UserLogout, RemoveProfileImage, ChangePassword, \
-    DeviceToken, NotificationSettings, ContactSupport, RoleUpdate, UpdateNotificationBadge, AlertFan
-from users.celebrity_views import CelebrityManagement
+    DeviceToken, NotificationSettings, ContactSupport, RoleUpdate, UpdateNotificationBadge, AlertFan, \
+    ValidateSocialSignup
 from .fan_views import CelebrityList, ApproveFan, CelebrityRate, CelebrityProfileFollow, CelebrityFanAbuse, \
     CelebritySuggestionList, FanFavouriteStars
-from .celebrity_views import NotifyAdmin
+from .celebrity_views import CelebrityManagement, NotifyAdmin, ReferralRequest, ReferralList, ReferralValidate
 
 router = DefaultRouter()
 
@@ -36,11 +36,15 @@ urlpatterns = [
     url(r'^role_update/$', RoleUpdate.as_view(), name='update-role'),
     url(r'^update_notification_badge/$', UpdateNotificationBadge.as_view(), name='update-notification-badge-number'),
     url(r'^alert_fan/$', AlertFan.as_view(), name='alert fan when celebrity available'),
+    url(r'^referral_request/$', ReferralRequest.as_view(), name='referral-request'),
+    url(r'^referral_validate/$', ReferralValidate.as_view(), name='referral-validate'),
+    url(r'^social_signup_validate/$', ValidateSocialSignup.as_view(), name='social-signup-validate'),
 ]
 
 router = DefaultRouter()
 router.register(r'user_details', UserDetails, base_name='user_details')
 router.register(r'fan/celebrity_list', CelebrityList, base_name='celebrity_list')
 router.register(r'fan/favourite_stars', FanFavouriteStars, base_name='Fan Favourite Stars')
+router.register(r'referral_list', ReferralList, base_name='Referral List')
 
 urlpatterns = router.urls + urlpatterns

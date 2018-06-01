@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import admin
 from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profession, \
-    UserRoleMapping, Celebrity, CelebrityProfession, SettingsNotifications, FanRating
+    UserRoleMapping, Celebrity, CelebrityProfession, SettingsNotifications, FanRating, Campaign, Referral
 from role.models import Role
 from payments.models import PaymentPayout
 from utilities.konstants import ROLES
@@ -15,7 +15,7 @@ from django.utils.safestring import mark_safe
 class PayoutsTabular(admin.TabularInline):
     model = PaymentPayout
     fields = ('id', 'request_name', 'status', 'fan_charged', 'starsona_company_charges',
-              'fund_payed_out', 'comments')
+              'fund_payed_out', 'comments', 'referral_payout')
     verbose_name_plural = 'Payouts'
     can_delete = False
     max_num = 25
@@ -41,6 +41,22 @@ class RoleInline(admin.StackedInline):
     max_num = 1
     verbose_name_plural = 'User role'
     can_delete = False
+
+
+class ReferralTabular(admin.TabularInline):
+    model = Referral
+    fields = ('id', 'referee', 'created_date')
+    verbose_name_plural = 'Referrals'
+    can_delete = True
+    max_num = 25
+    extra = 0
+    min_num = 0
+    fk_name = 'referrer'
+    readonly_fields = ('id', 'referee', 'created_date',)
+
+    def has_add_permission(self, request):
+
+        return False
 
 
 class NotificationSettingInline(admin.StackedInline):
@@ -207,6 +223,7 @@ class CelebrityUsersAdmin(UserAdmin):
         (None, {'fields': ('email', 'username', 'password')}),
         (_('Personal info'), {'fields': ('first_name', 'last_name', 'nick_name', 'phone', 'date_of_birth',
                                          'show_nick_name', 'order')}),
+        (_('Referral Details'), {'fields': ('referral_active', 'referral_code', 'referral_campaign')}),
         (_('Important dates'), {'fields': ('last_login', 'created_date', 'modified_date',)}),
         (_('Payments'), {'fields': ('stripe_customer_id',)}),
         (_('Images'), {'fields': ('profile_images',)}),
@@ -220,9 +237,11 @@ class CelebrityUsersAdmin(UserAdmin):
         }),
     )
     ordering = ('email',)
-    readonly_fields = ('created_date', 'modified_date', 'profile_images', 'profile_video', 'stripe_customer_id')
+    readonly_fields = ('created_date', 'modified_date', 'profile_images', 'profile_video',
+                       'stripe_customer_id',)
     list_per_page = 10
-    inlines = [RoleInline, CelebrityInline, ProfessionInline, NotificationSettingInline, PayoutsTabular, RatingInline]
+    inlines = [RoleInline, CelebrityInline, ProfessionInline, NotificationSettingInline, PayoutsTabular,
+               RatingInline, ReferralTabular]
     ordering = ['-id', ]
 
     def profile_images(self, instance):
@@ -272,9 +291,25 @@ class RatingAdmin(admin.ModelAdmin):
     ordering = ['id', ]
 
 
+class CampaignAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'discount', 'created_date')
+
+    list_per_page = 10
+    ordering = ['-id', ]
+
+    def get_fieldsets(self, request, obj=None):
+        fields = ('title', 'description', 'valid_from', 'valid_till', 'discount', 'max_referral_amount',
+                  'valid_for_days', 'enable_two_way', 'request_for_user',)
+        fieldsets = (
+            ('Campaigns', {'fields': fields}),
+        )
+        return fieldsets
+
+
 admin.site.register(Profession, ProfessionAdmin)
 admin.site.register(StargramzUser, StargramzUserAdmin)
 admin.site.register(AdminUser, AdminUsersAdmin)
 admin.site.register(FanUser, FanUsersAdmin)
 admin.site.register(CelebrityUser, CelebrityUsersAdmin)
 admin.site.register(FanRating, RatingAdmin)
+admin.site.register(Campaign, CampaignAdmin)

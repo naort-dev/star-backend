@@ -1,4 +1,5 @@
 from moviepy.editor import *
+from moviepy import *
 from moviepy.video.fx.resize import resize
 from moviepy.video.compositing.transitions import slide_in
 from stargramz.models import Stargramrequest, StargramVideo, STATUS_TYPES, Occasion, REQUEST_TYPES, VIDEO_STATUS
@@ -12,9 +13,10 @@ import os
 from PIL import Image, ExifTags
 from django.conf import settings
 from django.template.loader import get_template
-from users.models import ProfileImage, Celebrity, StargramzUser
+from users.models import ProfileImage, Celebrity, StargramzUser, Campaign
 from config.models import Config
-from utilities.utils import get_pre_signed_get_url, upload_image_s3, SendMail, verify_user_for_notifications
+from utilities.utils import get_pre_signed_get_url, upload_image_s3, SendMail, verify_user_for_notifications,\
+    generate_branch_io_url
 import urllib.request
 from datetime import datetime, timedelta
 import imageio
@@ -27,6 +29,20 @@ imageio.plugins.ffmpeg.download()
 hashids = Hashids(min_length=8)
 size = (300, 300)
 video_thumb_size = (400, 400)
+
+
+def video_rotation(video):
+    """
+        Rotate the video based on orientation
+    """
+    rotation = video.rotation
+    if rotation == 90:  # If video is in portrait
+        video = vfx.rotate(video, -90)
+    elif rotation == 270:  # Moviepy can only cope with 90, -90, and 180 degree turns
+        video = vfx.rotate(video, 90)  # Moviepy can only cope with 90, -90, and 180 degree turns
+    elif rotation == 180:
+        video = vfx.rotate(video, 180)
+    return video
 
 
 @app.task
@@ -139,20 +155,6 @@ def generate_video_thumbnail():
                 video_thumbnail_name = name+"_sg_thumbnail.jpg"
                 video_thumb = your_media_root + video_thumbnail_name
 
-                try:
-                    # Creating the image thumbnail from the video
-                    clip = VideoFileClip(video_original)
-                    if clip.rotation > 0:
-                        clip = clip.resize(clip.size[::-1])
-                        clip.rotation = 0
-                    clip.save_frame(video_thumb, t=0.00)
-                    width, height = clip.size
-
-                    duration = clip.duration
-                except Exception as e:
-                    print(str(e))
-                    continue
-
                 if request_video.visibility:
                     # Creating a water mark for video
                     if watermark_videos(video_original, name, your_media_root):
@@ -161,7 +163,7 @@ def generate_video_thumbnail():
                                 try:
                                     # Upload the video to s3
                                     upload_image_s3(watermark_location + "%s.mp4" % name, s3folder + "%s.mp4" % name)
-                                    video_original = delete_water_mark_video = watermark_location + "%s.mp4" % name
+                                    delete_water_mark_video = watermark_location + "%s.mp4" % name
                                     delete_logo = watermark_location + "%s_star.png" % name
                                     print('Uploaded Video to S3')
                                 except Exception as e:
@@ -173,6 +175,21 @@ def generate_video_thumbnail():
                     else:
                         print('watermark videos creation failed')
 
+                try:
+                    # Creating the image thumbnail from the video
+                    clip = VideoFileClip(video_original)
+                    print("Video rotation in video file clip %d" % clip.rotation)
+                    # clip = video_rotation(clip)
+                    # if clip.rotation > 0:
+                    #     clip = clip.resize(clip.size[::-1])
+                    #     clip.rotation = 0
+                    clip.save_frame(video_thumb, t=0.00)
+                    width, height = clip.size
+
+                    duration = clip.duration
+                except Exception as e:
+                    print(str(e))
+                    continue
                 m, s = divmod(duration, 60)
                 h, m = divmod(m, 60)
                 total_duration = "%02d:%02d:%02d" % (h, m, s)
@@ -189,7 +206,7 @@ def generate_video_thumbnail():
                 im.save(video_thumb, quality=99, optimize=True)
 
                 try:
-                # Upload the thumbnail image to s3
+                    # Upload the thumbnail image to s3
                     upload_image_s3(video_thumb, s3folder+video_thumbnail_name)
                 except Exception as e:
                     print('Upload failed with reason %s', str(e))
@@ -238,8 +255,8 @@ def delete_unwanted_files():
     return True
     delete_photo_keys = {'Objects': []}
     delete_video_keys = {'Objects': []}
-    s3 = boto3.client('s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+    s3 = boto3.client('s3', aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+                      aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
 
     # For deleting profile image and thumbnail files from S3 Bucket
     profile_image_prefix = Config.objects.get(key="profile_images")
@@ -260,7 +277,7 @@ def delete_unwanted_files():
         list_keys.remove(profile_image_prefix.value + 'profile.png')
         print(str(len(list_keys)) + ' Files deleted')
         delete_photo_keys['Objects'] = [{'Key': k} for k in list_keys]
-        s3.delete_objects(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Delete=delete_photo_keys)
+        s3.delete_objects(Bucket=os.environ.get('AWS_STORAGE_BUCKET_NAME'), Delete=delete_photo_keys)
 
     # For deleting authentication video files from S3 Bucket
     authenticate_video_prefix = Config.objects.get(key="authentication_videos")
@@ -273,17 +290,17 @@ def delete_unwanted_files():
         if field_names:
             print(str(len(field_names)) +' Files deleted')
             delete_video_keys['Objects'] = [{'Key': k} for k in field_names]
-            s3.delete_objects(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Delete=delete_video_keys)
+            s3.delete_objects(Bucket=os.environ.get('AWS_STORAGE_BUCKET_NAME'), Delete=delete_video_keys)
 
 
 def get_bucket_objects(prefix):
     """
         To get the list of all objects in a folder
     """
-    s3 = boto3.client('s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                      aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+    s3 = boto3.client('s3', aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+                      aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
     bucket_object_keys = []
-    all_objects = s3.list_objects(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Delimiter='/', Prefix=prefix)
+    all_objects = s3.list_objects(Bucket=os.environ.get('AWS_STORAGE_BUCKET_NAME'), Delimiter='/', Prefix=prefix)
     if len(all_objects['Contents']) > 1:
         for folder_objects in all_objects['Contents']:
             bucket_object_keys.append(folder_objects['Key'])
@@ -331,9 +348,9 @@ def check_file_exist_in_s3(file):
         Method to check the image is available in s3 bucket
     """
     try:
-        s3 = boto3.client('s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                          aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
-        s3.head_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=file)
+        s3 = boto3.client('s3', aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+                          aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
+        s3.head_object(Bucket=os.environ.get('AWS_STORAGE_BUCKET_NAME'), Key=file)
     except ClientError as e:
         print(str(e))
         return False
@@ -347,34 +364,41 @@ def create_payout_records():
         Creating the records for processing the fund transfer for completed requests
     """
     print('Creating monthly payouts.')
-    records = StarsonaTransaction.objects.filter(
-        transaction_status=TRANSACTION_STATUS.captured,
-        starsona__request_status=STATUS_TYPES.completed,
-    ).exclude(transaction_payout__status__in=PAYOUT_STATUS.get_key_values())
-    for record in records:
-        try:
-            user = StargramzUser.objects.get(id=record.celebrity_id)
-        except Exception as e:
-            break
-        if int(record.amount) > 0:
-            field_defaults = {
-                'celebrity': user,
-                'fan_charged': float(round(record.amount, 2)),
-                'stripe_processing_fees': 0,
-                'starsona_company_charges': float(record.amount)*(25.0/100.0),
-                'fund_payed_out': float(record.amount)*(75.0/100.0),
-                'status': PAYOUT_STATUS.check_pending if user.celebrity_user.check_payments else PAYOUT_STATUS.pending
-            }
-            PaymentPayout.objects.update_or_create(
-                transaction_id=record.id,
-                defaults=field_defaults
-            )
-        else:
-            print('Payout Amount must be greater than zero')
+    while 1:
+        records = StarsonaTransaction.objects.filter(
+            transaction_status=TRANSACTION_STATUS.captured,
+            starsona__request_status=STATUS_TYPES.completed,
+        ).exclude(transaction_payout__status__in=PAYOUT_STATUS.get_key_values())[:1]
 
-    send_payout.apply_async(eta=datetime.utcnow() + timedelta(minutes=3))
-    print('Succesfully added %d records for processing' % records.count())
-    return True
+        for record in records:
+            try:
+                user = StargramzUser.objects.get(id=record.celebrity_id)
+            except Exception as e:
+                break
+            if int(record.amount) > 0:
+                referee_discount = verify_referee_discount(record.celebrity_id)
+                print("Referee discount is %d" % referee_discount)
+
+                field_defaults = {
+                    'celebrity': user,
+                    'fan_charged': float(round(record.amount, 2)),
+                    'stripe_processing_fees': 0,
+                    'starsona_company_charges': 0.00 if referee_discount == 100 else float(record.amount)*(25.0/100.0),
+                    'fund_payed_out': float(record.amount)*(referee_discount/100.0),
+                    'status': PAYOUT_STATUS.check_pending if user.celebrity_user.check_payments else PAYOUT_STATUS.pending
+                }
+                PaymentPayout.objects.update_or_create(
+                    transaction_id=record.id,
+                    defaults=field_defaults
+                )
+                create_referral_payouts(record)
+            else:
+                print('Payout Amount must be greater than zero')
+
+        if not records:
+            send_payout.apply_async(eta=datetime.utcnow() + timedelta(minutes=3))
+            print('Succesfully added %d records for processing' % records.count())
+            break
 
 
 def calculate_avg_sum(model_obj, field):
@@ -386,6 +410,78 @@ def checking_the_amount_dispatched(amount, allowable_amount):
     if amount < allowable_amount:
         return True
     return False
+
+
+def verify_referee_discount(celebrity_id):
+    """
+        Verify the user has referee discounts
+    """
+    default_discount = 75.0
+
+    try:
+        referral_user = StargramzUser.objects.get(refer_referrer__referee_id=celebrity_id)
+    except Exception:
+        return default_discount
+
+    try:
+        campaign = Campaign.objects.get(id=referral_user.referral_campaign_id)
+    except Exception:
+        return default_discount
+
+    celebrity = StargramzUser.objects.get(id=celebrity_id)
+    paid_requests = PaymentPayout.objects.filter(celebrity=celebrity).count()
+
+    if datetime.now().date() < campaign.valid_till \
+            and campaign.request_for_user > paid_requests\
+            and campaign.enable_two_way:
+        return 100.0
+    else:
+        return default_discount
+
+
+def create_referral_payouts(record):
+    """
+    Create payout for referral users
+    :param record:
+    :return:
+    """
+    try:
+        referral_user = StargramzUser.objects.get(refer_referrer__referee_id=record.celebrity_id)
+    except Exception:
+        return True
+
+    if referral_user and referral_user.referral_active:
+        try:
+            campaign = Campaign.objects.get(id=referral_user.referral_campaign_id)
+        except Exception:
+            return True
+
+        users_amount = PaymentPayout.objects.filter(celebrity=referral_user, referral_payout=True) \
+            .aggregate(payed_out=Sum('fund_payed_out'))
+        referral_payed_out = float(0 if not users_amount.get('payed_out', None) else users_amount.get('payed_out'))
+
+        # validate campaign
+        if datetime.now().date() < campaign.valid_till and float(referral_payed_out) <= float(campaign.max_referral_amount):
+            referral_amount = float(record.amount) * (75.0 / 100.0) * (int(campaign.discount)/100)
+            amount = referral_payed_out + float(referral_amount)
+
+            if amount > campaign.max_referral_amount:
+                referral_amount = float(campaign.max_referral_amount) - referral_payed_out
+
+            if referral_amount > 0:
+                PaymentPayout.objects.create(
+                    transaction_id=record.id,
+                    celebrity=referral_user,
+                    fan_charged=float(round(record.amount, 2)),
+                    stripe_processing_fees=0,
+                    starsona_company_charges=0.00,
+                    fund_payed_out=float(referral_amount),
+                    referral_payout=True,
+                    comments="Referral amount from %s" % record.celebrity.get_short_name(),
+                    status=PAYOUT_STATUS.check_pending if referral_user.celebrity_user.check_payments else PAYOUT_STATUS.pending
+                )
+
+    return True
 
 
 @app.task
@@ -522,7 +618,7 @@ def notify_users_on_payouts(user_dict, subject, template):
     ctx = {
         'base_url': BASE_URL,
         'name': user_dict['name'],
-        'amount': user_dict['amount'],
+        'amount': format(user_dict['amount'], '.2f'),
         'pay_count': user_dict['pay_count'],
 
     }
@@ -619,13 +715,34 @@ def send_email_notification(request_id):
             'date': date,
         }
 
+        video_id = None
+        video_url = BASE_URL
         if request.request_status == 6:
             try:
-                video = StargramVideo.objects.values('id').get(stragramz_request_id=request.id, status=1)
-                ctx['video_url'] = '%svideo/%s' % (BASE_URL, hashids.encode(video['id']))
-            except Exception as e:
-                ctx['video_url'] = BASE_URL
-                print(str(e))
+                video_id = StargramVideo.objects.values_list('id', flat=True).get(stragramz_request_id=request.id, status=1)
+                video_url = '%svideo/%s' % (BASE_URL, hashids.encode(video_id))
+            except Exception:
+                pass
+
+        urls = {
+            2: '%s/applinks/request/R1002/%s' % (BASE_URL, hashids.encode(request.id)),
+            5: BASE_URL,
+            6: video_url
+        }
+
+        app_urls = {
+            2: 'request/?request_id=%s&role=R1002' % hashids.encode(request.id),
+            5: 'home/',
+            6: 'video/?video_id=%s' % hashids.encode(video_id) if video_id else None
+        }
+
+        ctx['app_url'] = generate_branch_io_url(
+            title=subject,
+            desc=subject,
+            mob_url=app_urls[request.request_status],
+            desktop_url=urls[request.request_status],
+            image_url='%s/media/web-images/starsona_logo.png' % BASE_URL,
+        )
 
         try:
             html_template = get_template('../templates/emails/%s.html' % template)
@@ -649,13 +766,13 @@ def watermark_videos(video_original, name, your_media_root):
         watermark_location = your_media_root+"watermark/"
         if os.path.exists(video_original):
             video = VideoFileClip(video_original)
-            print(video.rotation)
-            if video.rotation == 90 or video.rotation == 270:
-                video = video.resize(video.size[::-1])
-                video.rotation = 0
-            size = 0.4*video.size[0], 0.4*video.size[1]
+            video = video_rotation(video)
+            # if video.rotation == 90 or video.rotation == 270:
+            #     video = video.resize(video.size[::-1])
+            #     video.rotation = 0
+            logo_size = 0.4*video.size[0], 0.4*video.size[1]
             im = Image.open(your_media_root+"../web-images/starsona_logo.png")
-            im.thumbnail(size)
+            im.thumbnail(logo_size)
             logo = (ImageClip(your_media_root+"../web-images/starsona_logo.png")
                     .set_duration(video.duration)
                     .resize(height=0.1*video.size[0], width=0.1*video.size[1])  # if you need to resize...
@@ -713,19 +830,21 @@ def combine_video_clips(request_id):
             video_2_name = "V2_%s.mp4" % str(int(time.time()))
 
             clip1 = VideoFileClip(files[0])
-            if clip1.rotation == 90 or clip1.rotation == 270:
-                clip1 = clip1.resize(clip1.size[::-1])
-                clip1.rotation = 0
-            # clip1.resize((640, 480))
+            clip1 = video_rotation(clip1)
+            # if clip1.rotation == 90 or clip1.rotation == 270:
+            #     clip1 = clip1.resize(clip1.size[::-1])
+            #     clip1.rotation = 0
+
             clip1.write_videofile(your_media_root + video_1_name, audio_codec='aac',
                                        progress_bar=False,
                                        verbose=False)
 
             clip2 = VideoFileClip(files[1])
-            if clip2.rotation == 90 or clip2.rotation == 270:
-                clip2 = clip2.resize(clip2.size[::-1])
-                clip2.rotation = 0
-            # clip2.resize((640, 480))
+            clip2 = video_rotation(clip2)
+            # if clip2.rotation == 90 or clip2.rotation == 270:
+            #     clip2 = clip2.resize(clip2.size[::-1])
+            #     clip2.rotation = 0
+
             clip2.write_videofile(
                 your_media_root+video_2_name, audio_codec='aac',
                 progress_bar=False,
@@ -733,8 +852,6 @@ def combine_video_clips(request_id):
                 threads=2
             )
 
-            # video1 = VideoFileClip(your_media_root + video_1_name)
-            # video2 = VideoFileClip(your_media_root + video_2_name)
             width, height = clip1.size
             clip1_height = int((height / width * 640)/2) * 2
 
@@ -763,7 +880,7 @@ def combine_video_clips(request_id):
                 StargramVideo.objects.create(
                     stragramz_request_id=request_id,
                     video=combined_video_name,
-                    status=VIDEO_STATUS.pending,
+                    status=VIDEO_STATUS.completed,
                     visibility=True
                 )
                 print('Created new combined video...')
