@@ -11,12 +11,11 @@ media/combined_videos/*
 !media/js/
 !media/audios/
 !media/uploads/
-main/settings/credentials.py
+main/settings/common.py
 .well-known/apple-app-site-association
 templates/home/apps.html
 config/fixtures/config.json
 utilities/constants.py
-payments/constants.py
 config/constants.py
 users/impersonators.py
 !media/downloads/
