@@ -6,9 +6,11 @@ from celery.schedules import crontab
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings.common')
 
-app = Celery('main',
-    backend='amqp',
-    broker='amqp://guest@localhost//')
+app = Celery(
+    'main',
+    backend=os.environ.get('QUEUE_BACKEND'),
+    broker=os.environ.get('QUEUE_BROKER_URL')
+)
 
 app.config_from_object('django.conf:settings', namespace='CELERY')
 app.conf.beat_schedule = {
