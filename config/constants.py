@@ -1,0 +1,18 @@
+SENDER_EMAIL = "info@starsona.com"
+RESET_PASSWORD_LINK = "https://app.starsona.com/applinks/reset?reset_id="
+MIN_WEEKLY_REQUEST = "4"
+MAX_WEEKLY_REQUEST = "8"
+MIN_RATE = "1"
+MAX_RATE = "500"
+BASE_URL = "https://app.starsona.com/"
+PROFILE_IMAGES = "images/profile/"
+THUMB_IMAGES = "images/thumb/"
+AUTHENTICATION_VIDEOS = "videos/profile_videos/"
+STARGRAM_VIDEOS = "videos/stargram_videos/"
+ANDROID_VERSION = '2.1.0'
+IOS_VERSION = '2.1.0'
+REQUEST_EXPIRATION_DAYS = "7"
+DECLINE_COMMENTS = "Cannot pronounce name,Request unclear,Inappropriate request/audio clip,Request is too long"
+SUPPORT_EMAIL = "support@starsona.com"
+ADMIN_EMAIL = "admin@starsona.com"
+BOOKING_EDIT_TIME = "15"
