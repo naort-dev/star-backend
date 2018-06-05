@@ -1,0 +1,5 @@
+FROM starsona-base-os
+COPY requirements.txt /starsona/
+RUN apt-get -y install postgresql-client
+RUN pip install -U -r /starsona/requirements.txt
+RUN python -c 'import imageio; imageio.plugins.ffmpeg.download()'

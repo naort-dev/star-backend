@@ -1,0 +1,145 @@
+version: '3.3'
+services:
+  gunicorn:
+    build:
+      context: ..
+      dockerfile: docker/dockerfiles/starsona-gunicorn
+    image: starsona-gunicorn
+    networks:
+    - overlay
+    ports:
+    - "9003:9003"
+    restart: on-failure
+    depends_on:
+    - postgres
+    environment:
+    - ENV
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_STORAGE_BUCKET_NAME
+    - EMAIL_HOST
+    - EMAIL_HOST_USER
+    - EMAIL_HOST_PASSWORD
+    - EMAIL_PORT
+    - EMAIL_USE_TLS
+    - FCM_SERVER_KEY
+    - STRIPE_WEB_HOOK
+    - STRIPE_CLIENT_ID
+    - STRIPE_SECRET_KEY
+    - DATABASE_NAME
+    - DATABASE_USER
+    - DATABASE_PASSWORD
+    - DATABASE_HOST
+    - BRANCH_IO_KEY
+    - QUEUE_BROKER_URL
+    - QUEUE_BACKEND
+    - QUEUE_HOST
+
+  migration:
+    build:
+      context: ..
+      dockerfile: docker/dockerfiles/starsona-migration
+    image: starsona-migration
+    networks:
+    - overlay
+    depends_on:
+    - postgres
+    environment:
+    - ENV
+    - DATABASE_NAME
+    - DATABASE_USER
+    - DATABASE_PASSWORD
+    - DATABASE_HOST
+
+  celery-beat:
+    build:
+      context: ..
+      dockerfile: docker/dockerfiles/starsona-celery
+    image: starsona-celery
+    networks:
+    - overlay
+    depends_on:
+    - postgres
+    command: ["celery", "-A", "main", "beat"]
+    environment:
+    - ENV
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_STORAGE_BUCKET_NAME
+    - EMAIL_HOST
+    - EMAIL_HOST_USER
+    - EMAIL_HOST_PASSWORD
+    - EMAIL_PORT
+    - EMAIL_USE_TLS
+    - FCM_SERVER_KEY
+    - STRIPE_WEB_HOOK
+    - STRIPE_CLIENT_ID
+    - STRIPE_SECRET_KEY
+    - DATABASE_NAME
+    - DATABASE_USER
+    - DATABASE_PASSWORD
+    - DATABASE_HOST
+    - BRANCH_IO_KEY
+    - QUEUE_BROKER_URL
+    - QUEUE_BACKEND
+    - QUEUE_HOST
+
+  celery-worker:
+    build:
+      context: ..
+      dockerfile: docker/dockerfiles/starsona-celery
+    image: starsona-celery
+    networks:
+    - overlay
+    depends_on:
+    - postgres
+    - rabbitmq
+    command: ["celery", "-A", "main", "worker"]
+    environment:
+    - ENV
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_STORAGE_BUCKET_NAME
+    - EMAIL_HOST
+    - EMAIL_HOST_USER
+    - EMAIL_HOST_PASSWORD
+    - EMAIL_PORT
+    - EMAIL_USE_TLS
+    - FCM_SERVER_KEY
+    - STRIPE_WEB_HOOK
+    - STRIPE_CLIENT_ID
+    - STRIPE_SECRET_KEY
+    - DATABASE_NAME
+    - DATABASE_USER
+    - DATABASE_PASSWORD
+    - DATABASE_HOST
+    - BRANCH_IO_KEY
+    - QUEUE_BROKER_URL
+    - QUEUE_BACKEND
+    - QUEUE_HOST
+
+  postgres:
+    image: postgres:9.5
+    volumes:
+    - /var/lib/postgresql/data
+    networks:
+    - overlay
+    restart: on-failure
+    environment:
+    - POSTGRES_USER=${DATABASE_USER}
+    - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+    - POSTGRES_DB=${DATABASE_NAME}
+    - PGDATA=/var/lib/postgresql/data/pgdata
+
+  rabbitmq:
+    image: rabbitmq:3.7
+    networks:
+    - overlay
+    restart: on-failure
+    environment:
+    - RABBITMQ_DEFAULT_USER=${QUEUE_USER}
+    - RABBITMQ_DEFAULT_PASS=${QUEUE_PASSWORD}
+
+networks:
+  overlay:
+

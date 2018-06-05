@@ -1,0 +1,5 @@
+FROM starsona
+COPY . /starsona
+ENV PYTHONPATH=/starsona
+WORKDIR /starsona
+ENTRYPOINT ["./docker-entrypoint.sh"]

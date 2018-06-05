@@ -1,0 +1,11 @@
+FROM starsona
+COPY . /starsona
+ENV NUM_WORKERS=3
+ENV PORT=9003
+ENV DJANGO_SETTINGS_MODULE=main.settings.common
+ENV PYTHONPATH=/starsona
+ENV GUNICORN_CMD_ARGS="--name=starsona --workers=$NUM_WORKERS --log-level=debug --bind=0.0.0.0:$PORT"
+EXPOSE $PORT
+WORKDIR /starsona
+ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["gunicorn", "main.wsgi:application"]
