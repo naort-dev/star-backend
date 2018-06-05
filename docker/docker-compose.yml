@@ -58,6 +58,7 @@ services:
     image: starsona-celery
     networks:
     - overlay
+    restart: on-failure
     depends_on:
     - postgres
     command: ["celery", "-A", "main", "beat"]
@@ -91,6 +92,7 @@ services:
     image: starsona-celery
     networks:
     - overlay
+    restart: on-failure
     depends_on:
     - postgres
     - rabbitmq
