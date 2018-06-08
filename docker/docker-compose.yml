@@ -142,6 +142,17 @@ services:
     - RABBITMQ_DEFAULT_USER=${QUEUE_USER}
     - RABBITMQ_DEFAULT_PASS=${QUEUE_PASSWORD}
 
+  httpd:
+    build:
+      context: ..
+      dockerfile: docker/dockerfiles/starsona-httpd
+    image: starsona-httpd
+    networks:
+    - overlay
+    ports:
+    - "8080:80"
+    restart: on-failure
+
 networks:
   overlay:
 
