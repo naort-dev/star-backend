@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+./manage.py createsuperuser
 ./manage.py loaddata config/fixtures/config.json
 ./manage.py loaddata role/fixtures/features.json
 ./manage.py loaddata role/fixtures/roles.json

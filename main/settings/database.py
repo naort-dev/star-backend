@@ -1,7 +1,7 @@
 import os
 
 DEBUG = True
-ALLOWED_HOSTS = ['https://stargramz.qburst.build', '127.0.0.1',]
+ALLOWED_HOSTS = ['*',]
 ENV_DIR = ''
 CLIENT_SITE_ADDR = 'https://stargramz.qburst.build:8000'
 

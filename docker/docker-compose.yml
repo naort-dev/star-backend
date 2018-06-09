@@ -150,9 +150,22 @@ services:
     networks:
     - overlay
     ports:
-    - "8080:80"
+    - "80:80"
+    - "443:443"
     restart: on-failure
+    secrets:
+    - ssl.cert
+    - ssl.chain
+    - ssl.private
 
 networks:
   overlay:
+
+secrets:
+  ssl.cert:
+    file: ${SSL_CERT}
+  ssl.chain:
+    file: ${SSL_CHAIN}
+  ssl.private:
+    file: ${SSL_PRIVATE}
 

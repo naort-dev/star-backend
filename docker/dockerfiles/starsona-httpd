@@ -1,7 +1,10 @@
 FROM ubuntu:16.04
 RUN apt-get update
 RUN apt-get -y install apache2
-RUN a2enmod ssl && a2enmod proxy && a2enmod proxy_http
+RUN a2enmod ssl &&\
+    a2enmod proxy &&\
+    a2enmod proxy_http &&\
+    a2enmod rewrite
 COPY ./httpd.conf /etc/apache2/sites-enabled/000-default.conf
 COPY ./static /starsona/static
 COPY ./media /starsona/media
