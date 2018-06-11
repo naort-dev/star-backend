@@ -147,6 +147,7 @@ services:
       context: ..
       dockerfile: docker/dockerfiles/starsona-httpd
     image: starsona-httpd
+    hostname: ${SSL_SERVER_NAME}
     volumes:
     - /etc/letsencrypt
     networks:

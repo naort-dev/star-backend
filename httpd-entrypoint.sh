@@ -18,8 +18,15 @@ if [ ! -e /etc/letsencrypt/live/${SSL_SERVER_NAME}/cert.pem ]; then
 fi
 
 # crontab for auto renewal
-line="0 0,12 * * * python -c 'import random; import time; time.sleep(random.random() * 3600)' && /usr/bin/certbot renew"
-(crontab -l; echo "$line" ) | crontab -
+exists=`crontab -l 2>/dev/null || true | grep "certbot" >/dev/null 2>&1 && echo 1 || echo 0`
+if [[ "$exists" == 0 ]]; then
+    echo "Installing certbot renew into crontab"
+    line="0 0,12 * * * python -c 'import random; import time; time.sleep(random.random() * 3600)' && /usr/bin/certbot renew"
+    (crontab -l 2>/dev/null || true; echo "$line" ) | crontab -
+fi
+
+echo "Stopping existing apache if needed"
+/usr/sbin/apachectl stop || true
 
 echo "Starting main process:"
 echo "    $@"
