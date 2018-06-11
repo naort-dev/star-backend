@@ -147,25 +147,18 @@ services:
       context: ..
       dockerfile: docker/dockerfiles/starsona-httpd
     image: starsona-httpd
+    volumes:
+    - /etc/letsencrypt
     networks:
     - overlay
     ports:
     - "80:80"
     - "443:443"
     restart: on-failure
-    secrets:
-    - ssl.cert
-    - ssl.chain
-    - ssl.private
+    environment:
+    - SSL_SERVER_NAME
+    - SSL_SERVER_EMAIL
 
 networks:
   overlay:
-
-secrets:
-  ssl.cert:
-    file: ${SSL_CERT}
-  ssl.chain:
-    file: ${SSL_CHAIN}
-  ssl.private:
-    file: ${SSL_PRIVATE}
 

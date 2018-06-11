@@ -1,11 +1,19 @@
 FROM ubuntu:16.04
+ENV DEBIAN_FRONTEND=noninteractive \
+    DEBCONF_NONINTERACTIVE_SEEN=true
 RUN apt-get update
-RUN apt-get -y install apache2
+RUN apt-get -y install apache2 software-properties-common python-software-properties
 RUN a2enmod ssl &&\
     a2enmod proxy &&\
     a2enmod proxy_http &&\
     a2enmod rewrite
+RUN add-apt-repository -y ppa:certbot/certbot
+RUN apt-get update
+RUN apt-get install -y python-certbot-apache
 COPY ./httpd.conf /etc/apache2/sites-enabled/000-default.conf
+COPY ./httpd-entrypoint.sh /starsona/httpd-entrypoint.sh
 COPY ./static /starsona/static
 COPY ./media /starsona/media
+WORKDIR /starsona
+ENTRYPOINT ["./httpd-entrypoint.sh"]
 CMD ["/usr/sbin/apachectl", "-DFOREGROUND"]
