@@ -1,0 +1,22 @@
+version: 0.2
+
+env:
+  variables:
+    REGISTRY: "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/"
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+  build:
+    commands:
+      - REGISTRY=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -f dockerfiles/base-os -t ${REGISTRY}starsona-base-os${IMAGE_TAG} -a REGISTRY=${REGISTRY} -a IMAGE_TAG=${IMAGE_TAG} ..
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push ${REGISTRY}starsona-base-os${IMAGE_TAG}
