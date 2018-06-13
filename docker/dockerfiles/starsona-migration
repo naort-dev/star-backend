@@ -1,6 +1,6 @@
 ARG REGISTRY=''
 ARG IMAGE_TAG=''
-FROM ${REGISTRY}starsona${IMAGE_TAG}
+FROM ${REGISTRY}starsona-base-backend${IMAGE_TAG}
 COPY . /starsona
 ENV PYTHONPATH=/starsona
 WORKDIR /starsona
