@@ -11,10 +11,14 @@ phases:
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
   build:
     commands:
-      - REGISTRY=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/
       - echo Build started on `date`
       - echo Building the Docker image...
-      - docker build -f dockerfiles/base-os -t ${REGISTRY}starsona-base-os${IMAGE_TAG} -a REGISTRY=${REGISTRY} -a IMAGE_TAG=${IMAGE_TAG} ..
+      - >
+        docker build -f dockerfiles/base-os
+          -t ${REGISTRY}starsona-base-os${IMAGE_TAG}
+          --build-arg REGISTRY=${REGISTRY}
+          --build-arg IMAGE_TAG=${IMAGE_TAG}
+          ..
   post_build:
     commands:
       - echo Build completed on `date`
