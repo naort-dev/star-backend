@@ -13,7 +13,7 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - >
+      - >-
         docker build -f dockerfiles/base-os
           -t ${REGISTRY}starsona-base-os${IMAGE_TAG}
           --build-arg REGISTRY=${REGISTRY}
