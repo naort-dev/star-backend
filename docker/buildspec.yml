@@ -2,7 +2,7 @@ version: 0.2
 
 env:
   variables:
-    REGISTRY: "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/"
+    REGISTRY: "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/"
 
 phases:
   pre_build:
