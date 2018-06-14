@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: Select a VPC that allows instances access to the Internet.
+    Default: 'vpc-f3fce188'
+
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Select at two subnets in your selected VPC.
+    Default: 'subnet-badb0994,subnet-87a6c2cd'
+
+  DBUsername:
+    Type: String
+    Description: Database username
+    Default: 'postgres'
+
+  DBPassword:
+    Type: String
+    NoEcho: true
+    Description: Database password
+    Default: 'password'
+
+  DBName:
+    Type: String
+    Default: starsona
+
+Resources:
+  DBSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: !Ref 'AWS::StackName'
+      SubnetIds: !Ref 'Subnets'
+
+  VPCSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: !Ref 'AWS::StackName'
+      VpcId: !Ref 'VpcId'
+
+  DB:
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      DBName: !Ref 'DBName'
+      AllocatedStorage: 5
+      DBInstanceClass: 'db.t2.micro'
+      Engine: 'postgres'
+      EngineVersion: '9.5'
+      MasterUsername: !Ref 'DBUsername'
+      MasterUserPassword: !Ref 'DBPassword'
+      DBSubnetGroupName: !Ref 'DBSubnetGroup'
+      VPCSecurityGroups: [ !Ref 'VPCSecurityGroup' ]
+
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Ref 'AWS::StackName'
+
