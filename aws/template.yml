@@ -76,20 +76,20 @@ Resources:
     Properties:
       GroupDescription: !Join ['-', [!Ref 'AWS::StackName', 'ECS Security Group']]
       VpcId: !Ref 'VpcId'
-  
+
   ECSSecurityGroupALBports:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
       GroupId: !Ref 'ECSSecurityGroup'
       IpProtocol: tcp
-      FromPort: '31000'
-      ToPort: '61000'
+      FromPort: '80'
+      ToPort: '80'
       SourceSecurityGroupId: !Ref 'ALBSecurityGroup'
 
   CloudwatchLogsGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Join ['-', [!Ref 'AWS::StackName', 'ECSLogGroup']]
+      LogGroupName: !Ref 'AWS::StackName'
       RetentionInDays: 14
 
   TaskExecutionRole:
@@ -135,7 +135,7 @@ Resources:
         LogConfiguration:
           LogDriver: awslogs
           Options:
-            awslogs-group: !Ref 'CloudwatchLogsGroup'
+            awslogs-group: !Ref 'AWS::StackName'
             awslogs-region: !Ref 'AWS::Region'
             awslogs-stream-prefix: ecs-demo-app
         MountPoints:
@@ -158,7 +158,7 @@ Resources:
         LogConfiguration:
           LogDriver: awslogs
           Options:
-            awslogs-group: !Ref 'CloudwatchLogsGroup'
+            awslogs-group: !Ref 'AWS::StackName'
             awslogs-region: !Ref 'AWS::Region'
             awslogs-stream-prefix: ecs-demo-app
         VolumesFrom:
@@ -177,7 +177,7 @@ Resources:
         Value: '30'
       Subnets: !Ref 'Subnets'
       SecurityGroups: [!Ref 'ALBSecurityGroup']
-      
+
   ALBListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
 #    DependsOn: ECSServiceRole
@@ -188,7 +188,7 @@ Resources:
       LoadBalancerArn: !Ref 'ECSALB'
       Port: '80'
       Protocol: HTTP
-      
+
   ECSALBListenerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     DependsOn: ALBListener
@@ -201,7 +201,7 @@ Resources:
         Values: [/]
       ListenerArn: !Ref 'ALBListener'
       Priority: 1
-      
+
   ECSTG:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     DependsOn: ECSALB
@@ -216,7 +216,8 @@ Resources:
       Protocol: HTTP
       UnhealthyThresholdCount: 2
       VpcId: !Ref 'VpcId'
-      
+      TargetType: ip
+
 #  ECSAutoScalingGroup:
 #    Type: AWS::AutoScaling::AutoScalingGroup
 #    Properties:
@@ -231,7 +232,7 @@ Resources:
 #    UpdatePolicy:
 #      AutoScalingReplacingUpdate:
 #        WillReplace: 'true'
-        
+
 #  ContainerInstances:
 #    Type: AWS::AutoScaling::LaunchConfiguration
 #    Properties:
@@ -246,7 +247,7 @@ Resources:
 #          echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
 #          yum install -y aws-cfn-bootstrap
 #          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ECSAutoScalingGroup --region ${AWS::Region}
-  
+
   Service:
     Type: AWS::ECS::Service
     DependsOn: ALBListener
@@ -254,13 +255,19 @@ Resources:
       Cluster: !Ref 'ECSCluster'
       DesiredCount: '1'
       LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+          - !Ref 'VPCSecurityGroup'
+          Subnets: !Ref 'Subnets'
       LoadBalancers:
       - ContainerName: simple-app
         ContainerPort: '80'
         TargetGroupArn: !Ref 'ECSTG'
 #      Role: !Ref 'ECSServiceRole'
       TaskDefinition: !Ref 'Task'
-      
+
 #  ECSServiceRole:
 #    Type: AWS::IAM::Role
 #    Properties:
@@ -280,7 +287,7 @@ Resources:
 #              'elasticloadbalancing:Describe*', 'elasticloadbalancing:RegisterInstancesWithLoadBalancer',
 #              'elasticloadbalancing:RegisterTargets', 'ec2:Describe*', 'ec2:AuthorizeSecurityGroupIngress']
 #            Resource: '*'
-            
+
   ServiceScalingTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
     DependsOn: Service
@@ -289,7 +296,7 @@ Resources:
       MinCapacity: 1
       ResourceId: !Join ['', [service/, !Ref 'ECSCluster', /, !GetAtt [Service, Name]]]
       RoleARN: !GetAtt [AutoscalingRole, Arn]
-      ScalableDimension: ECS:Service:DesiredCount
+      ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
 
   ServiceScalingPolicy:
