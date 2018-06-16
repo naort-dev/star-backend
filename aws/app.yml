@@ -3,30 +3,24 @@ Description: Deploy a service on AWS Fargate, hosted in a private subnet, but ac
 Parameters:
   StackName:
     Type: String
-    Default: production
     Description: The name of the parent Fargate networking stack that you created. Necessary
                  to locate and reference resources created by that stack.
-  ServiceName:
+
+  ImageRepository:
     Type: String
-    Default: nginx
-    Description: A name for the service
-  ImageUrl:
+    Default: 376169159073.dkr.ecr.us-east-1.amazonaws.com/
+    Description: Image repository
+
+  ImageTag:
     Type: String
-    Default: nginx
-    Description: The url of a docker image that contains the application process that
-                 will handle the traffic for this service
+    Default: ':latest'
+    Description: Image tag
+
   ContainerPort:
     Type: Number
     Default: 80
     Description: What port number the application inside the docker container is binding to
-  ContainerCpu:
-    Type: Number
-    Default: 256
-    Description: How much CPU to give the container. 1024 is 1 CPU
-  ContainerMemory:
-    Type: Number
-    Default: 512
-    Description: How much memory in megabytes to give the container
+
   Path:
     Type: String
     Default: "*"
@@ -43,6 +37,7 @@ Parameters:
     Type: Number
     Default: 2
     Description: How many copies of the service task to run
+
   Role:
     Type: String
     Default: ""
@@ -54,14 +49,20 @@ Conditions:
 
 Resources:
 
+  CloudwatchLogsGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Ref 'AWS::StackName'
+      RetentionInDays: 14
+
   # The task definition. This is a simple metadata description of what
   # container to run, and what resource requirements it has.
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: !Ref 'ServiceName'
-      Cpu: !Ref 'ContainerCpu'
-      Memory: !Ref 'ContainerMemory'
+      Family: 'httpd'
+      Cpu: 256
+      Memory: 512
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -74,12 +75,27 @@ Resources:
           - !Ref 'Role'
           - !Ref "AWS::NoValue"
       ContainerDefinitions:
-        - Name: !Ref 'ServiceName'
-          Cpu: !Ref 'ContainerCpu'
-          Memory: !Ref 'ContainerMemory'
-          Image: !Ref 'ImageUrl'
+        - Name: 'httpd'
+          Image: !Join ['', [!Ref 'ImageRepository', 'starsona-httpd', !Ref 'ImageTag']]
           PortMappings:
             - ContainerPort: !Ref 'ContainerPort'
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref 'AWS::StackName'
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: 'httpd'
+          Ulimits:
+          - Name: nofile
+            HardLimit: 8192
+            SoftLimit: 8192
+          Environment:
+          - Name: APACHE_ULIMIT_MAX_FILES
+            Value: ''
+          - Name: PRIVATE_LB_HOSTNAME
+            Value: localhost
+            #  Fn::ImportValue:
+            #    !Join [':', [!Ref 'StackName', 'InternalLB']]
 
   # The service. The service is a resource which allows you to run multiple
   # copies of a type of task, and gather up their logs and metrics, as well
@@ -88,7 +104,7 @@ Resources:
     Type: AWS::ECS::Service
     DependsOn: LoadBalancerRule
     Properties:
-      ServiceName: !Ref 'ServiceName'
+      ServiceName: 'httpd'
       Cluster:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'ClusterName']]
@@ -110,7 +126,7 @@ Resources:
                 !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
       TaskDefinition: !Ref 'TaskDefinition'
       LoadBalancers:
-        - ContainerName: !Ref 'ServiceName'
+        - ContainerName: 'httpd'
           ContainerPort: !Ref 'ContainerPort'
           TargetGroupArn: !Ref 'TargetGroup'
 
@@ -128,7 +144,7 @@ Resources:
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
       TargetType: ip
-      Name: !Ref 'ServiceName'
+      Name: 'httpd'
       Port: !Ref 'ContainerPort'
       Protocol: HTTP
       UnhealthyThresholdCount: 2
