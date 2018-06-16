@@ -16,5 +16,5 @@ phases:
       - echo Build completed on `date`
       - echo Pushing the Docker images...
       - docker push ${REGISTRY}starsona-base-os${IMAGE_TAG}
-      - docker push ${REGISTRY}starsona-base-httpd${IMAGE_TAG}
+      - docker push ${REGISTRY}starsona-base-nginx${IMAGE_TAG}
       - docker push ${REGISTRY}starsona-base-backend${IMAGE_TAG}

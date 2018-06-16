@@ -60,7 +60,7 @@ Resources:
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: 'httpd'
+      Family: 'nginx'
       Cpu: 256
       Memory: 512
       NetworkMode: awsvpc
@@ -75,8 +75,8 @@ Resources:
           - !Ref 'Role'
           - !Ref "AWS::NoValue"
       ContainerDefinitions:
-        - Name: 'httpd'
-          Image: !Join ['', [!Ref 'ImageRepository', 'starsona-httpd', !Ref 'ImageTag']]
+        - Name: 'nginx'
+          Image: !Join ['', [!Ref 'ImageRepository', 'starsona-nginx', !Ref 'ImageTag']]
           PortMappings:
             - ContainerPort: !Ref 'ContainerPort'
           LogConfiguration:
@@ -84,18 +84,16 @@ Resources:
             Options:
               awslogs-group: !Ref 'AWS::StackName'
               awslogs-region: !Ref 'AWS::Region'
-              awslogs-stream-prefix: 'httpd'
+              awslogs-stream-prefix: 'nginx'
           Ulimits:
           - Name: nofile
             HardLimit: 8192
             SoftLimit: 8192
           Environment:
-          - Name: APACHE_ULIMIT_MAX_FILES
-            Value: ''
           - Name: PRIVATE_LB_HOSTNAME
-            Value: localhost
-            #  Fn::ImportValue:
-            #    !Join [':', [!Ref 'StackName', 'InternalLB']]
+            Value:
+              Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'InternalLB']]
 
   # The service. The service is a resource which allows you to run multiple
   # copies of a type of task, and gather up their logs and metrics, as well
@@ -104,7 +102,7 @@ Resources:
     Type: AWS::ECS::Service
     DependsOn: LoadBalancerRule
     Properties:
-      ServiceName: 'httpd'
+      ServiceName: 'nginx'
       Cluster:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'ClusterName']]
@@ -126,7 +124,7 @@ Resources:
                 !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
       TaskDefinition: !Ref 'TaskDefinition'
       LoadBalancers:
-        - ContainerName: 'httpd'
+        - ContainerName: 'nginx'
           ContainerPort: !Ref 'ContainerPort'
           TargetGroupArn: !Ref 'TargetGroup'
 
@@ -144,7 +142,7 @@ Resources:
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
       TargetType: ip
-      Name: 'httpd'
+      Name: 'nginx'
       Port: !Ref 'ContainerPort'
       Protocol: HTTP
       UnhealthyThresholdCount: 2

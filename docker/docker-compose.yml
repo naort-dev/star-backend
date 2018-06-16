@@ -130,20 +130,30 @@ services:
     - RABBITMQ_DEFAULT_USER=${QUEUE_USER}
     - RABBITMQ_DEFAULT_PASS=${QUEUE_PASSWORD}
 
-  httpd:
-    image: starsona-httpd
-    hostname: ${SSL_SERVER_NAME}
-    volumes:
-    - /etc/letsencrypt
+#  httpd:
+#    image: starsona-httpd
+#    hostname: ${SSL_SERVER_NAME}
+#    volumes:
+#    - /etc/letsencrypt
+#    networks:
+#    - overlay
+#    ports:
+#    - "80:80"
+#    - "443:443"
+#    restart: on-failure
+#    environment:
+#    - SSL_SERVER_NAME
+#    - SSL_SERVER_EMAIL
+
+  nginx:
+    image: starsona-nginx
     networks:
     - overlay
     ports:
     - "80:80"
-    - "443:443"
     restart: on-failure
     environment:
-    - SSL_SERVER_NAME
-    - SSL_SERVER_EMAIL
+    - PRIVATE_LB_HOSTNAME=gunicorn
 
 networks:
   overlay:
