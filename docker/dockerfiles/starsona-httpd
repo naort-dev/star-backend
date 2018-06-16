@@ -1,7 +1,7 @@
 ARG REGISTRY=''
 ARG IMAGE_TAG=''
-ARG DEPLOYMENT_TYPE='swarm'
 FROM ${REGISTRY}starsona-base-httpd${IMAGE_TAG}
+ARG DEPLOYMENT_TYPE
 COPY ./httpd-${DEPLOYMENT_TYPE}.conf /etc/apache2/sites-enabled/000-default.conf
 COPY ./httpd-entrypoint-${DEPLOYMENT_TYPE}.sh /starsona/httpd-entrypoint.sh
 COPY ./static /starsona/static
