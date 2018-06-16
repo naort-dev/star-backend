@@ -4,16 +4,14 @@ phases:
   pre_build:
     commands:
       - export REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/"
+      - export DEPLOYMENT_TYPE=aws
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
   build:
     commands:
       - echo Build started on `date`
       - echo Building the Docker images...
-      - docker build -f docker/dockerfiles/starsona-celery --tag ${REGISTRY}starsona-celery${IMAGE_TAG} --build-arg REGISTRY=${REGISTRY} --build-arg IMAGE_TAG=${IMAGE_TAG} .
-      - docker build -f docker/dockerfiles/starsona-gunicorn --tag ${REGISTRY}starsona-gunicorn${IMAGE_TAG} --build-arg REGISTRY=${REGISTRY} --build-arg IMAGE_TAG=${IMAGE_TAG} .
-      - docker build -f docker/dockerfiles/starsona-httpd --tag ${REGISTRY}starsona-httpd${IMAGE_TAG} --build-arg REGISTRY=${REGISTRY} --build-arg IMAGE_TAG=${IMAGE_TAG} .
-      - docker build -f docker/dockerfiles/starsona-migration --tag ${REGISTRY}starsona-migration${IMAGE_TAG} --build-arg REGISTRY=${REGISTRY} --build-arg IMAGE_TAG=${IMAGE_TAG} .
+      - ./build-docker-images.sh
   post_build:
     commands:
       - echo Build completed on `date`

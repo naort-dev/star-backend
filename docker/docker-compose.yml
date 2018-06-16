@@ -1,9 +1,6 @@
 version: '3.3'
 services:
   gunicorn:
-    build:
-      context: ..
-      dockerfile: docker/dockerfiles/starsona-gunicorn
     image: starsona-gunicorn
     networks:
     - overlay
@@ -36,9 +33,6 @@ services:
     - QUEUE_HOST
 
   migration:
-    build:
-      context: ..
-      dockerfile: docker/dockerfiles/starsona-migration
     image: starsona-migration
     networks:
     - overlay
@@ -52,9 +46,6 @@ services:
     - DATABASE_HOST
 
   celery-beat:
-    build:
-      context: ..
-      dockerfile: docker/dockerfiles/starsona-celery
     image: starsona-celery
     networks:
     - overlay
@@ -86,9 +77,6 @@ services:
     - QUEUE_HOST
 
   celery-worker:
-    build:
-      context: ..
-      dockerfile: docker/dockerfiles/starsona-celery
     image: starsona-celery
     networks:
     - overlay
@@ -143,9 +131,6 @@ services:
     - RABBITMQ_DEFAULT_PASS=${QUEUE_PASSWORD}
 
   httpd:
-    build:
-      context: ..
-      dockerfile: docker/dockerfiles/starsona-httpd
     image: starsona-httpd
     hostname: ${SSL_SERVER_NAME}
     volumes:

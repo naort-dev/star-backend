@@ -9,5 +9,6 @@ ENV PYTHONPATH=/starsona
 ENV GUNICORN_CMD_ARGS="--name=starsona --workers=$NUM_WORKERS --log-level=debug --bind=0.0.0.0:$PORT"
 EXPOSE $PORT
 WORKDIR /starsona
+RUN rm -rf static && ./manage.py collectstatic
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["gunicorn", "main.wsgi:application"]
