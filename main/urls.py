@@ -20,6 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from utilities import utils, constants
 from stargramz.views import play_video, profile_detail, request_detail, page_not_found
+from health.views import health
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -42,6 +43,7 @@ urlpatterns = [
         'content_type':"application/json"
     }),
     url(r'^download/(?P<id>[0-9a-zA-Z]{5,8})$', utils.download_video),
+    url(r'^health', health),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
@@ -50,3 +52,4 @@ urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 handler404 = page_not_found
 handler400 = page_not_found
 handler500 = page_not_found
+

@@ -6,6 +6,11 @@ Parameters:
     Description: The name of the parent Fargate networking stack that you created. Necessary
                  to locate and reference resources created by that stack.
 
+  Env:
+    Type: String
+    Default: 'dev'
+    Description: Environment type - dev or live
+
   ImageRepository:
     Type: String
     Default: 376169159073.dkr.ecr.us-east-1.amazonaws.com/
@@ -20,6 +25,31 @@ Parameters:
     Type: Number
     Default: 80
     Description: What port number the application inside the docker container is binding to
+
+  BackendPort:
+    Type: Number
+    Default: 9003
+    Description: What port number the application inside the docker container is binding to
+
+  DBInstanceClass:
+    Type: String
+    String: Database instance class
+    Default: 'db.t2.micro'
+
+  DBUsername:
+    Type: String
+    Description: Database username
+    Default: 'postgres'
+
+  DBPassword:
+    Type: String
+    NoEcho: true
+    Description: Database password
+    Default: 'password'
+
+  DBName:
+    Type: String
+    Default: starsona
 
   Path:
     Type: String
@@ -49,14 +79,21 @@ Conditions:
 
 Resources:
 
+  #--------------------------------------------------------------------------------------------------------------------
+  # Common resources
+  #--------------------------------------------------------------------------------------------------------------------
+
   CloudwatchLogsGroup:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Ref 'AWS::StackName'
       RetentionInDays: 14
 
-  # The task definition. This is a simple metadata description of what
-  # container to run, and what resource requirements it has.
+  #--------------------------------------------------------------------------------------------------------------------
+  # NGINX
+  # Serves static content and proxies dynamic content to backend GUNICORN at InternalLB:9003
+  #--------------------------------------------------------------------------------------------------------------------
+
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
@@ -78,7 +115,7 @@ Resources:
         - Name: 'nginx'
           Image: !Join ['', [!Ref 'ImageRepository', 'starsona-nginx', !Ref 'ImageTag']]
           PortMappings:
-            - ContainerPort: !Ref 'ContainerPort'
+            - ContainerPort: !Ref 'HttpPort'
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -95,9 +132,6 @@ Resources:
               Fn::ImportValue:
                 !Join [':', [!Ref 'StackName', 'InternalLB']]
 
-  # The service. The service is a resource which allows you to run multiple
-  # copies of a type of task, and gather up their logs and metrics, as well
-  # as monitor the number of running tasks and replace any that have crashed
   Service:
     Type: AWS::ECS::Service
     DependsOn: LoadBalancerRule
@@ -125,32 +159,26 @@ Resources:
       TaskDefinition: !Ref 'TaskDefinition'
       LoadBalancers:
         - ContainerName: 'nginx'
-          ContainerPort: !Ref 'ContainerPort'
+          ContainerPort: !Ref 'HttpPort'
           TargetGroupArn: !Ref 'TargetGroup'
 
-  # A target group. This is used for keeping track of all the tasks, and
-  # what IP addresses / port numbers they have. You can query it yourself,
-  # to use the addresses yourself, but most often this target group is just
-  # connected to an application load balancer, or network load balancer, so
-  # it can automatically distribute traffic across all the targets.
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       HealthCheckIntervalSeconds: 6
-      HealthCheckPath: /
+      HealthCheckPath: /nginx-status
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
       TargetType: ip
       Name: 'nginx'
-      Port: !Ref 'ContainerPort'
+      Port: !Ref 'HttpPort'
       Protocol: HTTP
       UnhealthyThresholdCount: 2
       VpcId:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'VPCId']]
 
-  # Create a rule on the load balancer for routing traffic to the target group
   LoadBalancerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
@@ -164,3 +192,140 @@ Resources:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'PublicListener']]
       Priority: !Ref 'Priority'
+
+  #--------------------------------------------------------------------------------------------------------------------
+  # POSTGRES
+  # Database
+  #--------------------------------------------------------------------------------------------------------------------
+
+  DBSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: !Ref 'AWS::StackName'
+      SubnetIds:
+      - Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
+      - Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
+
+  DB:
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      DBName: !Ref 'DBName'
+      AllocatedStorage: 5
+      DBInstanceClass: !Ref 'DBInstanceClass'
+      Engine: 'postgres'
+      EngineVersion: '9.5'
+      MasterUsername: !Ref 'DBUsername'
+      MasterUserPassword: !Ref 'DBPassword'
+      DBSubnetGroupName: !Ref 'DBSubnetGroup'
+      VPCSecurityGroups:
+        - Fn::ImportValue:
+            !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
+
+  #--------------------------------------------------------------------------------------------------------------------
+  # GUNICORN
+  # Backend running befind InternalLB:9003
+  #--------------------------------------------------------------------------------------------------------------------
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: 'gunicorn'
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ECSTaskExecutionRole']]
+      TaskRoleArn:
+        Fn::If:
+          - 'HasCustomRole'
+          - !Ref 'Role'
+          - !Ref "AWS::NoValue"
+      ContainerDefinitions:
+        - Name: 'gunicorn'
+          Image: !Join ['', [!Ref 'ImageRepository', 'starsona-gunicorn', !Ref 'ImageTag']]
+          PortMappings:
+            - ContainerPort: !Ref 'BackendPort'
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref 'AWS::StackName'
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: 'gunicorn'
+          Ulimits:
+          - Name: nofile
+            HardLimit: 8192
+            SoftLimit: 8192
+          Environment:
+          - { Name: ENV, Value: !Ref 'Env' }
+          - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
+          - { Name: DATABASE_NAME, Value: !Ref 'DBName' }
+          - { Name: DATABASE_USER, Value: !Ref 'DBUsername' }
+          - { Name: DATABASE_PASSWORD, Value: !Ref 'DBPassword' }
+
+  Service:
+    Type: AWS::ECS::Service
+    DependsOn: LoadBalancerRule
+    Properties:
+      ServiceName: 'gunicorn'
+      Cluster:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ClusterName']]
+      LaunchType: FARGATE
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 75
+      DesiredCount: !Ref 'DesiredCount'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
+          Subnets:
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
+      TaskDefinition: !Ref 'TaskDefinition'
+      LoadBalancers:
+        - ContainerName: 'gunicorn'
+          ContainerPort: !Ref 'BackendPort'
+          TargetGroupArn: !Ref 'TargetGroup'
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 6
+      HealthCheckPath: /health
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      TargetType: ip
+      Name: 'gunicorn'
+      Port: !Ref 'BackendPort'
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
+      VpcId:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'VPCId']]
+
+  LoadBalancerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - TargetGroupArn: !Ref 'TargetGroup'
+          Type: 'forward'
+      Conditions:
+        - Field: path-pattern
+          Values: [!Ref 'Path']
+      ListenerArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'PrivateListener']]
+      Priority: !Ref 'Priority'
+
+
