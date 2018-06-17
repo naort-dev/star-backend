@@ -21,7 +21,7 @@ Parameters:
     Default: ':latest'
     Description: Image tag
 
-  ContainerPort:
+  HttpPort:
     Type: Number
     Default: 80
     Description: What port number the application inside the docker container is binding to
@@ -94,7 +94,7 @@ Resources:
   # Serves static content and proxies dynamic content to backend GUNICORN at InternalLB:9003
   #--------------------------------------------------------------------------------------------------------------------
 
-  TaskDefinition:
+  NginxTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
       Family: 'nginx'
@@ -113,7 +113,7 @@ Resources:
           - !Ref "AWS::NoValue"
       ContainerDefinitions:
         - Name: 'nginx'
-          Image: !Join ['', [!Ref 'ImageRepository', 'starsona-nginx', !Ref 'ImageTag']]
+          Image: !Join ['', [!Ref 'ImageRepository', 'starsona-nginx-aws', !Ref 'ImageTag']]
           PortMappings:
             - ContainerPort: !Ref 'HttpPort'
           LogConfiguration:
@@ -132,9 +132,9 @@ Resources:
               Fn::ImportValue:
                 !Join [':', [!Ref 'StackName', 'InternalLB']]
 
-  Service:
+  NginxService:
     Type: AWS::ECS::Service
-    DependsOn: LoadBalancerRule
+    DependsOn: NginxLoadBalancerRule
     Properties:
       ServiceName: 'nginx'
       Cluster:
@@ -156,13 +156,13 @@ Resources:
                 !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
             - Fn::ImportValue:
                 !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
-      TaskDefinition: !Ref 'TaskDefinition'
+      TaskDefinition: !Ref 'NginxTaskDefinition'
       LoadBalancers:
         - ContainerName: 'nginx'
           ContainerPort: !Ref 'HttpPort'
-          TargetGroupArn: !Ref 'TargetGroup'
+          TargetGroupArn: !Ref 'NginxTargetGroup'
 
-  TargetGroup:
+  NginxTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       HealthCheckIntervalSeconds: 6
@@ -179,18 +179,32 @@ Resources:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'VPCId']]
 
-  LoadBalancerRule:
+  NginxLoadBalancerRuleHTTP:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
       Actions:
-        - TargetGroupArn: !Ref 'TargetGroup'
+        - TargetGroupArn: !Ref 'NginxTargetGroup'
           Type: 'forward'
       Conditions:
         - Field: path-pattern
           Values: [!Ref 'Path']
       ListenerArn:
         Fn::ImportValue:
-          !Join [':', [!Ref 'StackName', 'PublicListener']]
+          !Join [':', [!Ref 'StackName', 'PublicListenerHTTP']]
+      Priority: !Ref 'Priority'
+
+  NginxLoadBalancerRuleHTTPS:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - TargetGroupArn: !Ref 'NginxTargetGroup'
+          Type: 'forward'
+      Conditions:
+        - Field: path-pattern
+          Values: [!Ref 'Path']
+      ListenerArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'PublicListenerHTTPS']]
       Priority: !Ref 'Priority'
 
   #--------------------------------------------------------------------------------------------------------------------
@@ -228,7 +242,7 @@ Resources:
   # Backend running befind InternalLB:9003
   #--------------------------------------------------------------------------------------------------------------------
 
-  TaskDefinition:
+  GunicornTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
       Family: 'gunicorn'
@@ -267,9 +281,9 @@ Resources:
           - { Name: DATABASE_USER, Value: !Ref 'DBUsername' }
           - { Name: DATABASE_PASSWORD, Value: !Ref 'DBPassword' }
 
-  Service:
+  GunicornService:
     Type: AWS::ECS::Service
-    DependsOn: LoadBalancerRule
+    DependsOn: GunicornLoadBalancerRule
     Properties:
       ServiceName: 'gunicorn'
       Cluster:
@@ -291,13 +305,13 @@ Resources:
                 !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
             - Fn::ImportValue:
                 !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
-      TaskDefinition: !Ref 'TaskDefinition'
+      TaskDefinition: !Ref 'GunicornTaskDefinition'
       LoadBalancers:
         - ContainerName: 'gunicorn'
           ContainerPort: !Ref 'BackendPort'
-          TargetGroupArn: !Ref 'TargetGroup'
+          TargetGroupArn: !Ref 'GunicornTargetGroup'
 
-  TargetGroup:
+  GunicornTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       HealthCheckIntervalSeconds: 6
@@ -314,11 +328,11 @@ Resources:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'VPCId']]
 
-  LoadBalancerRule:
+  GunicornLoadBalancerRule:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
       Actions:
-        - TargetGroupArn: !Ref 'TargetGroup'
+        - TargetGroupArn: !Ref 'GunicornTargetGroup'
           Type: 'forward'
       Conditions:
         - Field: path-pattern

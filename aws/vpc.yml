@@ -6,6 +6,16 @@ Description: This stack deploys a Fargate cluster that is in a VPC with both
              send traffic to the containers in the private subnet, and one in
              the private subnet, which can be used for private internal traffic
              between internal services.
+Parameters:
+  DomainName:
+    Type: String
+    Description: Domain name
+
+  ValidationDomain:
+    Type: String
+    Default: starsona.com
+    Description: Root domain name for email validation
+
 Mappings:
   # Hard values for the subnet masks. These masks define
   # the range of internal IP addresses that can be assigned.
@@ -261,7 +271,8 @@ Resources:
       Protocol: HTTP
       UnhealthyThresholdCount: 2
       VpcId: !Ref 'VPC'
-  PublicLoadBalancerListener:
+
+  PublicLoadBalancerListenerHTTP:
     Type: AWS::ElasticLoadBalancingV2::Listener
     DependsOn:
       - PublicLoadBalancer
@@ -272,6 +283,29 @@ Resources:
       LoadBalancerArn: !Ref 'PublicLoadBalancer'
       Port: 80
       Protocol: HTTP
+
+  PublicLoadBalancerListenerHTTPS:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    DependsOn:
+      - PublicLoadBalancer
+      - PublicLoadBalancerCertificate
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref 'DummyTargetGroupPublic'
+          Type: 'forward'
+      LoadBalancerArn: !Ref 'PublicLoadBalancer'
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+      - CertificateArn: !Ref 'PublicLoadBalancerCertificate'
+
+  PublicLoadBalancerCertificate:
+    Type: "AWS::CertificateManager::Certificate"
+    Properties:
+      DomainName: !Ref 'DomainName'
+      DomainValidationOptions:
+      - DomainName: !Ref 'DomainName'
+        ValidationDomain: !Ref 'ValidationDomain'
 
   # An internal load balancer, this would be used for a service that is not
   # directly accessible to the public, but instead should only receive traffic
@@ -424,11 +458,16 @@ Outputs:
     Value: !GetAtt 'ECSTaskExecutionRole.Arn'
     Export:
       Name: !Join [ ':', [ !Ref 'AWS::StackName', 'ECSTaskExecutionRole' ] ]
-  PublicListener:
-    Description: The ARN of the public load balancer's Listener
-    Value: !Ref PublicLoadBalancerListener
+  PublicListenerHTTP:
+    Description: The ARN of the public load balancer's HTTP Listener
+    Value: !Ref PublicLoadBalancerListenerHTTP
     Export:
-      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicListener' ] ]
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicListenerHTTP' ] ]
+  PublicListenerHTTPS:
+    Description: The ARN of the public load balancer's HTTPS Listener
+    Value: !Ref PublicLoadBalancerListenerHTTPS
+    Export:
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicListenerHTTPS' ] ]
   PrivateListener:
     Description: The ARN of the public load balancer's Listener
     Value: !Ref PrivateLoadBalancerListener

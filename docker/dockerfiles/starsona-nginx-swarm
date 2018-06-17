@@ -1,0 +1,10 @@
+ARG REGISTRY=''
+ARG IMAGE_TAG=''
+FROM ${REGISTRY}starsona-base-letsencrypt${IMAGE_TAG}
+COPY ./nginx-swarm.conf /etc/nginx/sites-enabled/default
+COPY ./nginx-entrypoint-swarm.sh /starsona/nginx-entrypoint.sh
+COPY ./static /starsona/static
+COPY ./media /starsona/media
+WORKDIR /starsona
+ENTRYPOINT ["./nginx-entrypoint.sh"]
+CMD ["/usr/sbin/nginx", "-g", "daemon off;"]

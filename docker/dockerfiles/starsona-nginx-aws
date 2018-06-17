@@ -1,9 +1,8 @@
 ARG REGISTRY=''
 ARG IMAGE_TAG=''
 FROM ${REGISTRY}starsona-base-nginx${IMAGE_TAG}
-ARG DEPLOYMENT_TYPE
-COPY ./nginx-${DEPLOYMENT_TYPE}.conf /etc/nginx/sites-enabled/default
-COPY ./nginx-entrypoint-${DEPLOYMENT_TYPE}.sh /starsona/nginx-entrypoint.sh
+COPY ./nginx-aws.conf /etc/nginx/sites-enabled/default
+COPY ./nginx-entrypoint-aws.sh /starsona/nginx-entrypoint.sh
 COPY ./static /starsona/static
 COPY ./media /starsona/media
 WORKDIR /starsona

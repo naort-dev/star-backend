@@ -18,5 +18,5 @@ phases:
       - echo Pushing the Docker images...
       - docker push ${REGISTRY}starsona-celery${IMAGE_TAG}
       - docker push ${REGISTRY}starsona-gunicorn${IMAGE_TAG}
-      - docker push ${REGISTRY}starsona-nginx${IMAGE_TAG}
+      - docker push ${REGISTRY}starsona-nginx-${DEPLOYMENT_TYPE}${IMAGE_TAG}
       - docker push ${REGISTRY}starsona-migration${IMAGE_TAG}
