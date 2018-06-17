@@ -134,7 +134,9 @@ Resources:
 
   NginxService:
     Type: AWS::ECS::Service
-    DependsOn: NginxLoadBalancerRule
+    DependsOn:
+    - NginxLoadBalancerRuleHTTP
+    - NginxLoadBalancerRuleHTTPS
     Properties:
       ServiceName: 'nginx'
       Cluster:
