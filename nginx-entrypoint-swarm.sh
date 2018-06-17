@@ -21,12 +21,12 @@ fi
 exists=`crontab -l 2>/dev/null || true | grep "certbot" >/dev/null 2>&1 && echo 1 || echo 0`
 if [[ "$exists" == 0 ]]; then
     echo "Installing certbot renew into crontab"
-    line="0 0,12 * * * python -c 'import random; import time; time.sleep(random.random() * 3600)' && /usr/bin/certbot renew"
+    line="0 0,12 * * * python -c 'import random; import time; time.sleep(random.random() * 3600)' && /usr/bin/certbot --staging renew"
     (crontab -l 2>/dev/null || true; echo "$line" ) | crontab -
 fi
 
 echo "Stopping existing nginx if needed"
-/usr/bin/nginx -s stop || true
+/usr/sbin/nginx -s stop || true
 
 echo "Starting main process:"
 echo "    $@"
