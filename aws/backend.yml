@@ -97,7 +97,7 @@ Resources:
   NginxTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: 'nginx'
+      Family: 'backend-nginx'
       Cpu: 256
       Memory: 512
       NetworkMode: awsvpc
@@ -112,8 +112,8 @@ Resources:
           - !Ref 'Role'
           - !Ref "AWS::NoValue"
       ContainerDefinitions:
-        - Name: 'nginx'
-          Image: !Join ['', [!Ref 'ImageRepository', 'starsona-nginx-aws', !Ref 'ImageTag']]
+        - Name: 'backend-nginx'
+          Image: !Join ['', [!Ref 'ImageRepository', 'backend-nginx-aws', !Ref 'ImageTag']]
           PortMappings:
             - ContainerPort: !Ref 'HttpPort'
           LogConfiguration:
@@ -121,7 +121,7 @@ Resources:
             Options:
               awslogs-group: !Ref 'AWS::StackName'
               awslogs-region: !Ref 'AWS::Region'
-              awslogs-stream-prefix: 'nginx'
+              awslogs-stream-prefix: 'backend-nginx'
           Ulimits:
           - Name: nofile
             HardLimit: 8192
@@ -138,7 +138,7 @@ Resources:
     - NginxLoadBalancerRuleHTTP
     - NginxLoadBalancerRuleHTTPS
     Properties:
-      ServiceName: 'nginx'
+      ServiceName: 'backend-nginx'
       Cluster:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'ClusterName']]
@@ -160,7 +160,7 @@ Resources:
                 !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
       TaskDefinition: !Ref 'NginxTaskDefinition'
       LoadBalancers:
-        - ContainerName: 'nginx'
+        - ContainerName: 'backend-nginx'
           ContainerPort: !Ref 'HttpPort'
           TargetGroupArn: !Ref 'NginxTargetGroup'
 
@@ -173,7 +173,7 @@ Resources:
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
       TargetType: ip
-      Name: 'nginx'
+      Name: !Join ['-', [!Ref 'AWS::StackName', 'nginx']]
       Port: !Ref 'HttpPort'
       Protocol: HTTP
       UnhealthyThresholdCount: 2
@@ -241,7 +241,7 @@ Resources:
 
   #--------------------------------------------------------------------------------------------------------------------
   # GUNICORN
-  # Backend running befind InternalLB:9003
+  # Backend running behind InternalLB:9003
   #--------------------------------------------------------------------------------------------------------------------
 
   GunicornTaskDefinition:
@@ -263,7 +263,7 @@ Resources:
           - !Ref "AWS::NoValue"
       ContainerDefinitions:
         - Name: 'gunicorn'
-          Image: !Join ['', [!Ref 'ImageRepository', 'starsona-gunicorn', !Ref 'ImageTag']]
+          Image: !Join ['', [!Ref 'ImageRepository', 'backend-gunicorn', !Ref 'ImageTag']]
           PortMappings:
             - ContainerPort: !Ref 'BackendPort'
           LogConfiguration:

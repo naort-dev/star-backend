@@ -15,6 +15,9 @@ sed -i -r "s/(^[ \t]*server_name[ \t]+).*(;.*)$/\1${SSL_SERVER_NAME}\2/g" /etc/n
 
 if [ ! -e /etc/letsencrypt/live/${SSL_SERVER_NAME}/cert.pem ]; then
    certbot --nginx -d ${SSL_SERVER_NAME} -n --agree-tos --email ${SSL_SERVER_EMAIL} --staging
+   cp /etc/nginx/sites-enabled/default /etc/letsencrypt/live/${SSL_SERVER_NAME}/
+else
+   cp /etc/letsencrypt/live/${SSL_SERVER_NAME}/default /etc/nginx/sites-enabled/
 fi
 
 # crontab for auto renewal

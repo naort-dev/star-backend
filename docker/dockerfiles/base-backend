@@ -1,6 +1,6 @@
 ARG REGISTRY=''
 ARG IMAGE_TAG=''
-FROM ${REGISTRY}starsona-base-os${IMAGE_TAG}
+FROM ${REGISTRY}base-os${IMAGE_TAG}
 COPY requirements.txt /starsona/
 RUN apt-get install -y postgresql-client &&\
     apt-get clean all

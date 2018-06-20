@@ -1,7 +1,7 @@
 version: '3.3'
 services:
   gunicorn:
-    image: starsona-gunicorn
+    image: backend-gunicorn
     networks:
     - overlay
     ports:
@@ -33,7 +33,7 @@ services:
     - QUEUE_HOST
 
   migration:
-    image: starsona-migration
+    image: backend-migration
     networks:
     - overlay
     depends_on:
@@ -46,7 +46,7 @@ services:
     - DATABASE_HOST
 
   celery-beat:
-    image: starsona-celery
+    image: backend-celery
     networks:
     - overlay
     restart: on-failure
@@ -77,7 +77,7 @@ services:
     - QUEUE_HOST
 
   celery-worker:
-    image: starsona-celery
+    image: backend-celery
     networks:
     - overlay
     restart: on-failure
@@ -131,7 +131,7 @@ services:
     - RABBITMQ_DEFAULT_PASS=${QUEUE_PASSWORD}
 
   nginx:
-    image: starsona-nginx-swarm
+    image: backend-nginx-swarm
     hostname: ${SSL_SERVER_NAME}
     volumes:
     - /etc/letsencrypt

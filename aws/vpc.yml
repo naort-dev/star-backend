@@ -503,3 +503,8 @@ Outputs:
     Value: !Ref 'FargateContainerSecurityGroup'
     Export:
       Name: !Join [ ':', [ !Ref 'AWS::StackName', 'FargateContainerSecurityGroup' ] ]
+  DomainName:
+    Description: Domain name
+    Value: !Ref 'DomainName'
+    Export:
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'DomainName' ] ]
