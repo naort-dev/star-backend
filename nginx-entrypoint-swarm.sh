@@ -29,7 +29,7 @@ if [[ "$exists" == 0 ]]; then
 fi
 
 echo "Stopping existing nginx if needed"
-/usr/sbin/nginx -s stop || true
+/usr/sbin/nginx -s stop 2>/dev/null || true
 
 echo "Starting main process:"
 echo "    $@"

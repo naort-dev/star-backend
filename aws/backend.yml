@@ -51,18 +51,6 @@ Parameters:
     Type: String
     Default: starsona
 
-  Path:
-    Type: String
-    Default: "*"
-    Description: A path on the public load balancer that this service
-                 should be connected to. Use * to send all load balancer
-                 traffic to this service.
-  Priority:
-    Type: Number
-    Default: 1
-    Description: The priority for the routing rule added to the load balancer.
-                 This only applies if your have multiple services which have been
-                 assigned to different paths on the load balancer.
   DesiredCount:
     Type: Number
     Default: 2
@@ -90,14 +78,14 @@ Resources:
       RetentionInDays: 14
 
   #--------------------------------------------------------------------------------------------------------------------
-  # NGINX
-  # Serves static content and proxies dynamic content to backend GUNICORN at InternalLB:9003
+  # WEB
+  # Serves static content and proxies dynamic content to backend NODE at InternalLB:8080
   #--------------------------------------------------------------------------------------------------------------------
 
   NginxTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: 'backend-nginx'
+      Family: !Join ['-', [!Ref 'AWS::StackName', 'nginx']]
       Cpu: 256
       Memory: 512
       NetworkMode: awsvpc
@@ -112,7 +100,7 @@ Resources:
           - !Ref 'Role'
           - !Ref "AWS::NoValue"
       ContainerDefinitions:
-        - Name: 'backend-nginx'
+        - Name: 'nginx'
           Image: !Join ['', [!Ref 'ImageRepository', 'backend-nginx-aws', !Ref 'ImageTag']]
           PortMappings:
             - ContainerPort: !Ref 'HttpPort'
@@ -121,24 +109,19 @@ Resources:
             Options:
               awslogs-group: !Ref 'AWS::StackName'
               awslogs-region: !Ref 'AWS::Region'
-              awslogs-stream-prefix: 'backend-nginx'
+              awslogs-stream-prefix: 'web'
           Ulimits:
           - Name: nofile
             HardLimit: 8192
             SoftLimit: 8192
-          Environment:
-          - Name: PRIVATE_LB_HOSTNAME
-            Value:
-              Fn::ImportValue:
-                !Join [':', [!Ref 'StackName', 'InternalLB']]
 
-  NginxService:
+  WebService:
     Type: AWS::ECS::Service
     DependsOn:
-    - NginxLoadBalancerRuleHTTP
-    - NginxLoadBalancerRuleHTTPS
+    - WebLoadBalancerRuleHTTP
+    - WebLoadBalancerRuleHTTPS
     Properties:
-      ServiceName: 'backend-nginx'
+      ServiceName: 'web'
       Cluster:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'ClusterName']]
@@ -160,11 +143,11 @@ Resources:
                 !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
       TaskDefinition: !Ref 'NginxTaskDefinition'
       LoadBalancers:
-        - ContainerName: 'backend-nginx'
+        - ContainerName: 'nginx'
           ContainerPort: !Ref 'HttpPort'
-          TargetGroupArn: !Ref 'NginxTargetGroup'
+          TargetGroupArn: !Ref 'WebTargetGroup'
 
-  NginxTargetGroup:
+  WebTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       HealthCheckIntervalSeconds: 6
@@ -173,7 +156,7 @@ Resources:
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
       TargetType: ip
-      Name: !Join ['-', [!Ref 'AWS::StackName', 'nginx']]
+      Name: !Join ['-', [!Ref 'AWS::StackName', 'web']]
       Port: !Ref 'HttpPort'
       Protocol: HTTP
       UnhealthyThresholdCount: 2
@@ -181,33 +164,35 @@ Resources:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'VPCId']]
 
-  NginxLoadBalancerRuleHTTP:
+  WebLoadBalancerRuleHTTP:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
       Actions:
-        - TargetGroupArn: !Ref 'NginxTargetGroup'
+        - TargetGroupArn: !Ref 'WebTargetGroup'
           Type: 'forward'
       Conditions:
         - Field: path-pattern
-          Values: [!Ref 'Path']
+          Values: '*'
       ListenerArn:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'PublicListenerHTTP']]
-      Priority: !Ref 'Priority'
+      Priority: 1
 
-  NginxLoadBalancerRuleHTTPS:
+  WebLoadBalancerRuleHTTPS:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
       Actions:
-        - TargetGroupArn: !Ref 'NginxTargetGroup'
+        - TargetGroupArn: !Ref 'WebTargetGroup'
           Type: 'forward'
       Conditions:
         - Field: path-pattern
-          Values: [!Ref 'Path']
+          Values: '/static/*'
+        - Field: path-pattern
+          Values: '/media/*'
       ListenerArn:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'PublicListenerHTTPS']]
-      Priority: !Ref 'Priority'
+      Priority: 1
 
   #--------------------------------------------------------------------------------------------------------------------
   # POSTGRES
@@ -247,7 +232,7 @@ Resources:
   GunicornTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     Properties:
-      Family: 'gunicorn'
+      Family: !Join ['-', [!Ref 'AWS::StackName', 'gunicorn']]
       Cpu: 256
       Memory: 512
       NetworkMode: awsvpc
@@ -271,7 +256,7 @@ Resources:
             Options:
               awslogs-group: !Ref 'AWS::StackName'
               awslogs-region: !Ref 'AWS::Region'
-              awslogs-stream-prefix: 'gunicorn'
+              awslogs-stream-prefix: 'backend'
           Ulimits:
           - Name: nofile
             HardLimit: 8192
@@ -283,11 +268,11 @@ Resources:
           - { Name: DATABASE_USER, Value: !Ref 'DBUsername' }
           - { Name: DATABASE_PASSWORD, Value: !Ref 'DBPassword' }
 
-  GunicornService:
+  BackendService:
     Type: AWS::ECS::Service
-    DependsOn: GunicornLoadBalancerRule
+    DependsOn: BackendLoadBalancerRule
     Properties:
-      ServiceName: 'gunicorn'
+      ServiceName: 'backend'
       Cluster:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'ClusterName']]
@@ -311,9 +296,9 @@ Resources:
       LoadBalancers:
         - ContainerName: 'gunicorn'
           ContainerPort: !Ref 'BackendPort'
-          TargetGroupArn: !Ref 'GunicornTargetGroup'
+          TargetGroupArn: !Ref 'BackendTargetGroup'
 
-  GunicornTargetGroup:
+  BackendTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       HealthCheckIntervalSeconds: 6
@@ -322,7 +307,7 @@ Resources:
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
       TargetType: ip
-      Name: 'gunicorn'
+      Name: !Join ['-', [!Ref 'AWS::StackName', 'backend']]
       Port: !Ref 'BackendPort'
       Protocol: HTTP
       UnhealthyThresholdCount: 2
@@ -330,18 +315,21 @@ Resources:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'VPCId']]
 
-  GunicornLoadBalancerRule:
+  BackendLoadBalancerRuleHTTPS:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
     Properties:
       Actions:
-        - TargetGroupArn: !Ref 'GunicornTargetGroup'
+        - TargetGroupArn: !Ref 'BackendTargetGroup'
           Type: 'forward'
       Conditions:
         - Field: path-pattern
-          Values: [!Ref 'Path']
+          Values: '*'
       ListenerArn:
         Fn::ImportValue:
-          !Join [':', [!Ref 'StackName', 'PrivateListener']]
-      Priority: !Ref 'Priority'
+          !Join [':', [!Ref 'StackName', 'PublicListenerHTTPS']]
+      Priority: 2
 
+  #--------------------------------------------------------------------------------------------------------------------
+  # S3 Bucket
+  #--------------------------------------------------------------------------------------------------------------------
 
