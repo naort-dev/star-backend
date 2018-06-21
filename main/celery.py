@@ -51,6 +51,7 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 app.conf.broker_transport_options = {
     'region': os.environ.get('QUEUE_REGION', 'us-east-1'),
-    'queue_name_prefix':  os.environ.get('QUEUE_PREFIX', 'celery-')
+    'queue_name_prefix':  os.environ.get('QUEUE_NAME_PREFIX', 'celery-'),
+    'polling_interval':  int(os.environ.get('QUEUE_POLLING_INTERVAL', '60')),
 }
 
