@@ -49,3 +49,8 @@ app.conf.timezone = 'UTC'
 # This reads, e.g., CELERY_ACCEPT_CONTENT = ['json'] from settings.py:
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
+app.conf.broker_transport_options = {
+    'region': os.environ.get('QUEUE_REGION', 'us-east-1'),
+    'queue_name_prefix':  os.environ.get('QUEUE_PREFIX', 'celery-')
+}
+
