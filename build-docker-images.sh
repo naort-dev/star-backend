@@ -7,4 +7,5 @@ id=$(docker create ${REGISTRY}backend-gunicorn${IMAGE_TAG})
 docker cp $id:/starsona/static .
 docker build -f docker/dockerfiles/backend-nginx-${DEPLOYMENT_TYPE:-swarm} --tag ${REGISTRY}backend-nginx-${DEPLOYMENT_TYPE:-swarm}${IMAGE_TAG} --build-arg REGISTRY=${REGISTRY} --build-arg IMAGE_TAG=${IMAGE_TAG} .
 docker build -f docker/dockerfiles/backend-migration --tag ${REGISTRY}backend-migration${IMAGE_TAG} --build-arg REGISTRY=${REGISTRY} --build-arg IMAGE_TAG=${IMAGE_TAG} .
+docker build -f docker/dockerfiles/backend-console --tag ${REGISTRY}backend-console${IMAGE_TAG} --build-arg REGISTRY=${REGISTRY} --build-arg IMAGE_TAG=${IMAGE_TAG} .
 
