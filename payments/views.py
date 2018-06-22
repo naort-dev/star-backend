@@ -160,7 +160,7 @@ def createcharge(customer_id, source_id, starsona_id, amount):
             amount=amount,
             currency='usd',
             customer=customer_id,
-            description="Payment for the Starsona request" + str(starsona_id),
+            description="Payment for the Starsona request " + str(starsona_id),
             metadata={"request_id": starsona_id},
             api_key=API_KEY,
             source=source_id,

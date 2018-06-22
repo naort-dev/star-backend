@@ -11,17 +11,13 @@ ifndef env
 endif
 
 	# Removing the files
-	#rm -rf main/settings/credentials.py
 	rm -rf .well-known/apple-app-site-association
-	#rm -rf payments/constants.py
 	rm -rf templates/home/apps.html
 	rm -rf config/fixtures/config.json
 	rm -rf utilities/constants.py
 
 	# Copying the file based on environment
-	#cp main/settings/credentials.py.$(env) main/settings/credentials.py
 	cp .well-known/apple-app-site-association.$(env) .well-known/apple-app-site-association
-	#cp payments/constants.py.$(env) payments/constants.py
 	cp templates/home/apps.html.$(env) templates/home/apps.html
 	cp config/fixtures/config.json.$(env) config/fixtures/config.json
 	cp utilities/constants.py.$(env) utilities/constants.py
@@ -36,31 +32,32 @@ else
 endif
 
 
-#Congigure Dev enviornment
+# Congigure Dev enviornment
 setup: configure db-setup loaddatas restart-service 
 
 
-#Load data from fixtures
-#from Terminal "make loaddata"
+# Load data from fixtures
+# From Terminal "make loaddata"
+# Uncomment the scripts for intial project setup
 loaddatas:
 	./manage.py loaddata config/fixtures/config.json
-	#./manage.py loaddata role/fixtures/features.json
-	#./manage.py loaddata role/fixtures/roles.json
-	#./manage.py loaddata role/fixtures/role_feature_mapping.json
-	#./manage.py loaddata stargramz/fixtures/relations.json
+	# ./manage.py loaddata role/fixtures/features.json
+	# ./manage.py loaddata role/fixtures/roles.json
+	# ./manage.py loaddata role/fixtures/role_feature_mapping.json
+	# ./manage.py loaddata stargramz/fixtures/relations.json
 	./manage.py loaddata stargramz/fixtures/occasions.json
 	./manage.py loaddata stargramz/fixtures/orderrelations.json
-	#./manage.py loaddata users/fixtures/profession.json
+	# ./manage.py loaddata users/fixtures/profession.json
 
-#Setup the project after running the migrations
-#from Terminal "make setup"
+# Setup the project after running the migrations
+# from Terminal "make setup"
 db-setup:
 	@echo 'Starting the Starsona setup process'
 	pip install -U -r requirements.txt
 	./manage.py makemigrations
 	./manage.py migrate
 
-#Stop all the worker and start again
+# Stop all the worker and start again
 tasks: kill-celery start-celery
 
 kill-celery:
@@ -72,7 +69,7 @@ celery-status:
 start-celery:
 	celery -A main worker& celery -A main beat&
 
-#Quickly seting up the deloying process
+# Quickly seting up the deloying process
 quick-setup:
 	git pull origin develop
 	sudo service stargramz.qburst.build-gunicorn restart

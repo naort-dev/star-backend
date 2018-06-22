@@ -142,6 +142,7 @@ def upload_images(request):
 
         user_id = request.POST['user_id']
         img_count = int(request.POST['image_count'])
+        featured = True if 'featured' in request.GET else False
         total_pics = ProfileImage.objects.filter(user_id=user_id).count()
         myfile = request.FILES['image']
         file_name, file_extension = os.path.splitext(str(myfile))
@@ -160,6 +161,12 @@ def upload_images(request):
             upload_image_s3(root+filename, s3file)
             images = ProfileImage(user_id=user_id, photo=filename)
             images.save()
+
+            if featured:
+                user = StargramzUser.objects.get(id=user_id)
+                user.featured_photo_id = images.id
+                user.save()
+
             generate_thumbnail.delay()
 
             time.sleep(2)

@@ -279,6 +279,23 @@ def get_profile_images(request, user_id, img_count=1, **kwargs):
     )
 
 
+def get_featured_image(request, user_id, featured_image):
+    """
+        Get the featured image for the user and update
+    """
+    try:
+        images = ProfileImage.objects.filter(user=user_id, id=featured_image)
+        config = Config.objects.get(key='profile_images')
+        image_list = {obj.id: get_pre_signed_get_url(obj.photo, config.value) for obj in images}
+    except Exception:
+        pass
+    return loader.render_to_string(
+        template_name='admin/featured_images.html',
+        context={'images': image_list, 'id': user_id, 'img_count': 5, 'avatar_id': None},
+        request=None
+    )
+
+
 def get_profile_video(id):
     video = Celebrity.objects.filter(user_id=id)
     config = Config.objects.get(key='authentication_videos')

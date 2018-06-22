@@ -13,6 +13,7 @@ from django.utils import timezone
 from config.constants import *
 from config.models import Config
 from rest_framework import viewsets
+from rest_framework.viewsets import GenericViewSet
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
@@ -280,6 +281,21 @@ class Professions(APIView, ResponseViewMixin):
         return self.jp_response(s_code='HTTP_200_OK', data={'professions': profession_data.data})
 
 
+class FilterProfessions(GenericViewSet, ResponseViewMixin):
+    """
+        Get the filtered list of Profession
+    """
+    def list(self, request):
+        #query_set = CelebrityProfession.objects.filter(profession__parent__isnull=False).values_list('profession', flat=True).distinct()
+        query_set = CelebrityProfession.objects.all().distinct()
+        parent_null = query_set.filter(profession__parent__isnull=False).values_list('profession__parent', flat=True)
+        parent_not_null = query_set.filter(profession__parent__isnull=True).values_list('profession', flat=True)
+        parent_null.union(parent_not_null)
+        profession = Profession.objects.filter(id__in=parent_null, parent__isnull=True)
+        profession_data = ProfessionFilterSerializer(profession, many=True)
+        return self.jp_response(s_code='HTTP_200_OK', data={'filtered-professions': profession_data.data})
+
+
 class ProfileImages(GenericAPIView, ResponseViewMixin):
     """
         Profile Images
@@ -294,15 +310,20 @@ class ProfileImages(GenericAPIView, ResponseViewMixin):
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE', ['User not found'])
         images = request.data['images']
-        avatar_image = None
+        avatar_image = featured_image = None
         default_avatar_image = request.data['images'][0]
         input_data = {"images_list": [{"photo": item} for item in images]}
         if 'avatar_photo' in request.data:
             avatar_image = request.data['avatar_photo']
             input_data['avatar_photo'] = avatar_image
+        if 'featured_image' in request.data:
+            featured_image = request.data['featured_image']
+            input_data['featured_image'] = featured_image
         serializer = ProfileImageSerializer(data=input_data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
+            user.featured_photo_id = ProfileImage.objects.get(photo=featured_image, user=user).id if featured_image else \
+                ProfileImage.objects.get(photo=default_avatar_image, user=user).id
             user.avatar_photo_id = ProfileImage.objects.get(photo=avatar_image, user=user).id if avatar_image else \
                 ProfileImage.objects.get(photo=default_avatar_image, user=user).id
             user.save()
@@ -382,17 +403,19 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
             user = StargramzUser.objects.get(id=pk)
         except StargramzUser.DoesNotExist:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'User Does not Exist')
-        data = RegisterSerializer(user).data
+        data = RegisterSerializer(user, context={'request': request}).data
         data['role_details'] = get_user_role_details(user)
         response_data = dict(user=data)
         data['is_follow'] = True if user_followed else False
         data['authentication_token'] = None
         data['share_url'] = '%sapplinks/profile/%s/' % (BASE_URL, str(hashids.encode(user.pk)))
         data['celebrity'] = check_celebrity_profile_exist(user)
+        data['unseen_bookings'] = 0
 
         if user_logged_in:
             (token, created) = Token.objects.get_or_create(user=user)
             data['authentication_token'] = token.key
+            data['unseen_bookings'] = user.unseen_bookings if user_logged_in == user.id else 0
             (notifications, created) = SettingsNotifications.objects.get_or_create(user_id=user.id)
             data['notification_settings'] = NotificationSettingsSerializer(notifications).data
         if data['celebrity']:
@@ -643,3 +666,20 @@ class ValidateSocialSignup(APIView, ResponseViewMixin):
                 'INVALID_LOGIN',
                 self.error_msg_string(serializer.errors)
             )
+
+
+class UpdateBookingCount(APIView, ResponseViewMixin):
+    """
+        Update the unseen count to 0
+    """
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def get(self, request):
+        try:
+            user = StargramzUser.objects.get(username=request.user)
+            user.unseen_bookings = 0
+            user.save()
+        except Exception:
+            pass
+        return self.jp_response(s_code='HTTP_200_OK', data='Successfully updated booking count')
