@@ -3,15 +3,81 @@ Description: Deploy a service on AWS Fargate, hosted in a private subnet, but ac
 Parameters:
   StackName:
     Type: String
-    Description: The name of the parent Fargate networking stack that you created. Necessary
-                 to locate and reference resources created by that stack.
+    Description: The name of the parent networking stack
 
   Env:
     Type: String
     AllowedValues:
     - dev
     - live
-    Description: Environment type - dev or live
+    Description: Environment type
+
+  AdminUsername:
+    Type: String
+    Description: Backend admin username
+
+  AdminPassword:
+    Type: String
+    Description: Backend admin password
+
+  DatabaseUser:
+    Type: String
+    Description: Database username
+    Default: 'postgres'
+
+  DatabasePassword:
+    Type: String
+    NoEcho: true
+    Description: Database password
+    Default: 'password'
+
+  DatabaseName:
+    Type: String
+    Default: starsona
+
+  BucketName:
+    Type: String
+    AllowedValues:
+    - starsona-stb-usea1
+    - starsona-prb-usea1
+    Description: S3 Bucket name
+
+  EmailHost:
+    Type: String
+
+  EmailUser:
+    Type: String
+
+  EmailPassword:
+    Type: String
+
+  EmailPort:
+    Type: String
+    Default: 587
+
+  EmailUseTls:
+    Type: String
+    Default: True
+
+  FCMServerKey:
+    Type: String
+
+  StripeWebHook:
+    Type: String
+
+  StripeClientId:
+    Type: String
+
+  StripeSecretKey:
+    Type: String
+
+  BranchIOKey:
+    Type: String
+
+  DBInstanceClass:
+    Type: String
+    Default: 'db.t2.micro'
+    Description: Database instance class
 
   ImageRepository:
     Type: String
@@ -26,61 +92,10 @@ Parameters:
   HttpPort:
     Type: Number
     Default: 80
-    Description: What port number the application inside the docker container is binding to
 
   BackendPort:
     Type: Number
     Default: 9003
-    Description: What port number the application inside the docker container is binding to
-
-  DBInstanceClass:
-    Type: String
-    Default: 'db.t2.micro'
-    Description: Database instance class
-
-  DBUsername:
-    Type: String
-    Description: Database username
-    Default: 'postgres'
-
-  DBPassword:
-    Type: String
-    NoEcho: true
-    Description: Database password
-    Default: 'password'
-
-  DBName:
-    Type: String
-    Default: starsona
-
-  BucketName:
-    Type: String
-    AllowedValues:
-    - starsona-stb-usea1
-    - starsona-prb-usea1
-    Description: S3 Bucket name
-
-  QueuePrefix:
-    Type: String
-    AllowedValues:
-    - starsona-stb-usea1-
-    - starsona-prb-usea1-
-    Description: SQS prefixes
-
-  DesiredCount:
-    Type: Number
-    Default: 2
-    Description: How many copies of the service task to run
-
-  Role:
-    Type: String
-    Default: ""
-    Description: (Optional) An IAM role to give the service's containers if the code within needs to
-                 access other AWS resources like S3 buckets, DynamoDB tables, etc
-
-Conditions:
-  HasCustomRole: !Not [ !Equals [!Ref 'Role', ''] ]
-
 
 Resources:
 
@@ -155,7 +170,7 @@ Resources:
       DeploymentConfiguration:
         MaximumPercent: 200
         MinimumHealthyPercent: 75
-      DesiredCount: !Ref 'DesiredCount'
+      DesiredCount: 2
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: DISABLED
@@ -250,13 +265,13 @@ Resources:
   DB:
     Type: 'AWS::RDS::DBInstance'
     Properties:
-      DBName: !Ref 'DBName'
+      DBName: !Ref 'DatabaseName'
       AllocatedStorage: 5
       DBInstanceClass: !Ref 'DBInstanceClass'
       Engine: 'postgres'
       EngineVersion: '9.5'
-      MasterUsername: !Ref 'DBUsername'
-      MasterUserPassword: !Ref 'DBPassword'
+      MasterUsername: !Ref 'DatabaseUser'
+      MasterUserPassword: !Ref 'DatabasePassword'
       DBSubnetGroupName: !Ref 'DBSubnetGroup'
       VPCSecurityGroups:
         - Fn::ImportValue:
@@ -297,10 +312,25 @@ Resources:
             SoftLimit: 8192
           Environment:
           - { Name: ENV, Value: !Ref 'Env' }
+          - { Name: QUEUE_BROKER_URL, Value: 'sqs://' }
+          - { Name: QUEUE_BACKEND, Value: 'amqp' }
+          - { Name: QUEUE_REGION, Value: !Ref 'AWS::Region' }
+          - { Name: QUEUE_NAME_PREFIX, Value: !Join ['', [!Ref 'AWS::StackName', '-']] }
           - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
-          - { Name: DATABASE_NAME, Value: !Ref 'DBName' }
-          - { Name: DATABASE_USER, Value: !Ref 'DBUsername' }
-          - { Name: DATABASE_PASSWORD, Value: !Ref 'DBPassword' }
+          - { Name: DATABASE_NAME, Value: !Ref 'DatabaseName' }
+          - { Name: DATABASE_USER, Value: !Ref 'DatabaseUser' }
+          - { Name: DATABASE_PASSWORD, Value: !Ref 'DatabasePassword' }
+          - { Name: AWS_STORAGE_BUCKET_NAME, Value: !Ref 'BucketName' }
+          - { Name: EMAIL_HOST, Value: !Ref 'EmailHost' }
+          - { Name: EMAIL_HOST_USER, Value: !Ref 'EmailUser' }
+          - { Name: EMAIL_HOST_PASSWORD, Value: !Ref 'EmailPassword' }
+          - { Name: EMAIL_PORT, Value: !Ref 'EmailPort' }
+          - { Name: EMAIL_USE_TLS, Value: !Ref 'EmailUseTls' }
+          - { Name: FCM_SERVER_KEY, Value: !Ref 'FCMServerKey' }
+          - { Name: STRIPE_WEB_HOOK, Value: !Ref 'StripeWebHook' }
+          - { Name: STRIPE_CLIENT_ID, Value: !Ref 'StripeClientId' }
+          - { Name: STRIPE_SECRET_KEY, Value: !Ref 'StripeSecretKey' }
+          - { Name: BRANCH_IO_KEY, Value: !Ref 'BranchIOKey' }
 
   BackendService:
     Type: AWS::ECS::Service
@@ -314,7 +344,7 @@ Resources:
       DeploymentConfiguration:
         MaximumPercent: 200
         MinimumHealthyPercent: 75
-      DesiredCount: !Ref 'DesiredCount'
+      DesiredCount: 2
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: DISABLED
@@ -396,7 +426,22 @@ Resources:
           - { Name: QUEUE_BROKER_URL, Value: 'sqs://' }
           - { Name: QUEUE_BACKEND, Value: 'amqp' }
           - { Name: QUEUE_REGION, Value: !Ref 'AWS::Region' }
-          - { Name: QUEUE_NAME_PREFIX, Value: !Ref 'QueuePrefix' }
+          - { Name: QUEUE_NAME_PREFIX, Value: !Join ['', [!Ref 'AWS::StackName', '-']] }
+          - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
+          - { Name: DATABASE_NAME, Value: !Ref 'DatabaseName' }
+          - { Name: DATABASE_USER, Value: !Ref 'DatabaseUser' }
+          - { Name: DATABASE_PASSWORD, Value: !Ref 'DatabasePassword' }
+          - { Name: AWS_STORAGE_BUCKET_NAME, Value: !Ref 'BucketName' }
+          - { Name: EMAIL_HOST, Value: !Ref 'EmailHost' }
+          - { Name: EMAIL_HOST_USER, Value: !Ref 'EmailUser' }
+          - { Name: EMAIL_HOST_PASSWORD, Value: !Ref 'EmailPassword' }
+          - { Name: EMAIL_PORT, Value: !Ref 'EmailPort' }
+          - { Name: EMAIL_USE_TLS, Value: !Ref 'EmailUseTls' }
+          - { Name: FCM_SERVER_KEY, Value: !Ref 'FCMServerKey' }
+          - { Name: STRIPE_WEB_HOOK, Value: !Ref 'StripeWebHook' }
+          - { Name: STRIPE_CLIENT_ID, Value: !Ref 'StripeClientId' }
+          - { Name: STRIPE_SECRET_KEY, Value: !Ref 'StripeSecretKey' }
+          - { Name: BRANCH_IO_KEY, Value: !Ref 'BranchIOKey' }
 
   CeleryBeatService:
     Type: AWS::ECS::Service
@@ -451,11 +496,22 @@ Resources:
           - { Name: QUEUE_BROKER_URL, Value: 'sqs://' }
           - { Name: QUEUE_BACKEND, Value: 'amqp' }
           - { Name: QUEUE_REGION, Value: !Ref 'AWS::Region' }
-          - { Name: QUEUE_NAME_PREFIX, Value: !Ref 'QueuePrefix' }
+          - { Name: QUEUE_NAME_PREFIX, Value: !Join ['', [!Ref 'AWS::StackName', '-']] }
           - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
-          - { Name: DATABASE_NAME, Value: !Ref 'DBName' }
-          - { Name: DATABASE_USER, Value: !Ref 'DBUsername' }
-          - { Name: DATABASE_PASSWORD, Value: !Ref 'DBPassword' }
+          - { Name: DATABASE_NAME, Value: !Ref 'DatabaseName' }
+          - { Name: DATABASE_USER, Value: !Ref 'DatabaseUser' }
+          - { Name: DATABASE_PASSWORD, Value: !Ref 'DatabasePassword' }
+          - { Name: AWS_STORAGE_BUCKET_NAME, Value: !Ref 'BucketName' }
+          - { Name: EMAIL_HOST, Value: !Ref 'EmailHost' }
+          - { Name: EMAIL_HOST_USER, Value: !Ref 'EmailUser' }
+          - { Name: EMAIL_HOST_PASSWORD, Value: !Ref 'EmailPassword' }
+          - { Name: EMAIL_PORT, Value: !Ref 'EmailPort' }
+          - { Name: EMAIL_USE_TLS, Value: !Ref 'EmailUseTls' }
+          - { Name: FCM_SERVER_KEY, Value: !Ref 'FCMServerKey' }
+          - { Name: STRIPE_WEB_HOOK, Value: !Ref 'StripeWebHook' }
+          - { Name: STRIPE_CLIENT_ID, Value: !Ref 'StripeClientId' }
+          - { Name: STRIPE_SECRET_KEY, Value: !Ref 'StripeSecretKey' }
+          - { Name: BRANCH_IO_KEY, Value: !Ref 'BranchIOKey' }
 
   CeleryWorkerService:
     Type: AWS::ECS::Service
@@ -481,6 +537,73 @@ Resources:
             - Fn::ImportValue:
                 !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
       TaskDefinition: !Ref 'CeleryWorkerTaskDefinition'
+
+  #--------------------------------------------------------------------------------------------------------------------
+  # Initialization and migration
+  #--------------------------------------------------------------------------------------------------------------------
+
+  MigrationTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Join ['-', [!Ref 'AWS::StackName', 'migration']]
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ECSTaskExecutionRole']]
+      TaskRoleArn: !GetAtt 'InstanceRole.Arn'
+      ContainerDefinitions:
+        - Name: 'migration'
+          Image: !Join ['', [!Ref 'ImageRepository', 'backend-migration', !Ref 'ImageTag']]
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref 'AWS::StackName'
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: 'backend'
+          Environment:
+          - { Name: ENV, Value: !Ref 'Env' }
+          - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
+          - { Name: DATABASE_NAME, Value: !Ref 'DatabaseName' }
+          - { Name: DATABASE_USER, Value: !Ref 'DatabaseUser' }
+          - { Name: DATABASE_PASSWORD, Value: !Ref 'DatabasePassword' }
+          - { Name: AWS_STORAGE_BUCKET_NAME, Value: !Ref 'BucketName' }
+
+  LoadDataTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Join ['-', [!Ref 'AWS::StackName', 'load-data']]
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ECSTaskExecutionRole']]
+      TaskRoleArn: !GetAtt 'InstanceRole.Arn'
+      ContainerDefinitions:
+        - Name: 'load-data'
+          Image: !Join ['', [!Ref 'ImageRepository', 'backend-migration', !Ref 'ImageTag']]
+          Command: ["./loaddatas.sh"]
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref 'AWS::StackName'
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: 'backend'
+          Environment:
+          - { Name: ENV, Value: !Ref 'Env' }
+          - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
+          - { Name: DATABASE_NAME, Value: !Ref 'DatabaseName' }
+          - { Name: DATABASE_USER, Value: !Ref 'DatabaseUser' }
+          - { Name: DATABASE_PASSWORD, Value: !Ref 'DatabasePassword' }
+          - { Name: AWS_STORAGE_BUCKET_NAME, Value: !Ref 'BucketName' }
+          - { Name: ADMIN_USERNAME, Value: !Ref 'AdminUsername' }
+          - { Name: ADMIN_PASSWORD, Value: !Ref 'AdminPassword' }
 
   #--------------------------------------------------------------------------------------------------------------------
   # S3 Bucket
@@ -517,7 +640,7 @@ Resources:
         - Effect: Allow
           Action: "sqs:*"
           Resource:
-          - !Join ['', ['arn:aws:sqs:*:', !Ref 'AWS::AccountId', ':', !Ref 'QueuePrefix', '*']]
+          - !Join ['', ['arn:aws:sqs:*:', !Ref 'AWS::AccountId', ':', !Ref 'AWS::StackName', '-*']]
         - Effect: Allow
           Action: "sqs:ListQueues"
           Resource:
