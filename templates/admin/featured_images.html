@@ -1,0 +1,119 @@
+<style>
+.imgs {
+    background-size: cover;
+     background-position: 50%;
+     float:left;
+     height:180px;
+     width:150px;
+     margin-left:2px;
+     overflow:hidden;
+}
+.imgs img{
+    max-height:130px !important;
+}
+.del {
+    display: inline-block;
+    text-align: center;
+    width: 110px;
+    background-color: #FFF;
+    float: left;
+    position: absolute;
+    top: 10px;
+    border: 1px solid #000;
+    color:#000 !important;
+}
+img.crop-img{
+    max-width:100%;
+}
+input.jcrop-keymgr {
+    display: none !important;
+}
+img.img-responsive {
+    padding-top: 10px;
+}
+</style>
+      <!-- /.user-block -->
+    <div class="row margin-bottom">
+        <div class="col-sm-12">
+        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#modal-default-featured">
+Upload</button>
+        </div>
+    </div>
+      <div class="row margin-bottom">
+        <!-- /.col -->
+        <div class="col-sm-12">
+
+            {% for key, value in images.items %}
+            <div class="well imgs" id="pf-{{key}}">              <img class="img-responsive" src="{{ value }}" key="{{key}}">
+                <!--<a href="javascript:void(0);" onclick="delete_featured_image({{key}}, {{ id }});" class="del">Delete</a>-->
+            </div>
+            {% endfor %}
+            <!-- /.col -->
+          </div>
+          <!-- /.row -->
+        </div>
+
+<div class="modal fade" id="modal-default-featured">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Upload Image</h4>
+          </div>
+          <div class="modal-body">
+              <div class="alert alert-success hide"></div>
+              <input type="file" name="image" value=""/>
+              <input type="hidden" name="user_id" value="{{ id }}"/>
+              <input type="hidden" name="image_count" value="{{ img_count }}"/>
+              <input type="hidden" name="featured" value="1"/>
+          </div>
+          <div class="modal-footer">
+              <img src="/media/web-images/loader.gif" class="hide loaderGif" height="50px">
+            <button type="button" id="FeaturedImage" class="btn btn-primary">Upload</button>
+          </div>
+        </div>
+      </div>
+</div>
+<script>
+
+function delete_featured_image(id, user_id){
+$.ajax({
+        type: 'GET',
+        url:"/api/v1/ajax/delete/?id="+id+"&user_id="+user_id,
+        cache       : false,
+        success: function(returnval) {
+            $('#pf-'+id).remove();
+            alert(returnval);
+        },
+        error: function(html){
+            alert(html.responseText);
+        }
+    });
+}
+
+$(document).ready(function(){
+$('#FeaturedImage').click(function() {
+    $.ajax({
+        type: 'POST',
+        url:"/api/v1/ajax/upload/?featured=1",
+        mimeType: "multipart/form-data",
+        data        : new FormData($('form')[0]),
+        cache       : false,
+        contentType : false,
+        processData : false,
+        beforeSend: function(){
+            $('.loaderGif').removeClass('hide');
+        },
+        success: function(returnval) {
+        $('.alert-success').removeClass('hide');
+        $('.loaderGif').addClass('hide');
+            $('.alert-success').html(returnval);
+            setTimeout(function(){location.reload()}, 2000);
+         }
+    });
+});
+
+});
+</script>
