@@ -1,10 +1,7 @@
 version: '3.3'
 services:
   gunicorn:
-    build:
-      context: ..
-      dockerfile: docker/dockerfiles/starsona-gunicorn
-    image: starsona-gunicorn
+    image: backend-gunicorn
     networks:
     - overlay
     ports:
@@ -36,10 +33,7 @@ services:
     - QUEUE_HOST
 
   migration:
-    build:
-      context: ..
-      dockerfile: docker/dockerfiles/starsona-migration
-    image: starsona-migration
+    image: backend-migration
     networks:
     - overlay
     depends_on:
@@ -52,10 +46,7 @@ services:
     - DATABASE_HOST
 
   celery-beat:
-    build:
-      context: ..
-      dockerfile: docker/dockerfiles/starsona-celery
-    image: starsona-celery
+    image: backend-celery
     networks:
     - overlay
     restart: on-failure
@@ -64,32 +55,12 @@ services:
     command: ["celery", "-A", "main", "beat"]
     environment:
     - ENV
-    - AWS_ACCESS_KEY_ID=${S3_AWS_ACCESS_KEY_ID}
-    - AWS_SECRET_ACCESS_KEY=${S3_AWS_SECRET_ACCESS_KEY}
-    - AWS_STORAGE_BUCKET_NAME=${S3_AWS_STORAGE_BUCKET_NAME}
-    - EMAIL_HOST
-    - EMAIL_HOST_USER
-    - EMAIL_HOST_PASSWORD
-    - EMAIL_PORT
-    - EMAIL_USE_TLS
-    - FCM_SERVER_KEY
-    - STRIPE_WEB_HOOK
-    - STRIPE_CLIENT_ID
-    - STRIPE_SECRET_KEY
-    - DATABASE_NAME
-    - DATABASE_USER
-    - DATABASE_PASSWORD
-    - DATABASE_HOST
-    - BRANCH_IO_KEY
     - QUEUE_BROKER_URL
     - QUEUE_BACKEND
     - QUEUE_HOST
 
   celery-worker:
-    build:
-      context: ..
-      dockerfile: docker/dockerfiles/starsona-celery
-    image: starsona-celery
+    image: backend-celery
     networks:
     - overlay
     restart: on-failure
@@ -142,11 +113,8 @@ services:
     - RABBITMQ_DEFAULT_USER=${QUEUE_USER}
     - RABBITMQ_DEFAULT_PASS=${QUEUE_PASSWORD}
 
-  httpd:
-    build:
-      context: ..
-      dockerfile: docker/dockerfiles/starsona-httpd
-    image: starsona-httpd
+  nginx:
+    image: backend-nginx-swarm
     hostname: ${SSL_SERVER_NAME}
     volumes:
     - /etc/letsencrypt

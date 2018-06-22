@@ -12,6 +12,7 @@ six==1.10.0
 amqp==2.2.2
 billiard==3.5.0.3
 celery==4.1.0
+celery[sqs]==4.1.0
 kombu==4.1.0
 vine==1.1.4
 Pillow==4.3.0
@@ -33,3 +34,5 @@ fcm-django==0.2.13
 pep8==1.7.1
 pycodestyle==2.3.1
 django-cors-headers==2.2.0
+gunicorn==19.7.1
+pycurl==7.43.0.2

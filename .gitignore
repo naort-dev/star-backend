@@ -14,6 +14,5 @@ media/combined_videos/*
 .well-known/apple-app-site-association
 templates/home/apps.html
 config/fixtures/config.json
-utilities/constants.py
 !media/downloads/
 !media/combined_videos/

@@ -9,10 +9,14 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      - echo Building the Docker image...
-      - docker build -f docker/dockerfiles/base-os --tag ${REGISTRY}starsona-base-os${IMAGE_TAG} --build-arg REGISTRY=${REGISTRY} --build-arg IMAGE_TAG=${IMAGE_TAG} ..
+      - echo Building the Docker images...
+      - chmod +x build-docker-base.sh
+      - ./build-docker-base.sh
   post_build:
     commands:
       - echo Build completed on `date`
-      - echo Pushing the Docker image...
-      - docker push ${REGISTRY}starsona-base-os${IMAGE_TAG}
+      - echo Pushing the Docker images...
+      - docker push ${REGISTRY}base-os${IMAGE_TAG}
+      - docker push ${REGISTRY}base-nginx${IMAGE_TAG}
+      - docker push ${REGISTRY}base-letsencrypt${IMAGE_TAG}
+      - docker push ${REGISTRY}base-backend${IMAGE_TAG}

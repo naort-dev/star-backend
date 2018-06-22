@@ -1,0 +1,38 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - export REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/"
+      - export DEPLOYMENT_TYPE=aws
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker images...
+      - chmod +x build-docker-images.sh
+      - ./build-docker-images.sh
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker push ${REGISTRY}backend-celery${IMAGE_TAG}
+      - docker push ${REGISTRY}backend-gunicorn${IMAGE_TAG}
+      - docker push ${REGISTRY}backend-nginx-${DEPLOYMENT_TYPE}${IMAGE_TAG}
+      - docker push ${REGISTRY}backend-migration${IMAGE_TAG}
+      - docker push ${REGISTRY}backend-console${IMAGE_TAG}
+      - echo Writing image definitions files...
+      - printf '[{"name":"backend-celery","imageUri":"%sbackend-celery%s"}]' $REGISTRY $IMAGE_TAG > imagedefinitions-backend-celery.json
+      - printf '[{"name":"backend-gunicorn","imageUri":"%sbackend-gunicorn%s"}]' $REGISTRY $IMAGE_TAG > imagedefinitions-backend-gunicorn.json
+      - printf '[{"name":"backend-nginx","imageUri":"%sbackend-nginx-%s%s"}]' $REGISTRY $DEPLOYMENT_TYPE $IMAGE_TAG > imagedefinitions-backend-nginx.json
+      - printf '[{"name":"backend-migration","imageUri":"%sbackend-migration%s"}]' $REGISTRY $IMAGE_TAG > imagedefinitions-backend-migration.json
+      - printf '[{"name":"backend-console","imageUri":"%sbackend-console%s"}]' $REGISTRY $IMAGE_TAG > imagedefinitions-backend-console.json
+artifacts:
+  files:
+    - imagedefinitions-backend-celery.json
+    - imagedefinitions-backend-gunicorn.json
+    - imagedefinitions-backend-nginx.json
+    - imagedefinitions-backend-migration.json
+    - imagedefinitions-backend-console.json
+  discard-paths: yes

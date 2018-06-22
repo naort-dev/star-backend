@@ -11,22 +11,25 @@ if [[ -z "$SSL_SERVER_EMAIL" ]]; then
     exit 1
 fi
 
-sed -i -r "s/(^\s*ServerName)(.*)$/\1 ${SSL_SERVER_NAME}/g" /etc/apache2/sites-enabled/000-default.conf
+sed -i -r "s/(^[ \t]*server_name[ \t]+).*(;.*)$/\1${SSL_SERVER_NAME}\2/g" /etc/nginx/sites-enabled/default
 
 if [ ! -e /etc/letsencrypt/live/${SSL_SERVER_NAME}/cert.pem ]; then
-   certbot --apache -d ${SSL_SERVER_NAME} -n --agree-tos --email ${SSL_SERVER_EMAIL}
+   certbot --nginx -d ${SSL_SERVER_NAME} -n --agree-tos --email ${SSL_SERVER_EMAIL} --staging
+   cp /etc/nginx/sites-enabled/default /etc/letsencrypt/live/${SSL_SERVER_NAME}/
+else
+   cp /etc/letsencrypt/live/${SSL_SERVER_NAME}/default /etc/nginx/sites-enabled/
 fi
 
 # crontab for auto renewal
 exists=`crontab -l 2>/dev/null || true | grep "certbot" >/dev/null 2>&1 && echo 1 || echo 0`
 if [[ "$exists" == 0 ]]; then
     echo "Installing certbot renew into crontab"
-    line="0 0,12 * * * python -c 'import random; import time; time.sleep(random.random() * 3600)' && /usr/bin/certbot renew"
+    line="0 0,12 * * * python -c 'import random; import time; time.sleep(random.random() * 3600)' && /usr/bin/certbot --staging renew"
     (crontab -l 2>/dev/null || true; echo "$line" ) | crontab -
 fi
 
-echo "Stopping existing apache if needed"
-/usr/sbin/apachectl stop || true
+echo "Stopping existing nginx if needed"
+/usr/sbin/nginx -s stop 2>/dev/null || true
 
 echo "Starting main process:"
 echo "    $@"

@@ -1,0 +1,10 @@
+ARG REGISTRY=''
+ARG IMAGE_TAG=''
+FROM ${REGISTRY}base-backend${IMAGE_TAG}
+COPY . /starsona
+ENV PYTHONPATH=/starsona
+WORKDIR /starsona
+RUN chmod +x docker-entrypoint.sh
+RUN chmod +x loaddatas.sh
+ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ./manage.py makemigrations && ./manage.py migrate

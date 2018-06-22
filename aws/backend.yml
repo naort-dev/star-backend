@@ -1,0 +1,703 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Deploy a service on AWS Fargate, hosted in a private subnet, but accessible via a public load balancer.
+Parameters:
+  StackName:
+    Type: String
+    Description: The name of the parent networking stack
+
+  Env:
+    Type: String
+    AllowedValues:
+    - dev
+    - live
+    Description: Environment type
+
+  AdminUsername:
+    Type: String
+    Description: Backend admin username
+
+  AdminPassword:
+    Type: String
+    Description: Backend admin password
+
+  DatabaseUser:
+    Type: String
+    Description: Database username
+    Default: 'postgres'
+
+  DatabasePassword:
+    Type: String
+    NoEcho: true
+    Description: Database password
+    Default: 'password'
+
+  DatabaseName:
+    Type: String
+    Default: starsona
+
+  BucketName:
+    Type: String
+    AllowedValues:
+    - starsona-stb-usea1
+    - starsona-prb-usea1
+    Description: S3 Bucket name
+
+  EmailHost:
+    Type: String
+
+  EmailUser:
+    Type: String
+
+  EmailPassword:
+    Type: String
+
+  EmailPort:
+    Type: String
+    Default: 587
+
+  EmailUseTls:
+    Type: String
+    Default: True
+
+  FCMServerKey:
+    Type: String
+
+  StripeWebHook:
+    Type: String
+
+  StripeClientId:
+    Type: String
+
+  StripeSecretKey:
+    Type: String
+
+  BranchIOKey:
+    Type: String
+
+  DBInstanceClass:
+    Type: String
+    Default: 'db.t2.micro'
+    Description: Database instance class
+
+  ImageRepository:
+    Type: String
+    Default: 376169159073.dkr.ecr.us-east-1.amazonaws.com/
+    Description: Image repository
+
+  ImageTag:
+    Type: String
+    Default: ':latest'
+    Description: Image tag
+
+  HttpPort:
+    Type: Number
+    Default: 80
+
+  BackendPort:
+    Type: Number
+    Default: 9003
+
+Resources:
+
+  #--------------------------------------------------------------------------------------------------------------------
+  # Common resources
+  #--------------------------------------------------------------------------------------------------------------------
+
+  CloudwatchLogsGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Ref 'AWS::StackName'
+      RetentionInDays: 14
+
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ecs-tasks.amazonaws.com
+            - ec2.amazonaws.com
+          Action: ['sts:AssumeRole']
+      Path: /
+      Policies:
+      - !Ref "AWS::NoValue"
+
+  #--------------------------------------------------------------------------------------------------------------------
+  # WEB
+  # Serves static content and proxies dynamic content to backend NODE at InternalLB:8080
+  #--------------------------------------------------------------------------------------------------------------------
+
+  NginxTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Join ['-', [!Ref 'AWS::StackName', 'nginx']]
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ECSTaskExecutionRole']]
+      ContainerDefinitions:
+        - Name: 'nginx'
+          Image: !Join ['', [!Ref 'ImageRepository', 'backend-nginx-aws', !Ref 'ImageTag']]
+          PortMappings:
+            - ContainerPort: !Ref 'HttpPort'
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref 'AWS::StackName'
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: 'web'
+          Ulimits:
+          - Name: nofile
+            HardLimit: 8192
+            SoftLimit: 8192
+
+  WebService:
+    Type: AWS::ECS::Service
+    DependsOn:
+    - WebLoadBalancerRuleHTTP
+    - WebLoadBalancerRuleStatic
+    - WebLoadBalancerRuleMedia
+    Properties:
+      ServiceName: 'web'
+      Cluster:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ClusterName']]
+      LaunchType: FARGATE
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 75
+      DesiredCount: 2
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
+          Subnets:
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
+      TaskDefinition: !Ref 'NginxTaskDefinition'
+      LoadBalancers:
+        - ContainerName: 'nginx'
+          ContainerPort: !Ref 'HttpPort'
+          TargetGroupArn: !Ref 'WebTargetGroup'
+
+  WebTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 6
+      HealthCheckPath: /nginx-status
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      TargetType: ip
+      Name: !Join ['-', [!Ref 'AWS::StackName', 'web']]
+      Port: !Ref 'HttpPort'
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
+      VpcId:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'VPCId']]
+
+  WebLoadBalancerRuleHTTP:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - TargetGroupArn: !Ref 'WebTargetGroup'
+          Type: 'forward'
+      Conditions:
+        - Field: path-pattern
+          Values: ['*']
+      ListenerArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'PublicListenerHTTP']]
+      Priority: 1
+
+  WebLoadBalancerRuleStatic:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - TargetGroupArn: !Ref 'WebTargetGroup'
+          Type: 'forward'
+      Conditions:
+        - Field: path-pattern
+          Values: ['/static/*']
+      ListenerArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'PublicListenerHTTPS']]
+      Priority: 10
+
+  WebLoadBalancerRuleMedia:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - TargetGroupArn: !Ref 'WebTargetGroup'
+          Type: 'forward'
+      Conditions:
+        - Field: path-pattern
+          Values: ['/media/*']
+      ListenerArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'PublicListenerHTTPS']]
+      Priority: 20
+
+  #--------------------------------------------------------------------------------------------------------------------
+  # POSTGRES
+  # Database
+  #--------------------------------------------------------------------------------------------------------------------
+
+  DBSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: !Ref 'AWS::StackName'
+      SubnetIds:
+      - Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
+      - Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
+
+  DB:
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      DBName: !Ref 'DatabaseName'
+      AllocatedStorage: 5
+      DBInstanceClass: !Ref 'DBInstanceClass'
+      Engine: 'postgres'
+      EngineVersion: '9.5'
+      MasterUsername: !Ref 'DatabaseUser'
+      MasterUserPassword: !Ref 'DatabasePassword'
+      DBSubnetGroupName: !Ref 'DBSubnetGroup'
+      VPCSecurityGroups:
+        - Fn::ImportValue:
+            !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
+
+  #--------------------------------------------------------------------------------------------------------------------
+  # GUNICORN
+  # Backend running behind InternalLB:9003
+  #--------------------------------------------------------------------------------------------------------------------
+
+  GunicornTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Join ['-', [!Ref 'AWS::StackName', 'gunicorn']]
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ECSTaskExecutionRole']]
+      TaskRoleArn: !GetAtt 'InstanceRole.Arn'
+      ContainerDefinitions:
+        - Name: 'gunicorn'
+          Image: !Join ['', [!Ref 'ImageRepository', 'backend-gunicorn', !Ref 'ImageTag']]
+          PortMappings:
+            - ContainerPort: !Ref 'BackendPort'
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref 'AWS::StackName'
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: 'backend'
+          Ulimits:
+          - Name: nofile
+            HardLimit: 8192
+            SoftLimit: 8192
+          Environment:
+          - { Name: ENV, Value: !Ref 'Env' }
+          - { Name: QUEUE_BROKER_URL, Value: 'sqs://' }
+          - { Name: QUEUE_BACKEND, Value: 'amqp' }
+          - { Name: QUEUE_REGION, Value: !Ref 'AWS::Region' }
+          - { Name: QUEUE_NAME_PREFIX, Value: !Join ['', [!Ref 'AWS::StackName', '-']] }
+          - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
+          - { Name: DATABASE_NAME, Value: !Ref 'DatabaseName' }
+          - { Name: DATABASE_USER, Value: !Ref 'DatabaseUser' }
+          - { Name: DATABASE_PASSWORD, Value: !Ref 'DatabasePassword' }
+          - { Name: AWS_STORAGE_BUCKET_NAME, Value: !Ref 'BucketName' }
+          - { Name: EMAIL_HOST, Value: !Ref 'EmailHost' }
+          - { Name: EMAIL_HOST_USER, Value: !Ref 'EmailUser' }
+          - { Name: EMAIL_HOST_PASSWORD, Value: !Ref 'EmailPassword' }
+          - { Name: EMAIL_PORT, Value: !Ref 'EmailPort' }
+          - { Name: EMAIL_USE_TLS, Value: !Ref 'EmailUseTls' }
+          - { Name: FCM_SERVER_KEY, Value: !Ref 'FCMServerKey' }
+          - { Name: STRIPE_WEB_HOOK, Value: !Ref 'StripeWebHook' }
+          - { Name: STRIPE_CLIENT_ID, Value: !Ref 'StripeClientId' }
+          - { Name: STRIPE_SECRET_KEY, Value: !Ref 'StripeSecretKey' }
+          - { Name: BRANCH_IO_KEY, Value: !Ref 'BranchIOKey' }
+
+  BackendService:
+    Type: AWS::ECS::Service
+    DependsOn: BackendLoadBalancerRuleHTTPS
+    Properties:
+      ServiceName: 'backend'
+      Cluster:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ClusterName']]
+      LaunchType: FARGATE
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 75
+      DesiredCount: 2
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
+          Subnets:
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
+      TaskDefinition: !Ref 'GunicornTaskDefinition'
+      LoadBalancers:
+        - ContainerName: 'gunicorn'
+          ContainerPort: !Ref 'BackendPort'
+          TargetGroupArn: !Ref 'BackendTargetGroup'
+
+  BackendTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 6
+      HealthCheckPath: /health
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      TargetType: ip
+      Name: !Join ['-', [!Ref 'AWS::StackName', 'backend']]
+      Port: !Ref 'BackendPort'
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
+      VpcId:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'VPCId']]
+
+  BackendLoadBalancerRuleHTTPS:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - TargetGroupArn: !Ref 'BackendTargetGroup'
+          Type: 'forward'
+      Conditions:
+        - Field: path-pattern
+          Values: ['*']
+      ListenerArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'PublicListenerHTTPS']]
+      Priority: 30
+
+  #--------------------------------------------------------------------------------------------------------------------
+  # CELERY
+  #
+  #--------------------------------------------------------------------------------------------------------------------
+
+  CeleryBeatTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Join ['-', [!Ref 'AWS::StackName', 'celery-beat']]
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ECSTaskExecutionRole']]
+      TaskRoleArn: !GetAtt 'InstanceRole.Arn'
+      ContainerDefinitions:
+        - Name: 'celery-beat'
+          Image: !Join ['', [!Ref 'ImageRepository', 'backend-celery', !Ref 'ImageTag']]
+          Command: ["celery", "-A", "main", "beat"]
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref 'AWS::StackName'
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: 'backend'
+          Environment:
+          - { Name: ENV, Value: !Ref 'Env' }
+          - { Name: QUEUE_BROKER_URL, Value: 'sqs://' }
+          - { Name: QUEUE_BACKEND, Value: 'amqp' }
+          - { Name: QUEUE_REGION, Value: !Ref 'AWS::Region' }
+          - { Name: QUEUE_NAME_PREFIX, Value: !Join ['', [!Ref 'AWS::StackName', '-']] }
+          - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
+          - { Name: DATABASE_NAME, Value: !Ref 'DatabaseName' }
+          - { Name: DATABASE_USER, Value: !Ref 'DatabaseUser' }
+          - { Name: DATABASE_PASSWORD, Value: !Ref 'DatabasePassword' }
+          - { Name: AWS_STORAGE_BUCKET_NAME, Value: !Ref 'BucketName' }
+          - { Name: EMAIL_HOST, Value: !Ref 'EmailHost' }
+          - { Name: EMAIL_HOST_USER, Value: !Ref 'EmailUser' }
+          - { Name: EMAIL_HOST_PASSWORD, Value: !Ref 'EmailPassword' }
+          - { Name: EMAIL_PORT, Value: !Ref 'EmailPort' }
+          - { Name: EMAIL_USE_TLS, Value: !Ref 'EmailUseTls' }
+          - { Name: FCM_SERVER_KEY, Value: !Ref 'FCMServerKey' }
+          - { Name: STRIPE_WEB_HOOK, Value: !Ref 'StripeWebHook' }
+          - { Name: STRIPE_CLIENT_ID, Value: !Ref 'StripeClientId' }
+          - { Name: STRIPE_SECRET_KEY, Value: !Ref 'StripeSecretKey' }
+          - { Name: BRANCH_IO_KEY, Value: !Ref 'BranchIOKey' }
+
+  CeleryBeatService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: 'celery-beat'
+      Cluster:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ClusterName']]
+      LaunchType: FARGATE
+      DeploymentConfiguration:
+        MaximumPercent: 100
+        MinimumHealthyPercent: 0
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
+          Subnets:
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
+      TaskDefinition: !Ref 'CeleryBeatTaskDefinition'
+
+  CeleryWorkerTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Join ['-', [!Ref 'AWS::StackName', 'celery-worker']]
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ECSTaskExecutionRole']]
+      TaskRoleArn: !GetAtt 'InstanceRole.Arn'
+      ContainerDefinitions:
+        - Name: 'celery-worker'
+          Image: !Join ['', [!Ref 'ImageRepository', 'backend-celery', !Ref 'ImageTag']]
+          Command: ["celery", "-A", "main", "worker"]
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref 'AWS::StackName'
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: 'backend'
+          Environment:
+          - { Name: ENV, Value: !Ref 'Env' }
+          - { Name: QUEUE_BROKER_URL, Value: 'sqs://' }
+          - { Name: QUEUE_BACKEND, Value: 'amqp' }
+          - { Name: QUEUE_REGION, Value: !Ref 'AWS::Region' }
+          - { Name: QUEUE_NAME_PREFIX, Value: !Join ['', [!Ref 'AWS::StackName', '-']] }
+          - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
+          - { Name: DATABASE_NAME, Value: !Ref 'DatabaseName' }
+          - { Name: DATABASE_USER, Value: !Ref 'DatabaseUser' }
+          - { Name: DATABASE_PASSWORD, Value: !Ref 'DatabasePassword' }
+          - { Name: AWS_STORAGE_BUCKET_NAME, Value: !Ref 'BucketName' }
+          - { Name: EMAIL_HOST, Value: !Ref 'EmailHost' }
+          - { Name: EMAIL_HOST_USER, Value: !Ref 'EmailUser' }
+          - { Name: EMAIL_HOST_PASSWORD, Value: !Ref 'EmailPassword' }
+          - { Name: EMAIL_PORT, Value: !Ref 'EmailPort' }
+          - { Name: EMAIL_USE_TLS, Value: !Ref 'EmailUseTls' }
+          - { Name: FCM_SERVER_KEY, Value: !Ref 'FCMServerKey' }
+          - { Name: STRIPE_WEB_HOOK, Value: !Ref 'StripeWebHook' }
+          - { Name: STRIPE_CLIENT_ID, Value: !Ref 'StripeClientId' }
+          - { Name: STRIPE_SECRET_KEY, Value: !Ref 'StripeSecretKey' }
+          - { Name: BRANCH_IO_KEY, Value: !Ref 'BranchIOKey' }
+
+  CeleryWorkerService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: 'celery-worker'
+      Cluster:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ClusterName']]
+      LaunchType: FARGATE
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 75
+      DesiredCount: 2
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
+          Subnets:
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
+      TaskDefinition: !Ref 'CeleryWorkerTaskDefinition'
+
+  #--------------------------------------------------------------------------------------------------------------------
+  # Initialization and migration
+  #--------------------------------------------------------------------------------------------------------------------
+
+  MigrationTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Join ['-', [!Ref 'AWS::StackName', 'migration']]
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ECSTaskExecutionRole']]
+      TaskRoleArn: !GetAtt 'InstanceRole.Arn'
+      ContainerDefinitions:
+        - Name: 'migration'
+          Image: !Join ['', [!Ref 'ImageRepository', 'backend-migration', !Ref 'ImageTag']]
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref 'AWS::StackName'
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: 'backend'
+          Environment:
+          - { Name: ENV, Value: !Ref 'Env' }
+          - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
+          - { Name: DATABASE_NAME, Value: !Ref 'DatabaseName' }
+          - { Name: DATABASE_USER, Value: !Ref 'DatabaseUser' }
+          - { Name: DATABASE_PASSWORD, Value: !Ref 'DatabasePassword' }
+          - { Name: AWS_STORAGE_BUCKET_NAME, Value: !Ref 'BucketName' }
+
+  LoadDataTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Join ['-', [!Ref 'AWS::StackName', 'load-data']]
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ECSTaskExecutionRole']]
+      TaskRoleArn: !GetAtt 'InstanceRole.Arn'
+      ContainerDefinitions:
+        - Name: 'load-data'
+          Image: !Join ['', [!Ref 'ImageRepository', 'backend-migration', !Ref 'ImageTag']]
+          Command: ["./loaddatas.sh"]
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref 'AWS::StackName'
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: 'backend'
+          Environment:
+          - { Name: ENV, Value: !Ref 'Env' }
+          - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
+          - { Name: DATABASE_NAME, Value: !Ref 'DatabaseName' }
+          - { Name: DATABASE_USER, Value: !Ref 'DatabaseUser' }
+          - { Name: DATABASE_PASSWORD, Value: !Ref 'DatabasePassword' }
+          - { Name: AWS_STORAGE_BUCKET_NAME, Value: !Ref 'BucketName' }
+          - { Name: ADMIN_USERNAME, Value: !Ref 'AdminUsername' }
+          - { Name: ADMIN_PASSWORD, Value: !Ref 'AdminPassword' }
+
+  #--------------------------------------------------------------------------------------------------------------------
+  # S3 Bucket
+  #--------------------------------------------------------------------------------------------------------------------
+
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      BucketName: !Ref 'BucketName'
+      VersioningConfiguration:
+        Status: Enabled
+    DeletionPolicy: Delete
+
+  S3BucketPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Join ['-', ['s3', !Ref 'BucketName']]
+      PolicyDocument:
+        Statement:
+        - Effect: Allow
+          Action: [ "s3:*" ]
+          Resource:
+          - !Join ['', ['arn:aws:s3:::', !Ref 'BucketName', '/*']]
+        - Effect: Allow
+          Action: [ "s3:ListBucket" ]
+          Resource:
+          - !Join ['', ['arn:aws:s3:::', !Ref 'BucketName']]
+      Roles:
+      - Ref: 'InstanceRole'
+
+  SQSPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Join ['-', ['sqs', !Ref 'AWS::StackName']]
+      PolicyDocument:
+        Statement:
+        - Effect: Allow
+          Action: "sqs:*"
+          Resource:
+          - !Join ['', ['arn:aws:sqs:*:', !Ref 'AWS::AccountId', ':', !Ref 'AWS::StackName', '-*']]
+        - Effect: Allow
+          Action: "sqs:ListQueues"
+          Resource:
+          - !Join ['', ['arn:aws:sqs:*:', !Ref 'AWS::AccountId', ':*']]
+      Roles:
+      - Ref: 'InstanceRole'
+
+  #--------------------------------------------------------------------------------------------------------------------
+  # JUMP Server
+  #--------------------------------------------------------------------------------------------------------------------
+
+  JumpInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: 'ami-aa2ea6d0'
+      SecurityGroupIds:
+      - !Ref 'JumpSecurityGroup'
+      - Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
+      SubnetId:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'PublicSubnetOne']]
+      InstanceType: 't2.micro'
+      KeyName: !Ref 'StackName'
+      IamInstanceProfile: !Ref 'JumpInstanceProfile'
+      Tags:
+      - Key: Name
+        Value: !Join ['-', [!Ref 'AWS::StackName', 'jump']]
+
+  JumpInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Roles:
+      - Ref: 'InstanceRole'
+
+  JumpEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      InstanceId: !Ref 'JumpInstance'
+
+  JumpSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'VPCId']]
+      GroupDescription: Enable SSH access and HTTP access on the configured port
+      SecurityGroupIngress:
+      -
+        IpProtocol: tcp
+        FromPort: "22"
+        ToPort: "22"
+        CidrIp: 0.0.0.0/0

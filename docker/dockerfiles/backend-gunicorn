@@ -1,6 +1,6 @@
 ARG REGISTRY=''
 ARG IMAGE_TAG=''
-FROM ${REGISTRY}starsona${IMAGE_TAG}
+FROM ${REGISTRY}base-backend${IMAGE_TAG}
 COPY . /starsona
 ENV NUM_WORKERS=3
 ENV PORT=9003
@@ -9,5 +9,7 @@ ENV PYTHONPATH=/starsona
 ENV GUNICORN_CMD_ARGS="--name=starsona --workers=$NUM_WORKERS --log-level=debug --bind=0.0.0.0:$PORT"
 EXPOSE $PORT
 WORKDIR /starsona
+RUN rm -rf static && ./manage.py collectstatic
+RUN chmod +x docker-entrypoint.sh
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["gunicorn", "main.wsgi:application"]
