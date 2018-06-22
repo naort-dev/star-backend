@@ -97,6 +97,23 @@ Parameters:
     Type: Number
     Default: 9003
 
+  CacheNodeType:
+    Default: cache.t1.micro
+    Description" : "The compute and memory capacity of the nodes in the Cache Cluster"
+    Type: String
+    AllowedValues:
+    - cache.t1.micro
+    - cache.m1.small
+    - cache.m1.medium
+    - cache.m1.large
+
+  NumberOfCacheNodes:
+    Default: 2
+    Type: Number
+    MinValue: 2
+    MaxValue: 10
+    Description: "The number of Cache Nodes the Cache Cluster should have"
+
 Resources:
 
   #--------------------------------------------------------------------------------------------------------------------
@@ -280,6 +297,40 @@ Resources:
             !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
 
   #--------------------------------------------------------------------------------------------------------------------
+  # MEMCACHED
+  # Results Backend for Celery
+  #--------------------------------------------------------------------------------------------------------------------
+  CacheSubnetGroup:
+      Type: AWS::ElastiCache::SubnetGroup
+      Properties:
+        Description: !Ref 'AWS::StackName'
+        SubnetIds:
+          - Fn::ImportValue:
+              !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
+          - Fn::ImportValue:
+              !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
+
+  CacheParameters:
+      Type: AWS::ElastiCache::ParameterGroup
+      Properties:
+        Description: !Ref 'AWS::StackName'
+        CacheParameterGroupFamily: 'memcached1.4'
+        Properties:
+          cas_disabled: 1
+
+  CacheCluster:
+      Type: AWS::ElastiCache::CacheCluster
+      Properties:
+        CacheParameterGroupName: !Ref 'CacheParameters'
+        CacheSubnetGroupName: !Ref 'CacheSubnetGroup'
+        CacheNodeType: !Ref 'CacheNodeType'
+        VpcSecurityGroupIds:
+          - Fn::ImportValue:
+              !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
+        Engine: 'memcached'
+        NumCacheNodes: !Ref: 'NumberOfCacheNodes'
+
+  #--------------------------------------------------------------------------------------------------------------------
   # GUNICORN
   # Backend running behind InternalLB:9003
   #--------------------------------------------------------------------------------------------------------------------
@@ -315,7 +366,7 @@ Resources:
           Environment:
           - { Name: ENV, Value: !Ref 'Env' }
           - { Name: QUEUE_BROKER_URL, Value: 'sqs://' }
-          - { Name: QUEUE_BACKEND, Value: 'amqp' }
+          - { Name: QUEUE_BACKEND, Value: !Join ['', ['cache+memcached://', !GetAtt 'CacheCluster.ConfigurationEndpoint.Address', ':', !GetAtt 'CacheCluster.ConfigurationEndpoint.Port', '/']] }
           - { Name: QUEUE_REGION, Value: !Ref 'AWS::Region' }
           - { Name: QUEUE_NAME_PREFIX, Value: !Join ['', [!Ref 'AWS::StackName', '-']] }
           - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
@@ -426,7 +477,7 @@ Resources:
           Environment:
           - { Name: ENV, Value: !Ref 'Env' }
           - { Name: QUEUE_BROKER_URL, Value: 'sqs://' }
-          - { Name: QUEUE_BACKEND, Value: 'amqp' }
+          - { Name: QUEUE_BACKEND, Value: !Join ['', ['cache+memcached://', !GetAtt 'CacheCluster.ConfigurationEndpoint.Address', ':', !GetAtt 'CacheCluster.ConfigurationEndpoint.Port', '/']] }
           - { Name: QUEUE_REGION, Value: !Ref 'AWS::Region' }
           - { Name: QUEUE_NAME_PREFIX, Value: !Join ['', [!Ref 'AWS::StackName', '-']] }
           - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
@@ -496,7 +547,7 @@ Resources:
           Environment:
           - { Name: ENV, Value: !Ref 'Env' }
           - { Name: QUEUE_BROKER_URL, Value: 'sqs://' }
-          - { Name: QUEUE_BACKEND, Value: 'amqp' }
+          - { Name: QUEUE_BACKEND, Value: !Join ['', ['cache+memcached://', !GetAtt 'CacheCluster.ConfigurationEndpoint.Address', ':', !GetAtt 'CacheCluster.ConfigurationEndpoint.Port', '/']] }
           - { Name: QUEUE_REGION, Value: !Ref 'AWS::Region' }
           - { Name: QUEUE_NAME_PREFIX, Value: !Join ['', [!Ref 'AWS::StackName', '-']] }
           - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
