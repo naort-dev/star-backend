@@ -124,6 +124,23 @@ CORS_ALLOW_HEADERS = default_headers + (
     'version',
 )
 
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'sql': {
+            'level': 'DEBUG',
+            'class': 'loging.DjangoSQLFileHandler',
+            'filename': 'log/1.log'
+        },
+    },
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['sql'],
+            'level': 'DEBUG'
+        }
+    }
+
+}
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 

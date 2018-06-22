@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from users.authenticate_views import UserRegister, UserLogin, EmailValidate, SocialSignup, ForgotPassword, \
     ResetPassword, Professions, ProfileImages, UserDetails, UserLogout, RemoveProfileImage, ChangePassword, \
     DeviceToken, NotificationSettings, ContactSupport, RoleUpdate, UpdateNotificationBadge, AlertFan, \
-    ValidateSocialSignup
+    ValidateSocialSignup, FilterProfessions, UpdateBookingCount
 from .fan_views import CelebrityList, ApproveFan, CelebrityRate, CelebrityProfileFollow, CelebrityFanAbuse, \
     CelebritySuggestionList, FanFavouriteStars
 from .celebrity_views import CelebrityManagement, NotifyAdmin, ReferralRequest, ReferralList, ReferralValidate
@@ -39,6 +39,7 @@ urlpatterns = [
     url(r'^referral_request/$', ReferralRequest.as_view(), name='referral-request'),
     url(r'^referral_validate/$', ReferralValidate.as_view(), name='referral-validate'),
     url(r'^social_signup_validate/$', ValidateSocialSignup.as_view(), name='social-signup-validate'),
+    url(r'^update_unseen_count/$', UpdateBookingCount.as_view(), name='update-unseen-count'),
 ]
 
 router = DefaultRouter()
@@ -46,5 +47,6 @@ router.register(r'user_details', UserDetails, base_name='user_details')
 router.register(r'fan/celebrity_list', CelebrityList, base_name='celebrity_list')
 router.register(r'fan/favourite_stars', FanFavouriteStars, base_name='Fan Favourite Stars')
 router.register(r'referral_list', ReferralList, base_name='Referral List')
+router.register(r'filtered_professions', FilterProfessions, base_name='filtered-profession')
 
 urlpatterns = router.urls + urlpatterns

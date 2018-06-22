@@ -26,6 +26,9 @@ from django.db.models import Q, Sum
 from utilities.constants import BASE_URL
 from .tasks import welcome_email
 from payments.models import PaymentPayout
+from hashids import Hashids
+from distutils.version import StrictVersion
+hashids = Hashids(min_length=8)
 
 
 class ProfilePictureSerializer(serializers.ModelSerializer):
@@ -70,19 +73,22 @@ class RegisterSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(required=False, allow_blank=True)
     date_of_birth = serializers.DateField(input_formats=INPUT_DATE_FORMAT, format=OUTPUT_DATE_FORMAT, required=False)
     role_details = RoleDetailSerializer(read_only=True)
-    images = ProfilePictureSerializer(many=True, read_only=True)
+    images = serializers.SerializerMethodField(read_only=True)
     role = serializers.ChoiceField(choices=ROLES.choices(), write_only=True)
     avatar_photo = ProfilePictureSerializer(read_only=True)
+    featured_photo = ProfilePictureSerializer(read_only=True)
     show_nick_name = serializers.BooleanField(read_only=True)
     completed_fan_unseen_count = serializers.IntegerField(read_only=True, source="completed_view_count")
     referral_code = serializers.CharField(required=False, allow_blank=True, write_only=True)
     promo_code = serializers.SerializerMethodField(read_only=True)
+    user_id = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = StargramzUser
-        fields = ('first_name', 'last_name', 'nick_name', 'id', 'email', 'password', 'date_of_birth',
+        fields = ('first_name', 'last_name', 'nick_name', 'id', 'email', 'password', 'date_of_birth', 'featured_photo',
                   'authentication_token', 'status', 'sign_up_source', 'role_details', 'images', 'profile_photo',
-                  'role', 'avatar_photo', 'show_nick_name', 'completed_fan_unseen_count', 'referral_code', 'promo_code')
+                  'role', 'avatar_photo', 'show_nick_name', 'completed_fan_unseen_count', 'referral_code', 'promo_code',
+                  'user_id')
         depth = 1
 
     def validate(self, data):
@@ -103,6 +109,21 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def get_promo_code(self, obj):
         return obj.referral_code if obj.referral_active and obj.referral_campaign else None
+
+    def get_user_id(self, obj):
+        return hashids.encode(obj.id)
+
+    def get_images(self, obj):
+        exclude_ids = []
+        request = self.context.get('request')
+        if request and StrictVersion('3.0') < StrictVersion(request.META['HTTP_VERSION']):
+            if obj.avatar_photo_id:
+                exclude_ids.append(obj.avatar_photo_id)
+            if obj.featured_photo_id:
+                exclude_ids.append(obj.featured_photo_id)
+        query = ProfileImage.objects.filter(user=obj.id).order_by('-created_date').exclude(id__in=exclude_ids)
+        serializer = ProfilePictureSerializer(query, many=True)
+        return serializer.data
 
     def create(self, validated_data):
         email = validated_data.get('email')
@@ -392,6 +413,28 @@ class ProfessionSerializer(serializers.ModelSerializer):
         fields = ('id', 'title', 'parent', 'child', 'file', 'order')
 
 
+class ProfessionFilterSerializer(serializers.ModelSerializer):
+    file = serializers.SerializerMethodField()
+    child = serializers.SerializerMethodField()
+
+    def get_child(self, obj):
+        query_set = CelebrityProfession.objects \
+            .filter(profession__parent=obj.id) \
+            .values_list('profession', flat=True).distinct()
+        profession = Profession.objects.filter(id__in=query_set)
+
+        return ProfessionSerializer(profession, many=True).data
+
+    def get_file(self, obj):
+        if obj.file:
+            return "%s media/ %s" % (BASE_URL, obj.file)
+        return None
+
+    class Meta:
+        model = Profession
+        fields = ('id', 'title', 'parent', 'child', 'file', 'order')
+
+
 class CelebrityProfileSerializer(CustomModelSerializer):
     # rate = serializers.SerializerMethodField()
     profession_name = serializers.CharField(read_only=True, source="profession.title")
@@ -495,7 +538,7 @@ class ProfileImageSerializer(serializers.Serializer):
         request.data['user'].save()
         images = ProfileImage.objects.filter(user=request.data['user'])
         if images.exists():
-            images._raw_delete(images.db)
+            images.delete()
         profile_images = [ProfileImage(user=request.data['user'], photo=item['photo']) for item in images_list]
 
         return ProfileImage.objects.bulk_create(profile_images)
@@ -557,8 +600,10 @@ class UserSerializer(serializers.ModelSerializer):
     celebrity_follow = serializers.SerializerMethodField(read_only=True, required=False)
     celebrity_profession = CelebrityProfessionSerializer(read_only=True, many=True)
     avatar_photo = ProfilePictureSerializer(read_only=True)
+    featured_photo = ProfilePictureSerializer(read_only=True)
     images = serializers.SerializerMethodField()
     show_nick_name = serializers.BooleanField(read_only=True)
+    user_id = serializers.SerializerMethodField(read_only=True)
 
     def get_images(self, obj):
         if not obj.avatar_photo_id:
@@ -567,6 +612,9 @@ class UserSerializer(serializers.ModelSerializer):
             return serializer.data
         else:
             return [{}]
+
+    def get_user_id(self, obj):
+        return hashids.encode(obj.id)
 
     def get_celebrity_follow(self, obj):
         if self.context['request'].user:
@@ -581,7 +629,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = StargramzUser
         fields = ('id', 'first_name', 'last_name', 'nick_name', 'celebrity_user', 'images', 'celebrity_profession',
-                  'celebrity_follow', 'avatar_photo', 'show_nick_name')
+                  'celebrity_follow', 'avatar_photo', 'show_nick_name', 'get_short_name', 'featured_photo', 'user_id')
 
 
 class CelebrityRatingSerializer(serializers.ModelSerializer):

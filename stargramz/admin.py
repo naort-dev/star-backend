@@ -184,7 +184,10 @@ class StargramVideosAdmin(admin.ModelAdmin):
     search_fields = ('featured', 'stragramz_request', 'video')
 
     def video_duration(self, obj):
-        return obj.duration.strftime("%H:%M:%S")
+        if obj.duration:
+            return obj.duration.strftime("%H:%M:%S")
+        else:
+            return '00:00:00'
 
     def video_thumbnail(self, instance):
         """

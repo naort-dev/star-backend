@@ -3,7 +3,7 @@ import os
 DEBUG = True
 ALLOWED_HOSTS = ['*',]
 ENV_DIR = ''
-CLIENT_SITE_ADDR = 'https://stargramz.qburst.build:8000'
+CLIENT_SITE_ADDR = 'https://app.staging.starsona.com:8000'
 
 
 # Database

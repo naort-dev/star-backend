@@ -48,10 +48,12 @@ class StargramzVideoSerializer(CustomModelSerializer):
     first_name = serializers.CharField(read_only=True, source="stragramz_request.celebrity.first_name")
     last_name = serializers.CharField(read_only=True, source="stragramz_request.celebrity.last_name")
     full_name = serializers.CharField(read_only=True, source="stragramz_request.celebrity.get_short_name")
+    fan_name = serializers.CharField(read_only=True, source="stragramz_request.fan.get_short_name")
     celebrity_id = serializers.IntegerField(read_only=True, source="stragramz_request.celebrity.id")
     booking_id = serializers.SerializerMethodField(read_only=True)
     booking_type = serializers.IntegerField(read_only=True, source="stragramz_request.request_type")
     avatar_photo = ProfilePictureSerializer(read_only=True, source="stragramz_request.celebrity.avatar_photo")
+    fan_avatar_photo = ProfilePictureSerializer(read_only=True, source="stragramz_request.fan.avatar_photo")
     professions = CelebrityProfessionSerializer(read_only=True, source="stragramz_request.celebrity.celebrity_profession", many=True)
     booking_title = serializers.CharField(read_only=True, source="stragramz_request.booking_title")
 
@@ -61,6 +63,7 @@ class StargramzVideoSerializer(CustomModelSerializer):
     s3_thumbnail_url = serializers.SerializerMethodField(read_only=True)
     video_url = serializers.SerializerMethodField(read_only=True)
     following = serializers.SerializerMethodField(read_only=True)
+    user_id = serializers.SerializerMethodField(read_only=True)
     occasion = serializers.CharField(read_only=True, source="stragramz_request.occasion.title")
 
     question_answer_videos = serializers.SerializerMethodField(read_only=True)
@@ -68,6 +71,9 @@ class StargramzVideoSerializer(CustomModelSerializer):
     class Meta:
         model = StargramVideo
         fields = '__all__'
+
+    def get_user_id(self, obj):
+        return hashids.encode(obj.stragramz_request.celebrity_id)
 
     def get_booking_id(self, obj):
         return hashids.encode(obj.stragramz_request_id)

@@ -7,7 +7,7 @@ from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profe
 from role.models import Role
 from payments.models import PaymentPayout
 from utilities.konstants import ROLES
-from utilities.utils import get_profile_images, get_profile_video
+from utilities.utils import get_profile_images, get_profile_video, get_featured_image
 from django.db.models import Q
 from django.utils.safestring import mark_safe
 
@@ -227,6 +227,7 @@ class CelebrityUsersAdmin(UserAdmin):
         (_('Important dates'), {'fields': ('last_login', 'created_date', 'modified_date',)}),
         (_('Payments'), {'fields': ('stripe_customer_id',)}),
         (_('Images'), {'fields': ('profile_images',)}),
+        (_('Featured Image'), {'fields': ('featured_image',)}),
         (_('Video'), {'fields': ('profile_video',)})
     )
     search_fields = ('first_name', 'last_name', 'nick_name', 'email',)
@@ -238,7 +239,7 @@ class CelebrityUsersAdmin(UserAdmin):
     )
     ordering = ('email',)
     readonly_fields = ('created_date', 'modified_date', 'profile_images', 'profile_video',
-                       'stripe_customer_id',)
+                       'stripe_customer_id', 'featured_image')
     list_per_page = 10
     inlines = [RoleInline, CelebrityInline, ProfessionInline, NotificationSettingInline, PayoutsTabular,
                RatingInline, ReferralTabular]
@@ -251,6 +252,14 @@ class CelebrityUsersAdmin(UserAdmin):
         return get_profile_images(self, instance.id, 5, avatar_id=instance.avatar_photo_id)
 
         profile_images.short_description = "Profile Images"
+
+    def featured_image(self, instance):
+        """
+            List all the images of the user
+        """
+        return get_featured_image(self, instance.id, instance.featured_photo_id)
+
+        featured_image.short_description = "Featured Images"
 
     def profile_video(self, instance):
         """

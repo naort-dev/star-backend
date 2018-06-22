@@ -340,6 +340,10 @@ class RequestList(GenericViewSet, ResponseViewMixin):
         role = 'celebrity_id' if mappings.role.code == ROLES.celebrity else 'fan_id'
         status_list = [[2, 3], [5], [6]] if mappings.role.code == ROLES.celebrity else [[2, 3, 1], [5], [6]]
 
+        if mappings.role.code == ROLES.celebrity:
+            user.unseen_bookings = 0
+            user.save()
+
         # status_list = [[2, 3], [5], [6]]
         custom_filter = {role: user.id}
         query_set = Stargramrequest.objects.filter(**custom_filter)\
@@ -640,6 +644,8 @@ class FeaturedVideo(GenericViewSet, ResponseViewMixin):
 
         filter_by_related_id = request.GET.get('user_id', None)
         filter_by_name = request.GET.get('name', None)
+        filter_by_date = request.GET.get('date', None)
+
         if filter_by_name:
             extra_select = None
         else:
@@ -660,6 +666,17 @@ class FeaturedVideo(GenericViewSet, ResponseViewMixin):
         if filter_by_name:
             query_set = search_title_name(filter_by_name, query_set)
 
+        today = datetime.datetime.now()
+
+        if filter_by_date == 'today':
+            query_set = query_set.filter(created_date=today)
+        if filter_by_date == 'last_7_days':
+            query_set = query_set.filter(created_date__gt=timezone.now()-datetime.timedelta(days=7))
+        if filter_by_date == 'this_month':
+            query_set = query_set.filter(created_date__gt=datetime.datetime(today.year, today.month, 1))
+        if filter_by_date == 'this_year':
+            query_set = query_set.filter(created_date__gt=datetime.datetime(today.year, 1, 1))
+
         # Filter celebrity videos for related video sections
         if filter_by_related_id:
             try:
@@ -671,9 +688,9 @@ class FeaturedVideo(GenericViewSet, ResponseViewMixin):
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(
             page, fields=[
-                'duration', 'full_name', 'booking_type', 'celebrity_id', 'booking_id',
+                'duration', 'full_name', 'booking_type', 'celebrity_id', 'booking_id', 'fan_avatar_photo', 'user_id',
                 's3_video_url', 's3_thumbnail_url', 'avatar_photo', 'professions', 'created_date', 'booking_title',
-                'video_url', 'width', 'height', 'question_answer_videos', 'following', 'occasion'
+                'video_url', 'width', 'height', 'question_answer_videos', 'following', 'occasion', 'fan_name'
             ],
             many=True
         )

@@ -155,6 +155,20 @@ def generate_video_thumbnail():
                 video_thumbnail_name = name+"_sg_thumbnail.jpg"
                 video_thumb = your_media_root + video_thumbnail_name
 
+                try:
+                    # Creating the image thumbnail from the video
+                    clip = VideoFileClip(video_original)
+                    if clip.rotation > 0:
+                        clip = clip.resize(clip.size[::-1])
+                        clip.rotation = 0
+                    clip.save_frame(video_thumb, t=0.00)
+                    width, height = clip.size
+
+                    duration = clip.duration
+                except Exception as e:
+                    print(str(e))
+                    continue
+
                 if request_video.visibility:
                     # Creating a water mark for video
                     if watermark_videos(video_original, name, your_media_root):
@@ -175,21 +189,6 @@ def generate_video_thumbnail():
                     else:
                         print('watermark videos creation failed')
 
-                try:
-                    # Creating the image thumbnail from the video
-                    clip = VideoFileClip(video_original)
-                    print("Video rotation in video file clip %d" % clip.rotation)
-                    # clip = video_rotation(clip)
-                    # if clip.rotation > 0:
-                    #     clip = clip.resize(clip.size[::-1])
-                    #     clip.rotation = 0
-                    clip.save_frame(video_thumb, t=0.00)
-                    width, height = clip.size
-
-                    duration = clip.duration
-                except Exception as e:
-                    print(str(e))
-                    continue
                 m, s = divmod(duration, 60)
                 h, m = divmod(m, 60)
                 total_duration = "%02d:%02d:%02d" % (h, m, s)
@@ -485,6 +484,25 @@ def create_referral_payouts(record):
 
 
 @app.task
+def resend_failed_payouts():
+    """
+        Resending the payouts which have failed during payout process
+    """
+    try:
+        failed_payouts = PaymentPayout.objects.filter(status=PAYOUT_STATUS.payout_failed)
+
+        for payouts in failed_payouts:
+            payouts.status = PAYOUT_STATUS.pending
+            payouts.save()
+
+        send_payout.apply_async(eta=datetime.utcnow() + timedelta(minutes=3))
+        print('Successfully updated %d records for reprocessing' % failed_payouts.count())
+        return True
+    except Exception as e:
+        print(str(e))
+
+
+@app.task
 def send_payout():
     """
         Transferring amount to the celebrities linked stripe account
@@ -535,7 +553,7 @@ def send_payout():
                     except stripe.error.StripeError as e:
                         print(str(e))
                         update_payout(payout, str(e))
-                        user_failed = valid_dict(user_failed, celebrity.user, payout.fund_payed_out)
+                        user_failed = valid_dict(user_failed, celebrity.user, payout.fund_payed_out, str(e))
                         break
 
                     try:
@@ -550,16 +568,21 @@ def send_payout():
                         payout.stripe_transaction_id = transfer.id
                         payout.stripe_response = json.dumps(transfer)
                         payout.save()
-                        user_paid = valid_dict(user_paid, celebrity.user, payout.fund_payed_out)
+                        user_paid = valid_dict(user_paid, celebrity.user, payout.fund_payed_out, 'Paid out')
                     except stripe.error.StripeError as e:
                         print(str(e))
-                        user_failed = valid_dict(user_failed, celebrity.user, payout.fund_payed_out)
+                        user_failed = valid_dict(user_failed, celebrity.user, payout.fund_payed_out, str(e))
                         update_payout(payout, str(e))
                         break
                 else:
                     print('Celebrity users doesnt have a stripe account')
                     update_payout(payout, 'Celebrity users doesnt have a stripe account')
-                    user_not_paid = valid_dict(user_not_paid, celebrity.user, payout.fund_payed_out)
+                    user_not_paid = valid_dict(
+                        user_not_paid,
+                        celebrity.user,
+                        payout.fund_payed_out,
+                        'Celebrity users doesnt have a stripe account'
+                    )
 
             print('Completed the celebrity payouts.')
         else:
@@ -574,6 +597,8 @@ def send_payout():
     for key, values in user_paid.items():
         notify_users_on_payouts(values, 'Starsona payouts for Month %s' % datetime.now().strftime("%B"), 'payouts')
     print('Notified paid users.')
+    print('Notified Admin.')
+    notify_admin(user_paid, user_not_paid, user_failed, 'Starsona payouts for Month %s' % datetime.now().strftime("%B"))
 
     return True
 
@@ -588,7 +613,7 @@ def update_payout(payout, comments):
     return True
 
 
-def valid_dict(user_dict, user, amount):
+def valid_dict(user_dict, user, amount, message):
 
     """
         Create Dict for user if user is not in the Dict
@@ -604,7 +629,8 @@ def valid_dict(user_dict, user, amount):
             'amount': amount,
             'pay_count': 1,
             'id': user.pk,
-            'email': user.email
+            'email': user.email,
+            'reason': message,
         }
 
     return user_dict
@@ -620,10 +646,22 @@ def notify_users_on_payouts(user_dict, subject, template):
         'name': user_dict['name'],
         'amount': format(user_dict['amount'], '.2f'),
         'pay_count': user_dict['pay_count'],
-
     }
 
     return notify_email(sender_email, user_dict['email'], subject, template, ctx)
+
+
+def notify_admin(paid, not_paid, failed, subject):
+    sender_email = Config.objects.get(key='sender_email').value
+    support_email = Config.objects.get(key='support_email').value
+
+    ctx = {
+        'paid_users': paid,
+        'not_paid_users': not_paid,
+        'failed_users': failed,
+    }
+
+    return notify_email(sender_email, support_email, subject, 'payouts-admin', ctx)
 
 
 def notify_email(sender_email, to_email, subject, template, ctx):
@@ -686,7 +724,7 @@ def send_email_notification(request_id):
             'subject_5': 'Cancelled Starsona Request',
             'template_5': 'request_cancelled',
             'email_5': fan.email,
-            'subject_6': 'Your Starsona is ready',
+            'subject_6': 'Your Starsona video is ready',
             'template_6': 'video_completed',
             'email_6': fan.email,
         }
@@ -766,10 +804,10 @@ def watermark_videos(video_original, name, your_media_root):
         watermark_location = your_media_root+"watermark/"
         if os.path.exists(video_original):
             video = VideoFileClip(video_original)
-            video = video_rotation(video)
-            # if video.rotation == 90 or video.rotation == 270:
-            #     video = video.resize(video.size[::-1])
-            #     video.rotation = 0
+            # video = video_rotation(video)
+            if video.rotation == 90 or video.rotation == 270:
+                video = video.resize(video.size[::-1])
+                video.rotation = 0
             logo_size = 0.4*video.size[0], 0.4*video.size[1]
             im = Image.open(your_media_root+"../web-images/starsona_logo.png")
             im.thumbnail(logo_size)
@@ -830,20 +868,20 @@ def combine_video_clips(request_id):
             video_2_name = "V2_%s.mp4" % str(int(time.time()))
 
             clip1 = VideoFileClip(files[0])
-            clip1 = video_rotation(clip1)
-            # if clip1.rotation == 90 or clip1.rotation == 270:
-            #     clip1 = clip1.resize(clip1.size[::-1])
-            #     clip1.rotation = 0
+            #clip1 = video_rotation(clip1)
+            if clip1.rotation == 90 or clip1.rotation == 270:
+                clip1 = clip1.resize(clip1.size[::-1])
+                clip1.rotation = 0
 
             clip1.write_videofile(your_media_root + video_1_name, audio_codec='aac',
                                        progress_bar=False,
                                        verbose=False)
 
             clip2 = VideoFileClip(files[1])
-            clip2 = video_rotation(clip2)
-            # if clip2.rotation == 90 or clip2.rotation == 270:
-            #     clip2 = clip2.resize(clip2.size[::-1])
-            #     clip2.rotation = 0
+            #clip2 = video_rotation(clip2)
+            if clip2.rotation == 90 or clip2.rotation == 270:
+                clip2 = clip2.resize(clip2.size[::-1])
+                clip2.rotation = 0
 
             clip2.write_videofile(
                 your_media_root+video_2_name, audio_codec='aac',
