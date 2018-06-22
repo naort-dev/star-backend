@@ -8,7 +8,9 @@ Parameters:
 
   Env:
     Type: String
-    Default: 'dev'
+    AllowedValues:
+    - dev
+    - live
     Description: Environment type - dev or live
 
   ImageRepository:
@@ -61,10 +63,9 @@ Parameters:
   QueuePrefix:
     Type: String
     AllowedValues:
-    - starsona-stb-usea1
-    - starsona-prb-usea1
+    - starsona-stb-usea1-
+    - starsona-prb-usea1-
     Description: SQS prefixes
-
 
   DesiredCount:
     Type: Number
@@ -363,6 +364,125 @@ Resources:
       Priority: 30
 
   #--------------------------------------------------------------------------------------------------------------------
+  # CELERY
+  #
+  #--------------------------------------------------------------------------------------------------------------------
+
+  CeleryBeatTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Join ['-', [!Ref 'AWS::StackName', 'celery-beat']]
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ECSTaskExecutionRole']]
+      TaskRoleArn: !GetAtt 'InstanceRole.Arn'
+      ContainerDefinitions:
+        - Name: 'celery-beat'
+          Image: !Join ['', [!Ref 'ImageRepository', 'backend-celery', !Ref 'ImageTag']]
+          Command: ["celery", "-A", "main", "beat"]
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref 'AWS::StackName'
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: 'backend'
+          Environment:
+          - { Name: ENV, Value: !Ref 'Env' }
+          - { Name: QUEUE_BROKER_URL, Value: 'sqs://' }
+          - { Name: QUEUE_BACKEND, Value: 'amqp' }
+          - { Name: QUEUE_REGION, Value: !Ref 'AWS::Region' }
+          - { Name: QUEUE_NAME_PREFIX, Value: !Ref 'QueuePrefix' }
+
+  CeleryBeatService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: 'celery-beat'
+      Cluster:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ClusterName']]
+      LaunchType: FARGATE
+      DeploymentConfiguration:
+        MaximumPercent: 100
+        MinimumHealthyPercent: 0
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
+          Subnets:
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
+      TaskDefinition: !Ref 'CeleryBeatTaskDefinition'
+
+  CeleryWorkerTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Join ['-', [!Ref 'AWS::StackName', 'celery-worker']]
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ECSTaskExecutionRole']]
+      TaskRoleArn: !GetAtt 'InstanceRole.Arn'
+      ContainerDefinitions:
+        - Name: 'celery-worker'
+          Image: !Join ['', [!Ref 'ImageRepository', 'backend-celery', !Ref 'ImageTag']]
+          Command: ["celery", "-A", "main", "worker"]
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref 'AWS::StackName'
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: 'backend'
+          Environment:
+          - { Name: ENV, Value: !Ref 'Env' }
+          - { Name: QUEUE_BROKER_URL, Value: 'sqs://' }
+          - { Name: QUEUE_BACKEND, Value: 'amqp' }
+          - { Name: QUEUE_REGION, Value: !Ref 'AWS::Region' }
+          - { Name: QUEUE_NAME_PREFIX, Value: !Ref 'QueuePrefix' }
+          - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
+          - { Name: DATABASE_NAME, Value: !Ref 'DBName' }
+          - { Name: DATABASE_USER, Value: !Ref 'DBUsername' }
+          - { Name: DATABASE_PASSWORD, Value: !Ref 'DBPassword' }
+
+  CeleryWorkerService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: 'celery-worker'
+      Cluster:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ClusterName']]
+      LaunchType: FARGATE
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 75
+      DesiredCount: 2
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
+          Subnets:
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
+      TaskDefinition: !Ref 'CeleryWorkerTaskDefinition'
+
+  #--------------------------------------------------------------------------------------------------------------------
   # S3 Bucket
   #--------------------------------------------------------------------------------------------------------------------
 
@@ -397,6 +517,10 @@ Resources:
         - Effect: Allow
           Action: "sqs:*"
           Resource:
-          - !Join ['', ['arn:aws:sqs:*:', !Ref 'AWS::AccountId', ':', !Ref 'QueuePrefix', '-*']]
+          - !Join ['', ['arn:aws:sqs:*:', !Ref 'AWS::AccountId', ':', !Ref 'QueuePrefix', '*']]
+        - Effect: Allow
+          Action: "sqs:ListQueues"
+          Resource:
+          - !Join ['', ['arn:aws:sqs:*:', !Ref 'AWS::AccountId', ':*']]
       Roles:
       - Ref: 'InstanceRole'
