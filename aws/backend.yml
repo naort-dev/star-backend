@@ -328,7 +328,7 @@ Resources:
           - Fn::ImportValue:
               !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
         Engine: 'memcached'
-        NumCacheNodes: !Ref: 'NumberOfCacheNodes'
+        NumCacheNodes: !Ref 'NumberOfCacheNodes'
 
   #--------------------------------------------------------------------------------------------------------------------
   # GUNICORN
