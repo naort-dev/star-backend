@@ -1,9 +1,8 @@
 import os
 
-DEBUG = True
+DEBUG = False
 ALLOWED_HOSTS = ['*',]
 ENV_DIR = ''
-CLIENT_SITE_ADDR = 'https://app.staging.starsona.com:8000'
 
 
 # Database
