@@ -128,6 +128,12 @@ services:
     - SSL_SERVER_NAME
     - SSL_SERVER_EMAIL
 
+  memcached:
+    image: memcached:1.4
+    networks:
+    - overlay
+    restart: on-failure
+
 networks:
   overlay:
 
