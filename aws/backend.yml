@@ -99,7 +99,7 @@ Parameters:
 
   CacheNodeType:
     Default: cache.t1.micro
-    Description" : "The compute and memory capacity of the nodes in the Cache Cluster"
+    Description: "The compute and memory capacity of the nodes in the Cache Cluster"
     Type: String
     AllowedValues:
     - cache.t1.micro
