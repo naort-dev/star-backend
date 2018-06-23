@@ -329,6 +329,14 @@ Resources:
               !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
         Engine: 'memcached'
         NumCacheNodes: !Ref 'NumberOfCacheNodes'
+        AZMode: "cross-az"
+        PreferredAvailabilityZones:
+        - Fn::Select:
+           - 0
+           - Fn::GetAZs: {Ref: 'AWS::Region'}
+        - Fn::Select:
+           - 1
+           - Fn::GetAZs: {Ref: 'AWS::Region'}
 
   #--------------------------------------------------------------------------------------------------------------------
   # GUNICORN
