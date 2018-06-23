@@ -2,17 +2,6 @@
 main/settings/local.py
 .idea/
 /static/
-media/*
-media/thumbnails/*
-media/combined_videos/*
-!media/css/
-!media/thumbnails/
-!media/web-images/
-!media/js/
-!media/audios/
-!media/uploads/
 .well-known/apple-app-site-association
 templates/home/apps.html
 config/fixtures/config.json
-!media/downloads/
-!media/combined_videos/
