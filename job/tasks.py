@@ -330,7 +330,8 @@ def delete(files):
     folders = [
         settings.MEDIA_ROOT + 'combined_videos/',
         settings.MEDIA_ROOT + 'thumbnails/watermark/',
-        settings.MEDIA_ROOT + 'thumbnails/'
+        settings.MEDIA_ROOT + 'thumbnails/',
+        settings.MEDIA_ROOT + 'uploads/'
     ]
 
     for folder in folders:

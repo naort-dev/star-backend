@@ -22,6 +22,7 @@ from config.models import Config
 from users.models import ProfileImage, Celebrity, SettingsNotifications
 import datetime
 import re
+from tempfile import gettempdir
 from fcm_django.models import FCMDevice
 from django.db.models import Q
 from django.template.loader import get_template
@@ -234,14 +235,18 @@ def download_video(request, id):
     except Exception as e:
         return HttpResponse(content_type='video/mp4')
 
+    video_download = video_url = None
     try:
         video = StargramVideo.objects.get(
             id=video_id,
         )
         S3_path = Config.objects.get(key='stargram_videos').value
         video_url = get_pre_signed_get_url(video.video, S3_path)
-        your_media_root = settings.MEDIA_ROOT + 'downloads/'
-        video_download = your_media_root + 'starsona.mp4'
+        file_name = "/%s-%d" % (
+            re.sub('[^A-Za-z0-9]+', '-', video.stragramz_request.booking_title).lower(),
+            video.stragramz_request_id
+        )
+        video_download = gettempdir() + file_name+'-starsona.mp4'
     except Exception as e:
         return HttpResponse(content_type='video/mp4')
 

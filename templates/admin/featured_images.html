@@ -44,7 +44,8 @@ Upload</button>
         <div class="col-sm-12">
 
             {% for key, value in images.items %}
-            <div class="well imgs" id="pf-{{key}}">              <img class="img-responsive" src="{{ value }}" key="{{key}}">
+            <div class="well imgs" id="pf-{{key}}">
+              <img class="img-responsive" src="{{ value }}" key="{{key}}">
                 <!--<a href="javascript:void(0);" onclick="delete_featured_image({{key}}, {{ id }});" class="del">Delete</a>-->
             </div>
             {% endfor %}
