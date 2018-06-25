@@ -204,7 +204,7 @@
     "pk": 21,
     "fields": {
       "key": "aws_bucket_name",
-      "value": "stargramdev-new",
+      "value": "starsona-stb-usea1",
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }
