@@ -22,14 +22,15 @@
     border: 1px solid #000;
     color:#000 !important;
 }
-img.crop-img{
+img.crop-featured-img{
     max-width:100%;
 }
 input.jcrop-keymgr {
     display: none !important;
 }
-img.img-responsive {
+img.img-responsive-featured {
     padding-top: 10px;
+    width:100%;
 }
 </style>
       <!-- /.user-block -->
@@ -45,7 +46,7 @@ Upload</button>
 
             {% for key, value in images.items %}
             <div class="well imgs" id="pf-{{key}}">
-              <img class="img-responsive" src="{{ value }}" key="{{key}}">
+              <img class="img-responsive-featured" src="{{ value }}" key="{{key}}">
                 <!--<a href="javascript:void(0);" onclick="delete_featured_image({{key}}, {{ id }});" class="del">Delete</a>-->
             </div>
             {% endfor %}
@@ -53,6 +54,38 @@ Upload</button>
           </div>
           <!-- /.row -->
         </div>
+
+<div id="myfeaturedModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Crop Image</h4>
+      </div>
+      <div class="modal-body">
+          {% for key, value in images.items %}
+            <div class="hide f-popups" id="f-popup-{{key}}" style="text-align:center;">
+              <img class="crop-featured-img" src="{{ value }}">
+            </div>
+            {% endfor %}
+      </div>
+      <div class="modal-footer">
+          <div class="inline-labels">
+            <input type="hidden" size="4" id="x1f" name="x1f" />
+            <input type="hidden" size="4" id="y1f" name="y1f" />
+            <input type="hidden" size="4" id="x2f" name="x2f" />
+            <input type="hidden" size="4" id="y2f" name="y2f" />
+          </div>
+          <input type="hidden" id="fea-img-id" name="featured_id" value="">
+          <img src="/media/web-images/loader.gif" class="hide loaderGif" height="50px">
+        <button type="button" class="btn btn-primary" id="featured-croper">Crop and Upload</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 <div class="modal fade" id="modal-default-featured">
       <div class="modal-dialog">
@@ -78,6 +111,64 @@ Upload</button>
       </div>
 </div>
 <script>
+
+ jQuery(function($){
+    var jcrop_api;
+    $('.crop-featured-img').Jcrop({
+      onChange: showCoords,
+      onSelect: showCoords,
+      aspectRatio: 100/47,
+      boxWidth: 450,
+      boxHeight: 400
+    },function(){
+      jcrop_api = this;
+    });
+
+    $('#coords').on('change','input',function(e){
+      var x1 = $('#x1f').val(),
+          x2 = $('#x2f').val(),
+          y1 = $('#y1f').val(),
+          y2 = $('#y2f').val();
+      jcrop_api.setSelect([x1,y1,x2,y2]);
+    });
+  function showCoords(c)
+  {
+    $('#x1f').val(c.x);
+    $('#y1f').val(c.y);
+    $('#x2f').val(c.x2);
+    $('#y2f').val(c.y2);
+  };
+ });
+
+jQuery('.img-responsive-featured').on('click',function(){
+    $('.f-popups').addClass('hide');
+    $('#f-popup-'+$(this).attr('key')).removeClass('hide');
+    $('#fea-img-id').val($(this).attr('key'));
+    $('#x1f').val('');
+    $('#y1f').val('');
+    $('#x2f').val('');
+    $('#y2f').val('');
+    $('#myfeaturedModal').modal({show:true});
+});
+
+$('#featured-croper').on('click',function(){
+
+    $.ajax({
+        type: 'POST',
+        url         :"/api/v1/ajax/crop_featured/",
+        data        : new FormData($('form')[0]),
+        cache       : false,
+        contentType : false,
+        processData : false,
+        beforeSend: function(){
+            $('.loaderGif').removeClass('hide');
+        },
+        success: function(returnval) {
+            alert(returnval);
+            location.reload();
+         }
+    });
+});
 
 function delete_featured_image(id, user_id){
 $.ajax({
