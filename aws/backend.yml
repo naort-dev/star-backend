@@ -40,7 +40,13 @@ Parameters:
     AllowedValues:
     - starsona-stb-usea1
     - starsona-prb-usea1
+    - starsona
     Description: S3 Bucket name
+
+  IdentityPoolId:
+    Type: String
+    Default: ''
+    Description: Identity pool id, leave empty if managed by this template
 
   EmailHost:
     Type: String
@@ -113,6 +119,10 @@ Parameters:
     MinValue: 2
     MaxValue: 10
     Description: "The number of Cache Nodes the Cache Cluster should have"
+
+Conditions:
+  ManagedBucket: !Not [ !Equals [!Ref 'BucketName', 'starsona'] ]
+  ManagedIdentityPool:  !Equals [!Ref 'IdentityPoolId', '']
 
 Resources:
 
@@ -672,6 +682,7 @@ Resources:
 
   S3Bucket:
     Type: AWS::S3::Bucket
+    Condition: ManagedBucket
     Properties:
       AccessControl: Private
       BucketName: !Ref 'BucketName'
@@ -681,6 +692,7 @@ Resources:
 
   S3BucketPolicy:
     Type: AWS::IAM::Policy
+    Condition: ManagedBucket
     Properties:
       PolicyName: !Join ['-', ['s3', !Ref 'BucketName']]
       PolicyDocument:
@@ -695,6 +707,10 @@ Resources:
           - !Join ['', ['arn:aws:s3:::', !Ref 'BucketName']]
       Roles:
       - Ref: 'InstanceRole'
+
+  #--------------------------------------------------------------------------------------------------------------------
+  # SQS policies
+  #--------------------------------------------------------------------------------------------------------------------
 
   SQSPolicy:
     Type: AWS::IAM::Policy
@@ -760,3 +776,86 @@ Resources:
         FromPort: "22"
         ToPort: "22"
         CidrIp: 0.0.0.0/0
+
+
+  #--------------------------------------------------------------------------------------------------------------------
+  # Cognito
+  #--------------------------------------------------------------------------------------------------------------------
+
+  CognitoIdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Condition: ManagedIdentityPool
+    Properties:
+      IdentityPoolName: !Join ['_', !Split ['-', !Ref 'AWS::StackName'] ]
+      AllowUnauthenticatedIdentities: "true"
+
+  CognitoIdentityPoolRoles:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Condition: ManagedIdentityPool
+    Properties:
+      IdentityPoolId: !Ref 'CognitoIdentityPool'
+      Roles:
+        authenticated: !GetAtt 'CognitoAuthenticatedRole.Arn'
+        unauthenticated: !GetAtt 'CognitoUnauthenticatedRole.Arn'
+
+  CognitoUnauthenticatedRole:
+    Type: AWS::IAM::Role
+    Condition: ManagedIdentityPool
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Federated: cognito-identity.amazonaws.com
+          Action: sts:AssumeRoleWithWebIdentity
+          Condition:
+            StringEquals:
+              cognito-identity.amazonaws.com:aud: !Ref 'CognitoIdentityPool'
+            ForAnyValue:StringLike:
+              cognito-identity.amazonaws.com:amr: unauthenticated
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - 'mobileanalytics:PutEvents'
+            - 'cognito-sync:*'
+            Resource: ['*']
+          - Effect: Allow
+            Action:
+            - 's3:GetObject'
+            - 's3:PutObject'
+            - 's3:DeleteObject'
+            Resource:
+            - !Join ['', ['arn:aws:s3:::', !Ref 'BucketName', '/*']]
+
+  CognitoAuthenticatedRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Federated: cognito-identity.amazonaws.com
+          Action: sts:AssumeRoleWithWebIdentity
+          Condition:
+            StringEquals:
+              cognito-identity.amazonaws.com:aud: !Ref 'CognitoIdentityPool'
+            ForAnyValue:StringLike:
+              cognito-identity.amazonaws.com:amr: authenticated
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - 'mobileanalytics:PutEvents'
+            - 'cognito-sync:*'
+            - 'cognito-identity:*'
+            Resource: ['*']
+
