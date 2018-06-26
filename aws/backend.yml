@@ -859,3 +859,9 @@ Resources:
             - 'cognito-identity:*'
             Resource: ['*']
 
+Outputs:
+  CognitoIdentityPool:
+    Description: Cognito Identity Pool
+    Value: !Ref 'CognitoIdentityPool'
+    Export:
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'CognitoIdentityPool' ] ]

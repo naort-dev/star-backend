@@ -31,6 +31,8 @@ services:
     - QUEUE_BROKER_URL
     - QUEUE_BACKEND
     - QUEUE_HOST
+    - ADMIN_USERNAME
+    - ADMIN_PASSWORD
 
   migration:
     image: backend-migration
