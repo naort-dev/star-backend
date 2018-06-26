@@ -245,6 +245,12 @@ class CelebrityUsersAdmin(UserAdmin):
                RatingInline, ReferralTabular]
     ordering = ['-id', ]
 
+    class Media:
+        js = (
+            '//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js',  # jquery
+            '/media/js/profession.js',
+        )
+
     def profile_images(self, instance):
         """
             List all the images of the user

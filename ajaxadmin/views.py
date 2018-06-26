@@ -259,6 +259,61 @@ def crop_images(request):
 
 
 @csrf_exempt
+def crop_featured_image(request):
+    """
+        Crop the image and upload to s3
+    """
+    if not request.user.is_superuser:
+        return HttpResponse('Not an admin user.')
+
+    if request.POST['featured_id']:
+        pk = request.POST['featured_id']
+        try:
+            image = ProfileImage.objects.get(pk=pk)
+            filename = image.photo
+            config = Config.objects.get(key='profile_images')
+            your_media_root = settings.MEDIA_ROOT + 'thumbnails/'
+            s3folder = config.value
+
+            img_url = get_pre_signed_get_url(filename, s3folder)
+            image_original = your_media_root + filename
+
+            try:
+                # Downloading the image from s3
+                urllib.request.urlretrieve(img_url, image_original)
+            except Exception:
+                return HttpResponse('Image cropping failed')
+
+            x1 = round(float(request.POST['x1f']), 2)
+            y1 = round(float(request.POST['y1f']), 2)
+            x2 = round(float(request.POST['x2f']), 2)
+            y2 = round(float(request.POST['y2f']), 2)
+
+            coords = (x1, y1, x2, y2)
+
+            cropped = Image.open(image_original)
+            cropped = cropped.crop(coords)
+            cropped.save(image_original, quality=99, optimize=True)
+
+            s3file = config.value + filename
+            upload_image_s3(your_media_root + filename, s3file)
+            image.thumbnail = None
+            image.save()
+            generate_thumbnail.delay()
+
+            time.sleep(2)
+            if os.path.isfile(your_media_root + filename):
+                os.remove(your_media_root + filename)
+
+        except Exception:
+            return HttpResponse('Image cropping failed')
+        return HttpResponse('Image has been cropped and uploaded successfully')
+    else:
+        return HttpResponse('Image cropping failed')
+
+
+
+@csrf_exempt
 def avatar_image(request):
     """
         Update the Avatar image of the user
