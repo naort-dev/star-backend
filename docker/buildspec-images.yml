@@ -1,6 +1,9 @@
 version: 0.2
 
 phases:
+  install:
+    commands:
+      - apt-get update && apt-get install -y git
   pre_build:
     commands:
       - export REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/"
@@ -13,6 +16,7 @@ phases:
       - echo Building the Docker images...
       - chmod +x build-docker-images.sh
       - ./build-docker-images.sh
+      - ./version.sh
   post_build:
     commands:
       - echo Build completed on `date`
