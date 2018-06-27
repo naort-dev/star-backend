@@ -11,8 +11,7 @@ phases:
     commands:
       - apt-get update && apt-get install -y git openssh-client
       - mkdir -p ~/.ssh/ && chmod 700 ~/.ssh/
-      - echo $GITHUB_DEPLOY_KEY > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
-      - cat ~/.ssh/id_rsa
+      - echo "$GITHUB_DEPLOY_KEY" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
   pre_build:
     commands:
       - export REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/"
