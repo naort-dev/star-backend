@@ -42,7 +42,7 @@ fi
 echo 'Switching to new version:' $major_max'.'$minor_max'.'$patch_max
 $(git tag -a $major_max.$minor_max.$patch_max $commit_id -m "Version $major_max.$minor_max.$patch_max")
 echo 'Push tag to remote'
-$(git push origin $major_max.$minor_max.$patch_max $commit_id)
+$(git push origin $major_max.$minor_max.$patch_max)
 
 rm -rf $(pwd)
 cd -
