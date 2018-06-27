@@ -12,11 +12,12 @@ phases:
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
   build:
     commands:
+      - chmod +x version.sh
+      - ./version.sh
       - echo Build started on `date`
       - echo Building the Docker images...
       - chmod +x build-docker-images.sh
       - ./build-docker-images.sh
-      - ./version.sh
   post_build:
     commands:
       - echo Build completed on `date`
