@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+git config --global user.email "build@starsona.com"
+git config --global user.name "Starsona Build"
+
 cd $(mktemp -d)
 git clone -n $1 .
 
