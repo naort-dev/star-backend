@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+cd $(mktemp -d)
+git clone -n $1 .
+
 major_max=1;
 minor_max=0;
 patch_max=0;
@@ -37,3 +40,6 @@ echo 'Switching to new version:' $major_max'.'$minor_max'.'$patch_max
 $(git tag -a $major_max.$minor_max.$patch_max $commit_id -m "Version $major_max.$minor_max.$patch_max")
 echo 'Push tag to remote'
 $(git push origin $major_max.$minor_max.$patch_max $commit_id)
+
+rm -rf $(pwd)
+cd -

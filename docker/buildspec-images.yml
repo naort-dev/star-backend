@@ -1,6 +1,17 @@
 version: 0.2
 
+env:
+  variables:
+    GIT_SSH_COMMAND: "ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+  parameter-store:
+    GITHUB_DEPLOY_KEY: "GITHUB_DEPLOY_KEY"
+
 phases:
+  install:
+    commands:
+      - apt-get update && apt-get install -y git
+      - mkdir -p ~/.ssh/ && chmod 700 ~/.ssh/
+      - echo $GITHUB_DEPLOY_KEY > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
   pre_build:
     commands:
       - export REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/"
@@ -9,6 +20,8 @@ phases:
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
   build:
     commands:
+      - chmod +x version.sh
+      - ./version.sh 'git@github.com:Starsona/backend.git'
       - echo Build started on `date`
       - echo Building the Docker images...
       - chmod +x build-docker-images.sh
