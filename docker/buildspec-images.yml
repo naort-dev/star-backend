@@ -22,7 +22,7 @@ phases:
     commands:
       - chmod +x version.sh
       - ./version.sh 'git@github.com:Starsona/backend.git'
-      - export IMAGE_TAG="$VERSION"
+      - export IMAGE_TAG=`cat .version`
       - echo Build $IMAGE_TAG started on `date`
       - echo Building the Docker images...
       - chmod +x build-docker-images.sh

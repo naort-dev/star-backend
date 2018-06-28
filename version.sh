@@ -44,7 +44,8 @@ $(git tag -a $major_max.$minor_max.$patch_max $commit_id -m "Version $major_max.
 echo 'Push tag to remote'
 $(git push origin $major_max.$minor_max.$patch_max)
 
-export VERSION=$major_max.$minor_max.$patch_max
-
 rm -rf $(pwd)
 cd -
+
+echo Writing .version file in current directory
+echo $major_max.$minor_max.$patch_max > .version
