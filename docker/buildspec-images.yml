@@ -13,6 +13,7 @@ phases:
       - chmod 600 ~/.ssh/id_rsa
   pre_build:
     commands:
+      - "export AWS_ACCOUNT_ID=`echo $CODEBUILD_BUILD_ARN | cut -d: -f5`"
       - export REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/"
       - export DEPLOYMENT_TYPE=aws
       - echo Logging in to Amazon ECR...
@@ -22,7 +23,7 @@ phases:
       - chmod +x version.sh
       - ./version.sh 'git@github.com:Starsona/backend.git'
       - export IMAGE_TAG="$VERSION"
-      - echo Build started on `date`
+      - echo Build $IMAGE_TAG started on `date`
       - echo Building the Docker images...
       - chmod +x build-docker-images.sh
       - ./build-docker-images.sh
