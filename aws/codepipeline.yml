@@ -5,6 +5,16 @@ Parameters:
     Description: Environment name
     Default: staging
 
+  MajorVersion:
+    Type: Number
+    Description: Major version
+    Default: 1
+
+  MinorVersion:
+    Type: Number
+    Description: Minor version, increment each time code merged to production
+    Default: 0
+
   BaseImageTag:
     Type: String
     Description: Base image tag
@@ -37,6 +47,10 @@ Resources:
         EnvironmentVariables:
           - { Name: BASE_IMAGE_TAG, Value: !Ref 'BaseImageTag' }
           - { Name: ENV, Value: !Ref 'Env' }
+          - { Name: GIT_BRANCH, Value: !Ref 'GitBranch' }
+          - { Name: MAJOR_VERSION, Value: !Ref 'MajorVersion' }
+          - { Name: MINOR_VERSION, Value: !Ref 'MinorVersion' }
+
       Source:
         Type: CODEPIPELINE
         BuildSpec: docker/buildspec-images.yml
