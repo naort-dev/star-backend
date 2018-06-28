@@ -21,7 +21,6 @@ phases:
     commands:
       - chmod +x version.sh
       - ./version.sh 'git@github.com:Starsona/backend.git'
-      - export BASE_IMAGE_TAG=":latest"
       - export IMAGE_TAG="$VERSION"
       - echo Build started on `date`
       - echo Building the Docker images...
@@ -36,8 +35,8 @@ phases:
       - docker push ${REGISTRY}backend-nginx-${DEPLOYMENT_TYPE}${IMAGE_TAG}
       - docker push ${REGISTRY}backend-migration${IMAGE_TAG}
       - echo Writing artifacts...
-      - aws ssm get-parameter --name /env/staging/backend.json | jq ".Parameter.ImageTag = \"$IMAGE_TAG\"" > backend.json
-      - aws ssm get-parameter --name /env/staging/vpc.json > vpc.json
+      - aws ssm get-parameter --name /env/$ENV/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"$IMAGE_TAG\"" > backend.json
+      - aws ssm get-parameter --name /env/$ENV/vpc.json | jq -r .Parameter.Value > vpc.json
 artifacts:
   files:
     - backend.json
