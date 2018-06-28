@@ -1,6 +1,6 @@
 ARG REGISTRY=''
 ARG IMAGE_TAG=''
-FROM ${REGISTRY}base-nginx${IMAGE_TAG}
+FROM ${REGISTRY}base-nginx${BASE_IMAGE_TAG}
 COPY ./nginx-aws.conf /etc/nginx/sites-enabled/default
 COPY ./nginx-entrypoint-aws.sh /starsona/nginx-entrypoint.sh
 COPY ./static /starsona/static

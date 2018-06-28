@@ -3,15 +3,13 @@ version: 0.2
 env:
   variables:
     GIT_SSH_COMMAND: "ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
-  parameter-store:
-    GITHUB_DEPLOY_KEY: "GITHUB_DEPLOY_KEY"
 
 phases:
   install:
     commands:
-      - apt-get update && apt-get install -y git openssh-client
       - mkdir -p ~/.ssh/ && chmod 700 ~/.ssh/
-      - echo "$GITHUB_DEPLOY_KEY" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+      - aws ssm get-parameter --name /codebuild/github/key.pem | jq -r .Parameter.Value > ~/.ssh/id_rsa
+      - chmod 600 ~/.ssh/id_rsa
   pre_build:
     commands:
       - export REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/"
@@ -22,6 +20,8 @@ phases:
     commands:
       - chmod +x version.sh
       - ./version.sh 'git@github.com:Starsona/backend.git'
+      - export BASE_IMAGE_TAG=":latest"
+      - export IMAGE_TAG="$VERSION"
       - echo Build started on `date`
       - echo Building the Docker images...
       - chmod +x build-docker-images.sh
@@ -34,22 +34,11 @@ phases:
       - docker push ${REGISTRY}backend-gunicorn${IMAGE_TAG}
       - docker push ${REGISTRY}backend-nginx-${DEPLOYMENT_TYPE}${IMAGE_TAG}
       - docker push ${REGISTRY}backend-migration${IMAGE_TAG}
-      - docker push ${REGISTRY}backend-console${IMAGE_TAG}
-      - echo Writing image definitions files...
-      - printf '[{"name":"celery-worker","imageUri":"%sbackend-celery%s"}]' $REGISTRY $IMAGE_TAG > imagedefinitions-celery-worker.json
-      - printf '[{"name":"celery-beat","imageUri":"%sbackend-celery%s"}]' $REGISTRY $IMAGE_TAG > imagedefinitions-celery-beat.json
-      - printf '[{"name":"gunicorn","imageUri":"%sbackend-gunicorn%s"}]' $REGISTRY $IMAGE_TAG > imagedefinitions-gunicorn.json
-      - printf '[{"name":"nginx","imageUri":"%sbackend-nginx-%s%s"}]' $REGISTRY $DEPLOYMENT_TYPE $IMAGE_TAG > imagedefinitions-nginx.json
-      - printf '[{"name":"migration","imageUri":"%sbackend-migration%s"}]' $REGISTRY $IMAGE_TAG > imagedefinitions-migration.json
-      - printf '[{"name":"load-data","imageUri":"%sbackend-migration%s"}]' $REGISTRY $IMAGE_TAG > imagedefinitions-load-data.json
-      - printf '[{"name":"console","imageUri":"%sbackend-console%s"}]' $REGISTRY $IMAGE_TAG > imagedefinitions-console.json
+      - echo Writing artifacts...
+      - aws ssm get-parameter --name /env/staging/backend.json | jq ".Parameter.ImageTag = \"$IMAGE_TAG\"" > backend.json
+      - aws ssm get-parameter --name /env/staging/vpc.json > vpc.json
 artifacts:
   files:
-    - imagedefinitions-celery-worker.json
-    - imagedefinitions-celery-beat.json
-    - imagedefinitions-gunicorn.json
-    - imagedefinitions-nginx.json
-    - imagedefinitions-migration.json
-    - imagedefinitions-load-data.json
-    - imagedefinitions-console.json
+    - backend.json
+    - vpc.json
   discard-paths: yes

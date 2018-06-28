@@ -1,6 +1,6 @@
 ARG REGISTRY=''
 ARG IMAGE_TAG=''
-FROM ${REGISTRY}base-os${IMAGE_TAG}
+FROM ${REGISTRY}base-os${BASE_IMAGE_TAG}
 RUN apt-get install -y postgresql-client curl &&\
     apt-get clean all
 RUN pip install awscli --upgrade --user
