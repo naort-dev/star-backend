@@ -133,3 +133,4 @@ Resources:
       ArtifactStore:
         Type: S3
         Location: codepipeline-us-east-1-219080120354
+
