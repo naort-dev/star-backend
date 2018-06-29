@@ -1,0 +1,31 @@
+{% include "emails/header.html" %}
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Hi,</p>
+
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">
+The payment payed out this month<hr>
+<h4>Paid Users</h4>
+{% for key, value in paid_users.items %}
+<p>Name of celebrity: {{ value.name }}<br/>
+Number of bookings: {{ value.pay_count }}<br/>
+Total amount: ${{ value.amount }}</p>
+{% endfor %}
+<hr>
+<h4>Not paid Users</h4>
+{% for key, value in not_paid_users.items %}
+<p>Name of celebrity: {{ value.name }}<br/>
+Number of bookings: {{ value.pay_count }}<br/>
+Total amount: ${{ value.amount }}<br/>
+Reason: {{value.reason}}</p>
+{% endfor %}
+<hr>
+<h4>Failed Users</h4>
+{% for key, value in failed_users.items %}
+<p>Name of celebrity: {{ value.name }}<br/>
+Number of bookings: {{ value.pay_count }}<br/>
+Total amount: ${{ value.amount }}<br/>
+Reason: {{value.reason}}</p>
+{% endfor %}
+<hr>
+Thanks,<br/>Starsona Team
+</p>
+{% include "emails/footer.html" %}
