@@ -7,4 +7,4 @@ WORKDIR /starsona
 RUN chmod +x docker-entrypoint.sh
 RUN chmod +x loaddatas.sh
 ENTRYPOINT ["./docker-entrypoint.sh"]
-CMD python manage.py makemigrations && python manage.py migrate
+CMD ["python", "manage.py", "migrate", "--fake-initial"]
