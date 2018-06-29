@@ -56,6 +56,27 @@ Resources:
         BuildSpec: docker/buildspec-images.yml
       TimeoutInMinutes: 15
 
+  RunMigrations:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Join ['-', [!Ref 'AWS::StackName', 'migrations']]
+      Description: Run migrations
+      ServiceRole: arn:aws:iam::376169159073:role/service-role/codebuild-starsona-service-role
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/ubuntu-base:14.04
+        PrivilegedMode: false
+        EnvironmentVariables:
+          - { Name: ENV, Value: !Ref 'Env' }
+
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: docker/buildspec-migrations.yml
+      TimeoutInMinutes: 15
+
   Pipeline:
     Type: "AWS::CodePipeline::Pipeline"
     Properties:
@@ -111,14 +132,11 @@ Resources:
                 Owner: AWS
                 Version: 1
                 Provider: CloudFormation
-              OutputArtifacts:
-                - Name: vpc
               Configuration:
                 ActionMode: CREATE_UPDATE
                 RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
                 Capabilities: CAPABILITY_IAM
                 StackName: !Join ['', [!Ref 'Env', '-backend-vpc']]
-                OutputFileName: output.json
                 TemplateConfiguration: build::vpc.json
                 TemplatePath: source::aws/vpc.yml
               RunOrder: 1
@@ -132,17 +150,29 @@ Resources:
                 Owner: AWS
                 Version: 1
                 Provider: CloudFormation
-              OutputArtifacts:
-                - Name: app
               Configuration:
                 ActionMode: CREATE_UPDATE
                 RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
                 Capabilities: CAPABILITY_IAM
                 StackName: !Join ['', [!Ref 'Env', '-backend-app']]
-                OutputFileName: output.json
                 TemplateConfiguration: build::backend.json
                 TemplatePath: source::aws/backend.yml
               RunOrder: 2
+        -
+          Name: Run
+          Actions:
+            -
+              Name: migrations
+              InputArtifacts:
+                - Name: source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref 'RunMigrations'
+              RunOrder: 1
 
       ArtifactStore:
         Type: S3

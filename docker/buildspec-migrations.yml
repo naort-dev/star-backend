@@ -1,0 +1,11 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - apt-get update && apt-get install -y jq
+      - chmod +x aws/run-ecs-task.sh
+  build:
+    commands:
+      - aws/run-ecs-task.sh $ENV migration
+      - aws/run-ecs-task.sh $ENV load-data
