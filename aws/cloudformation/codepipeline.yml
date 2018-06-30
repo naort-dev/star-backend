@@ -161,7 +161,7 @@ Resources:
                 RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
                 Capabilities: CAPABILITY_IAM
                 StackName: !Join ['', [!Ref 'Env', '-backend-vpc']]
-                TemplateConfiguration: build::backend.json
+                TemplateConfiguration: build::vpc.json
                 TemplatePath: source::aws/cloudformation/vpc.yml
               RunOrder: 1
             -

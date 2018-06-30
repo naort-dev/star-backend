@@ -9,7 +9,7 @@ phases:
     commands:
       - apt-get update && apt-get install -y openssh-client jq
       - mkdir -p ~/.ssh/ && chmod 700 ~/.ssh/
-      - aws ssm get-parameter --name /codebuild/github/key.pem | jq -r .Parameter.Value > ~/.ssh/id_rsa
+      - aws ssm get-parameter --name /codebuild/github/backend/key.pem | jq -r .Parameter.Value > ~/.ssh/id_rsa
       - chmod 600 ~/.ssh/id_rsa
   pre_build:
     commands:
@@ -35,8 +35,10 @@ phases:
       - docker push ${REGISTRY}backend-nginx-${DEPLOYMENT_TYPE}${IMAGE_TAG}
       - docker push ${REGISTRY}backend-migration${IMAGE_TAG}
       - echo Writing artifacts...
-      - aws ssm get-parameter --name /env/$ENV/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"$IMAGE_TAG\"" > backend.json
+      - aws ssm get-parameter --name /env/$ENV/backend/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"$IMAGE_TAG\"" > backend.json
+      - aws ssm get-parameter --name /env/$ENV/backend/vpc.json | jq -r .Parameter.Value > vpc.json
 artifacts:
   files:
     - backend.json
+    - vpc.json
   discard-paths: yes
