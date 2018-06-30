@@ -23,7 +23,7 @@ phases:
       - chmod +x aws/scripts/version.sh
       - aws/scripts/version.sh 'git@github.com:Starsona/backend.git'
       - export IMAGE_TAG=:`cat .version`
-      - echo Building the Docker images...
+      - echo Building the Docker images version$IMAGE_TAG...
       - chmod +x docker/build-docker-images.sh
       - docker/build-docker-images.sh
   post_build:
@@ -36,9 +36,7 @@ phases:
       - docker push ${REGISTRY}backend-migration${IMAGE_TAG}
       - echo Writing artifacts...
       - aws ssm get-parameter --name /env/$ENV/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"$IMAGE_TAG\"" > backend.json
-      - aws ssm get-parameter --name /env/$ENV/vpc.json | jq -r .Parameter.Value > vpc.json
 artifacts:
   files:
     - backend.json
-    - vpc.json
   discard-paths: yes
