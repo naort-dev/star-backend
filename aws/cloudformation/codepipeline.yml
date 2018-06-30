@@ -18,7 +18,7 @@ Parameters:
   BaseImageTag:
     Type: String
     Description: Base image tag
-    Default: ":20180629"
+    Default: ":20180630"
 
   GitBranch:
     Type: String
