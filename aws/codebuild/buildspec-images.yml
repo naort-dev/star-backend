@@ -20,7 +20,7 @@ phases:
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
   build:
     commands:
-      - chmod +x version.sh
+      - chmod +x aws/scripts/version.sh
       - aws/scripts/version.sh 'git@github.com:Starsona/backend.git'
       - export IMAGE_TAG=:`cat .version`
       - echo Building the Docker images...
