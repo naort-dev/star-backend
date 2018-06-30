@@ -21,12 +21,11 @@ phases:
   build:
     commands:
       - chmod +x version.sh
-      - ./version.sh 'git@github.com:Starsona/backend.git'
+      - aws/scripts/version.sh 'git@github.com:Starsona/backend.git'
       - export IMAGE_TAG=:`cat .version`
-      - echo Build $IMAGE_TAG started on `date`
       - echo Building the Docker images...
-      - chmod +x build-docker-images.sh
-      - ./build-docker-images.sh
+      - chmod +x docker/build-docker-images.sh
+      - docker/build-docker-images.sh
   post_build:
     commands:
       - echo Build completed on `date`

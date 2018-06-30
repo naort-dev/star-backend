@@ -3,6 +3,10 @@
 .git
 README.md
 *.iml
-docker
-docker/*
+docker/
+!docker/scripts
+!docker/configs
 .idea
+aws
+Makefile
+

@@ -46,6 +46,9 @@ services:
     - DATABASE_USER
     - DATABASE_PASSWORD
     - DATABASE_HOST
+    - ADMIN_USERNAME
+    - ADMIN_PASSWORD
+    command: sh -c './migrations.sh && ./loaddatas.sh'
 
   celery-beat:
     image: backend-celery
@@ -126,6 +129,8 @@ services:
     - "80:80"
     - "443:443"
     restart: on-failure
+    depends_on:
+    - gunicorn
     environment:
     - SSL_SERVER_NAME
     - SSL_SERVER_EMAIL

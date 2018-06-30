@@ -1,7 +1,9 @@
 ARG REGISTRY=''
-ARG IMAGE_TAG=''
+ARG BASE_IMAGE_TAG=''
 FROM ${REGISTRY}base-backend${BASE_IMAGE_TAG}
 COPY . /starsona
+COPY docker/scripts/docker-entrypoint.sh /starsona
+RUN rm -rf /starsona/docker
 ENV NUM_WORKERS=3
 ENV PORT=9003
 ENV DJANGO_SETTINGS_MODULE=main.settings.common

@@ -32,28 +32,6 @@ docker-compose up
 Look for other docker-compose commands at https://docs.docker.com/compose/reference/overview/
 
 
-## One time initialization
-
-```bash
-cd docker
-docker-compose exec gunicorn bash
-
-root@2ca6ffc9967c:/starsona# ./loaddatas.sh 
-Username: admin
-Password: 
-Password (again): 
-Superuser created successfully.
-Installed 19 object(s) from 1 fixture(s)
-Installed 11 object(s) from 1 fixture(s)
-Installed 3 object(s) from 1 fixture(s)
-Installed 16 object(s) from 1 fixture(s)
-Installed 18 object(s) from 1 fixture(s)
-Installed 34 object(s) from 1 fixture(s)
-Installed 324 object(s) from 1 fixture(s)
-Installed 104 object(s) from 1 fixture(s)
-r
-```
-
 ## Destroy system
 This command deletes all volumes, database and cached containers
 ```bash

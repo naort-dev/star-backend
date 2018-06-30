@@ -4,14 +4,15 @@ phases:
   pre_build:
     commands:
       - export REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/"
+      - export IMAGE_TAG=`date +%Y%m%d`
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
   build:
     commands:
       - echo Build started on `date`
       - echo Building the Docker images...
-      - chmod +x build-docker-base.sh
-      - ./build-docker-base.sh
+      - chmod +x docker/build-docker-base.sh
+      - docker/build-docker-base.sh
   post_build:
     commands:
       - echo Build completed on `date`
