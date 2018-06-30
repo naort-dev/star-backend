@@ -5,7 +5,7 @@ phases:
     commands:
       - "export AWS_ACCOUNT_ID=`echo $CODEBUILD_BUILD_ARN | cut -d: -f5`"
       - export REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/"
-      - export IMAGE_TAG=`date +%Y%m%d`
+      - export IMAGE_TAG=:`date +%Y%m%d`
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
   build:
