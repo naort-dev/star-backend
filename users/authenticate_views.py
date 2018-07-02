@@ -403,13 +403,18 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
             user = StargramzUser.objects.get(id=pk)
         except StargramzUser.DoesNotExist:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'User Does not Exist')
+
+        celebrity = check_celebrity_profile_exist(user)
+        if not celebrity and user_logged_in != user.id:
+            return self.jp_error_response('HTTP_403_FORBIDDEN', 'INVALID_USER', 'Not an authorized user.')
+
         data = RegisterSerializer(user, context={'request': request}).data
         data['role_details'] = get_user_role_details(user)
         response_data = dict(user=data)
         data['is_follow'] = True if user_followed else False
         data['authentication_token'] = None
         data['share_url'] = '%sapplinks/profile/%s/' % (BASE_URL, str(hashids.encode(user.pk)))
-        data['celebrity'] = check_celebrity_profile_exist(user)
+        data['celebrity'] = celebrity
         data['unseen_bookings'] = 0
 
         if user_logged_in and user_logged_in == user.id:
@@ -418,6 +423,8 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
             data['unseen_bookings'] = user.unseen_bookings if user_logged_in == user.id else 0
             (notifications, created) = SettingsNotifications.objects.get_or_create(user_id=user.id)
             data['notification_settings'] = NotificationSettingsSerializer(notifications).data
+        else:
+            data.pop('email', None)
         if data['celebrity']:
             celebrity_details = CelebrityManagement.retrieve_celebrity(self, user.id)
             if getattr(status, celebrity_details['status']) == 200:
