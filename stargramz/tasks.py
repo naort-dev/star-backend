@@ -73,8 +73,8 @@ def cancel_starsona_celebrity_no_response():
                 title="%s was unable to fulfill your booking request" % request.celebrity.get_short_name(),
                 desc="%s was unable to fulfill your booking request." % request.celebrity.get_short_name(),
                 mob_url='profile/?profile_id=%s' % hashids.encode(request.celebrity.id),
-                desktop_url='%s/applinks/profile/%s' % (base_url, hashids.encode(request.celebrity.id)),
-                image_url='%s/media/web-images/starsona_logo.png' % base_url,
+                desktop_url='%sapplinks/profile/%s' % (base_url, hashids.encode(request.celebrity.id)),
+                image_url='%smedia/web-images/starsona_logo.png' % base_url,
             )
         }
         html_template = get_template('../templates/emails/request_cancellation_expiry.html')

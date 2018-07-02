@@ -207,7 +207,7 @@ class ForgotPassword(APIView, ResponseViewMixin):
                     mob_url='reset/?reset_id=%s' % str(user.reset_id),
                     title="Reset password for %s" % user.get_short_name(),
                     desc="Reset password for %s" % user.get_short_name(),
-                    image_url='%s/media/web-images/starsona_logo.png' % base_url,
+                    image_url='%smedia/web-images/starsona_logo.png' % base_url,
                     desktop_url=reset_password_link+str(user.reset_id)
                 )
             }

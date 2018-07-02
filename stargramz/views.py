@@ -867,7 +867,7 @@ def request_detail(request, role, request_id):
 
     data = {
         'description': 'Get your personlised video from your favorite celebrity',
-        'image': '%s/media/web-images/star.png' % BASE_URL,
+        'image': '%smedia/web-images/star.png' % BASE_URL,
         'title': 'Starsona',
         "url": "%sapplinks/request/%s/%s" % (BASE_URL, role, request_id),
         "id": request_id,
