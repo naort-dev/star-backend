@@ -48,6 +48,10 @@ app.conf.beat_schedule = {
         'task': 'resend_failed_payouts',
         'schedule': crontab(minute=0, hour=0, day_of_month=6),
     },
+    'schedule-9': {
+        'task': 'resend_failed_payouts',
+        'schedule': crontab(minute=1, hour=0, day_of_month=1),
+    },
 }
 app.conf.timezone = 'UTC'
 # This reads, e.g., CELERY_ACCEPT_CONTENT = ['json'] from settings.py:
