@@ -412,7 +412,7 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
         data['celebrity'] = check_celebrity_profile_exist(user)
         data['unseen_bookings'] = 0
 
-        if user_logged_in:
+        if user_logged_in and user_logged_in == user.id:
             (token, created) = Token.objects.get_or_create(user=user)
             data['authentication_token'] = token.key
             data['unseen_bookings'] = user.unseen_bookings if user_logged_in == user.id else 0
