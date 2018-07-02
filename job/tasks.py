@@ -368,6 +368,7 @@ def create_payout_records():
         records = StarsonaTransaction.objects.filter(
             transaction_status=TRANSACTION_STATUS.captured,
             starsona__request_status=STATUS_TYPES.completed,
+            amount__gt=1,
         ).exclude(transaction_payout__status__in=PAYOUT_STATUS.get_key_values())[:1]
 
         for record in records:
@@ -484,7 +485,7 @@ def create_referral_payouts(record):
     return True
 
 
-@app.task
+@app.task(name='resend_failed_payouts')
 def resend_failed_payouts():
     """
         Resending the payouts which have failed during payout process
