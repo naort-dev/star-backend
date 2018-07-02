@@ -781,7 +781,7 @@ def send_email_notification(request_id):
             desc=subject,
             mob_url=app_urls[request.request_status],
             desktop_url=urls[request.request_status],
-            image_url='%s/media/web-images/starsona_logo.png' % BASE_URL,
+            image_url='%smedia/web-images/starsona_logo.png' % BASE_URL,
         )
 
         try:
