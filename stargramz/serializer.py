@@ -64,6 +64,7 @@ class StargramzVideoSerializer(CustomModelSerializer):
     video_url = serializers.SerializerMethodField(read_only=True)
     following = serializers.SerializerMethodField(read_only=True)
     user_id = serializers.SerializerMethodField(read_only=True)
+    video_id = serializers.SerializerMethodField(read_only=True)
     occasion = serializers.CharField(read_only=True, source="stragramz_request.occasion.title")
 
     question_answer_videos = serializers.SerializerMethodField(read_only=True)
@@ -77,6 +78,9 @@ class StargramzVideoSerializer(CustomModelSerializer):
 
     def get_booking_id(self, obj):
         return hashids.encode(obj.stragramz_request_id)
+
+    def get_video_id(self, obj):
+        return hashids.encode(obj.id)
 
     def get_video_url(self, obj):
         return SHORT_BASE_URL + 'video/' + hashids.encode(obj.id)
@@ -137,7 +141,7 @@ class StargramzSerializer(serializers.ModelSerializer):
     to_audio_file = serializers.FileField(required=False)
     request_video = StargramzVideoSerializer(read_only=True, many=True, fields=['s3_thumbnail_url', 's3_video_url',
                                                                                 'video_url',  'status', 'video_status',
-                                                                                'width', 'height'])
+                                                                                'width', 'height', 'video_id'])
     avatar_photo = serializers.SerializerMethodField(read_only=True)
     fan_photo = serializers.SerializerMethodField(read_only=True)
     professions = serializers.SerializerMethodField(read_only=True)
