@@ -35,10 +35,14 @@ phases:
       - docker push ${REGISTRY}backend-nginx-${DEPLOYMENT_TYPE}${IMAGE_TAG}
       - docker push ${REGISTRY}backend-migration${IMAGE_TAG}
       - echo Writing artifacts...
-      - aws ssm get-parameter --name /env/$ENV/backend/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"$IMAGE_TAG\"" > backend.json
-      - aws ssm get-parameter --name /env/$ENV/backend/vpc.json | jq -r .Parameter.Value > vpc.json
+      - aws ssm get-parameter --name /env/staging/backend/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"$IMAGE_TAG\"" > staging-backend.json
+      - aws ssm get-parameter --name /env/staging/backend/vpc.json | jq -r .Parameter.Value > staging-vpc.json
+      - aws ssm get-parameter --name /env/production/backend/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"$IMAGE_TAG\"" > production-backend.json
+      - aws ssm get-parameter --name /env/production/backend/vpc.json | jq -r .Parameter.Value > production-vpc.json
 artifacts:
   files:
-    - backend.json
-    - vpc.json
+    - staging-backend.json
+    - staging-vpc.json
+    - production-backend.json
+    - production-vpc.json
   discard-paths: yes

@@ -1,9 +1,5 @@
 Description: Create a CodePipeline to include Nested CloudFormation, CodeBuild and Approval steps.
 Parameters:
-  Env:
-    Type: String
-    Description: Environment name
-    Default: staging
 
   MajorVersion:
     Type: Number
@@ -70,7 +66,6 @@ Resources:
         PrivilegedMode: true
         EnvironmentVariables:
           - { Name: BASE_IMAGE_TAG, Value: !Ref 'BaseImageTag' }
-          - { Name: ENV, Value: !Ref 'Env' }
           - { Name: GIT_BRANCH, Value: !Ref 'GitBranch' }
           - { Name: MAJOR_VERSION, Value: !Ref 'MajorVersion' }
           - { Name: MINOR_VERSION, Value: !Ref 'MinorVersion' }
@@ -80,10 +75,10 @@ Resources:
         BuildSpec: aws/codebuild/buildspec-images.yml
       TimeoutInMinutes: 15
 
-  RunMigrations:
+  RunMigrationsStaging:
     Type: AWS::CodeBuild::Project
     Properties:
-      Name: !Join ['-', [!Ref 'AWS::StackName', 'migrations']]
+      Name: !Join ['-', [!Ref 'AWS::StackName', 'migrations-staging']]
       Description: Run migrations
       ServiceRole: arn:aws:iam::376169159073:role/service-role/codebuild-starsona-service-role
       Artifacts:
@@ -94,7 +89,28 @@ Resources:
         Image: aws/codebuild/ubuntu-base:14.04
         PrivilegedMode: false
         EnvironmentVariables:
-          - { Name: ENV, Value: !Ref 'Env' }
+          - { Name: ENV, Value: staging }
+
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: aws/codebuild/buildspec-migrations.yml
+      TimeoutInMinutes: 15
+
+  RunMigrationsProduction:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Join ['-', [!Ref 'AWS::StackName', 'migrations-production']]
+      Description: Run migrations
+      ServiceRole: arn:aws:iam::376169159073:role/service-role/codebuild-starsona-service-role
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/ubuntu-base:14.04
+        PrivilegedMode: false
+        EnvironmentVariables:
+          - { Name: ENV, Value: production }
 
       Source:
         Type: CODEPIPELINE
@@ -144,7 +160,7 @@ Resources:
                 ProjectName: !Ref 'BuildImages'
               RunOrder: 1
         -
-          Name: Deploy
+          Name: Staging
           Actions:
             -
               Name: vpc
@@ -160,8 +176,8 @@ Resources:
                 ActionMode: CREATE_UPDATE
                 RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
                 Capabilities: CAPABILITY_IAM
-                StackName: !Join ['', [!Ref 'Env', '-backend-vpc']]
-                TemplateConfiguration: build::vpc.json
+                StackName: staging-backend-vpc
+                TemplateConfiguration: build::staging-vpc.json
                 TemplatePath: source::aws/cloudformation/vpc.yml
               RunOrder: 1
             -
@@ -178,13 +194,10 @@ Resources:
                 ActionMode: CREATE_UPDATE
                 RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
                 Capabilities: CAPABILITY_IAM
-                StackName: !Join ['', [!Ref 'Env', '-backend-app']]
-                TemplateConfiguration: build::backend.json
+                StackName: staging-backend-app
+                TemplateConfiguration: build::staging-backend.json
                 TemplatePath: source::aws/cloudformation/backend.yml
               RunOrder: 2
-        -
-          Name: Run
-          Actions:
             -
               Name: migrations
               InputArtifacts:
@@ -195,8 +208,73 @@ Resources:
                 Version: 1
                 Provider: CodeBuild
               Configuration:
-                ProjectName: !Ref 'RunMigrations'
+                ProjectName: !Ref 'RunMigrationsStaging'
+              RunOrder: 3
+        -
+          Name: Approvals
+          Actions:
+            -
+              Name: ProductionDeploymentApproval
+              ActionTypeId:
+                Category: Approval
+                Owner: AWS
+                Version: 1
+                Provider: Manual
+              Configuration:
+                NotificationArn: arn:aws:sns:us-east-1:376169159073:ProductionDeploymentApproval
+                CustomData: Approve production deployment.
               RunOrder: 1
+        -
+          Name: Production
+          Actions:
+            -
+              Name: vpc
+              InputArtifacts:
+                - Name: source
+                - Name: build
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
+                Capabilities: CAPABILITY_IAM
+                StackName: production-backend-vpc
+                TemplateConfiguration: build::production-vpc.json
+                TemplatePath: source::aws/cloudformation/vpc.yml
+              RunOrder: 1
+            -
+              Name: app
+              InputArtifacts:
+                - Name: source
+                - Name: build
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
+                Capabilities: CAPABILITY_IAM
+                StackName: production-backend-app
+                TemplateConfiguration: build::production-backend.json
+                TemplatePath: source::aws/cloudformation/backend.yml
+              RunOrder: 2
+            -
+              Name: migrations
+              InputArtifacts:
+                - Name: source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref 'RunMigrationsProduction'
+              RunOrder: 3
 
       ArtifactStore:
         Type: S3
