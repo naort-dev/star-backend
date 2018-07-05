@@ -834,6 +834,7 @@ Resources:
 
   CognitoAuthenticatedRole:
     Type: AWS::IAM::Role
+    Condition: ManagedIdentityPool
     Properties:
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
@@ -863,5 +864,6 @@ Outputs:
   CognitoIdentityPool:
     Description: Cognito Identity Pool
     Value: !Ref 'CognitoIdentityPool'
+    Condition: ManagedIdentityPool
     Export:
       Name: !Join [ ':', [ !Ref 'AWS::StackName', 'CognitoIdentityPool' ] ]
