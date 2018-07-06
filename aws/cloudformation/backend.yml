@@ -692,7 +692,6 @@ Resources:
 
   S3BucketPolicy:
     Type: AWS::IAM::Policy
-    Condition: ManagedBucket
     Properties:
       PolicyName: !Join ['-', ['s3', !Ref 'BucketName']]
       PolicyDocument:
