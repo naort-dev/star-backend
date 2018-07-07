@@ -119,7 +119,7 @@ services:
     - RABBITMQ_DEFAULT_PASS=${QUEUE_PASSWORD}
 
   nginx:
-    image: backend-nginx-swarm
+    image: backend-nginx-${DEPLOYMENT_TYPE}
     hostname: ${SSL_SERVER_NAME}
     volumes:
     - /etc/letsencrypt

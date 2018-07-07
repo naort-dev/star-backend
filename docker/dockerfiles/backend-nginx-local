@@ -1,0 +1,11 @@
+ARG REGISTRY=''
+ARG BASE_IMAGE_TAG=''
+FROM ${REGISTRY}base-nginx${BASE_IMAGE_TAG}
+COPY docker/configs/nginx-local.conf /etc/nginx/sites-enabled/default
+COPY docker/scripts/nginx-entrypoint-local.sh /starsona/nginx-entrypoint.sh
+COPY ./static /starsona/static
+COPY ./media /starsona/media
+WORKDIR /starsona
+RUN chmod +x nginx-entrypoint.sh
+ENTRYPOINT ["./nginx-entrypoint.sh"]
+CMD ["/usr/sbin/nginx", "-g", "daemon off;"]
