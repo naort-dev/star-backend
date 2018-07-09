@@ -449,10 +449,11 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
         except CelebrityFollow.DoesNotExist:
             user_followed = False
 
-        try:
-            CelebrityView.objects.get(fan_id=logged_in_user, celebrity_id=pk)
-        except CelebrityView.DoesNotExist:
-            CelebrityView.objects.create(fan_id=logged_in_user, celebrity_id=pk)
+        if logged_in_user != pk:
+            try:
+                CelebrityView.objects.filter(fan_id=logged_in_user, celebrity_id=pk)
+            except CelebrityView.DoesNotExist:
+                CelebrityView.objects.create(fan_id=logged_in_user, celebrity_id=pk)
 
         return self.get_details(request, pk=pk, user_followed=user_followed, user_logged_in=logged_in_user)
 
