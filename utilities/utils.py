@@ -411,6 +411,7 @@ def generate_branch_io_url(mob_url='', title='', desc='', image_url='', desktop_
             '$android_deeplink_path': mob_url,
             '$og_title': title,
             '$og_description': desc,
+            '$fallback_url': desktop_url,
             '$og_image_url': image_url,
             '$desktop_url': desktop_url,
             'nav_to': links[0] if links[0] else '',
