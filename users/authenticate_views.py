@@ -5,7 +5,7 @@ from users.serializer import *
 from users.models import StargramzUser, Profession, CelebrityFollow, CelebrityView, DeviceTokens, \
     CelebrityAvailableAlert
 from utilities.utils import SendMail, get_user_role_details, ROLES, check_user_role, change_fcm_device_status, \
-    check_celebrity_profile_exist, generate_branch_io_url
+    check_celebrity_profile_exist, generate_branch_io_url, get_pre_signed_post_url
 from django.template.loader import get_template
 import uuid
 from users.constants import EMAIL_HOST_USER
@@ -29,6 +29,7 @@ from rest_framework.decorators import detail_route
 from utilities.permissions import CustomPermission
 from utilities.constants import REDIRECT_LINK, BASE_URL
 from hashids import Hashids
+from .utils import generate_random_code
 import time
 hashids = Hashids(min_length=8)
 
@@ -691,3 +692,22 @@ class UpdateBookingCount(APIView, ResponseViewMixin):
         except Exception:
             pass
         return self.jp_response(s_code='HTTP_200_OK', data='Successfully updated booking count')
+
+
+class GetAWSSignedUrl(APIView, ResponseViewMixin):
+    """
+        Create post url for AWS file uploads
+    """
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def get(self, request):
+        extension = request.query_params.get('extension')
+        valid_extensions = ['png', 'jpg', 'jpeg']
+
+        if extension and extension.lower() in valid_extensions:
+            file_name = 'images/profile/IMG_%s%s.%s' % (int(time.time()), generate_random_code(8), str(extension))
+            url = get_pre_signed_post_url(file_name, 60, 120, True)
+            return self.jp_response(s_code='HTTP_200_OK', data=url)
+        else:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', 'Invalid extension')

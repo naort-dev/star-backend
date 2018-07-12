@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from users.authenticate_views import UserRegister, UserLogin, EmailValidate, SocialSignup, ForgotPassword, \
     ResetPassword, Professions, ProfileImages, UserDetails, UserLogout, RemoveProfileImage, ChangePassword, \
     DeviceToken, NotificationSettings, ContactSupport, RoleUpdate, UpdateNotificationBadge, AlertFan, \
-    ValidateSocialSignup, FilterProfessions, UpdateBookingCount
+    ValidateSocialSignup, FilterProfessions, UpdateBookingCount, GetAWSSignedUrl
 from .fan_views import CelebrityList, ApproveFan, CelebrityRate, CelebrityProfileFollow, CelebrityFanAbuse, \
     CelebritySuggestionList, FanFavouriteStars
 from .celebrity_views import CelebrityManagement, NotifyAdmin, ReferralRequest, ReferralList, ReferralValidate
@@ -40,6 +40,7 @@ urlpatterns = [
     url(r'^referral_validate/$', ReferralValidate.as_view(), name='referral-validate'),
     url(r'^social_signup_validate/$', ValidateSocialSignup.as_view(), name='social-signup-validate'),
     url(r'^update_unseen_count/$', UpdateBookingCount.as_view(), name='update-unseen-count'),
+    url(r'^signed_url/$', GetAWSSignedUrl.as_view(), name='signed-aws-url'),
 ]
 
 router = DefaultRouter()
