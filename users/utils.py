@@ -18,3 +18,11 @@ def generate_referral_unique_code(instance):
     if users.objects.filter(referral_code=code).exists():
         return generate_referral_unique_code(instance)
     return code
+
+
+def generate_random_code(size=2):
+    """
+        Generate a random code
+    """
+    chars = string.ascii_uppercase+string.digits
+    return ''.join(random.choice(chars) for _ in range(size))
