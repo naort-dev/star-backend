@@ -827,13 +827,15 @@ def watermark_videos(video_original, name, your_media_root):
                 verbose=False,
                 threads=4,
             )
+            return True
         else:
             print('File Not exist')
+            return False
     except Exception as e:
         print('Error in watermark_videos %s : start watermark creation in 10 Seconds' % str(e))
         time.sleep(10)
-        return generate_video_thumbnail.delay()
-    return True
+        generate_video_thumbnail.delay()
+        return False
 
 
 @app.task(name='combine_video_clip')
