@@ -421,7 +421,6 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
 
         try:
             video = StargramVideo.objects.filter(
-                stragramz_request__public_request=True,
                 stragramz_request__request_status=STATUS_TYPES.completed,
                 stragramz_request=request_id
             ).select_related('stragramz_request').prefetch_related(
