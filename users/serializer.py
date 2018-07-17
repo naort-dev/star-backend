@@ -734,3 +734,20 @@ class ValidateSocialSignupSerializer(serializers.Serializer):
 
     class Meta:
         fields = ('sign_up_source', 'social_id', 'email')
+
+
+class AWSSignedURLSerializer(serializers.Serializer):
+    key = serializers.ChoiceField(
+        required=True,
+        write_only=True,
+        choices=['profile_images', 'stargram_videos', 'authentication_videos']
+    )
+    extension = serializers.ChoiceField(
+        required=True,
+        write_only=True,
+        choices=['png', 'jpg', 'jpeg', 'mp4']
+    )
+    file_type = serializers.ChoiceField(choices=['image', 'video'], required=True, write_only=True)
+
+    class Meta:
+        fields = ('key', 'file_type', 'extension')

@@ -702,12 +702,26 @@ class GetAWSSignedUrl(APIView, ResponseViewMixin):
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def get(self, request):
-        extension = request.query_params.get('extension')
-        valid_extensions = ['png', 'jpg', 'jpeg']
+        serializer = AWSSignedURLSerializer(data=request.query_params)
+        if serializer.is_valid():
+            extension = serializer.validated_data.get('extension')
+            file_type = serializer.validated_data.get('file_type')
+            key = serializer.validated_data.get('key')
+            constants_value = {
+                'profile_images': PROFILE_IMAGES,
+                'stargram_videos': STARGRAM_VIDEOS,
+                'authentication_videos': AUTHENTICATION_VIDEOS
+            }
+            valid_extensions = {
+                'image': ['png', 'jpg', 'jpeg'],
+                'video': ['mp4'],
+            }
 
-        if extension and extension.lower() in valid_extensions:
-            file_name = 'images/profile/IMG_%s%s.%s' % (int(time.time()), generate_random_code(8), str(extension))
-            url = get_pre_signed_post_url(file_name, 60, 120, True)
-            return self.jp_response(s_code='HTTP_200_OK', data=url)
+            if extension and extension.lower() in valid_extensions[file_type]:
+                file_name = '%sFILE_%s%s.%s' % (constants_value[key], int(time.time()), generate_random_code(8), str(extension))
+                url = get_pre_signed_post_url(file_name, 60, 120, True)
+                return self.jp_response(s_code='HTTP_200_OK', data=url)
+            else:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', 'Invalid extension')
         else:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', 'Invalid extension')
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', serializer.errors)
