@@ -197,9 +197,16 @@ class ForgotPassword(APIView, ResponseViewMixin):
                 reset_password_link = REDIRECT_LINK
 
             try:
+                website_link = Config.objects.get(key='web_url').value
+            except Config.DoesNotExist:
+                website_link = BASE_URL
+
+            try:
                 base_url = Config.objects.get(key='base_url').value
             except Config.DoesNotExist:
                 base_url = BASE_URL
+
+            web_reset_url = "%s%s%s" % (website_link, 'restpassword/?reset_id=',str(user.reset_id))
 
             ctx = {
                 'base_url': base_url,
@@ -209,7 +216,8 @@ class ForgotPassword(APIView, ResponseViewMixin):
                     title="Reset password for %s" % user.get_short_name(),
                     desc="Reset password for %s" % user.get_short_name(),
                     image_url='%smedia/web-images/starsona_logo.png' % base_url,
-                    desktop_url=reset_password_link+str(user.reset_id)
+                    desktop_url=web_reset_url,
+                    canonical_url=reset_password_link+str(user.reset_id),
                 )
             }
 

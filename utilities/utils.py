@@ -388,7 +388,7 @@ def sent_email(to_email, subject, template, ctx):
         print(str(e))
 
 
-def generate_branch_io_url(mob_url='', title='', desc='', image_url='', desktop_url=''):
+def generate_branch_io_url(mob_url='', title='', desc='', image_url='', desktop_url='', canonical_url=''):
     """
         Generate url to track via branch io
 
@@ -397,6 +397,7 @@ def generate_branch_io_url(mob_url='', title='', desc='', image_url='', desktop_
         :param desc: Description of page for Social media sharing
         :param image_url: Image URL of the page for Social media sharing
         :param desktop_url: Desktop URL top navigate for desktop clients
+        :param canonical_url: Canonical is actual web url
         :return: URL
     """
     headers = {'Content-Type': 'application/json'}
@@ -406,7 +407,7 @@ def generate_branch_io_url(mob_url='', title='', desc='', image_url='', desktop_
         'data': {
             '$deeplink_path': mob_url,
             '$canonical_identifier': mob_url,
-            '$canonical_url': desktop_url,
+            '$canonical_url': canonical_url if canonical_url else desktop_url,
             '$ios_deeplink_path': mob_url,
             '$android_deeplink_path': mob_url,
             '$og_title': title,
