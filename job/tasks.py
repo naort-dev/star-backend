@@ -73,7 +73,7 @@ def generate_thumbnail():
                 try:
                     # Generate Thumbnail
                     thumb = Image.open(image_original)
-                    thumb.thumbnail(size, Image.ANTIALIAS)
+                    thumb.thumbnail(size, Image.LANCZOS)
                     thumb.save(thumbnail, quality=99, optimize=True)
                 except Exception as e:
                     print(str(e))
@@ -158,9 +158,9 @@ def generate_video_thumbnail():
                 try:
                     # Creating the image thumbnail from the video
                     clip = VideoFileClip(video_original)
-                    # if clip.rotation > 0:
-                    #     clip = clip.resize(clip.size[::-1])
-                    #     clip.rotation = 0
+                    if clip.rotation > 0:
+                        clip = clip.resize(clip.size[::-1])
+                        clip.rotation = 0
                     clip.save_frame(video_thumb, t=0.00)
                     width, height = clip.size
 
@@ -195,7 +195,7 @@ def generate_video_thumbnail():
 
                 # Generate Video thumbnail
                 im = Image.open(video_thumb)
-                im.thumbnail(video_thumb_size, Image.ANTIALIAS)
+                im.thumbnail(video_thumb_size, Image.LANCZOS)
 
                 # Rotate video thumbnail
                 print("Image has %d degree" % clip.rotation)
@@ -982,6 +982,5 @@ def update_video_width_and_height():
                     print('Deleted the Video %s', video_download)
             except Exception:
                 print('Download Failed...')
-
 
     print('Completed the video size fix')
