@@ -158,9 +158,9 @@ def generate_video_thumbnail():
                 try:
                     # Creating the image thumbnail from the video
                     clip = VideoFileClip(video_original)
-                    if clip.rotation > 0:
-                        clip = clip.resize(clip.size[::-1])
-                        clip.rotation = 0
+                    # if clip.rotation > 0:
+                    #     clip = clip.resize(clip.size[::-1])
+                    #     clip.rotation = 0
                     clip.save_frame(video_thumb, t=0.00)
                     width, height = clip.size
 
