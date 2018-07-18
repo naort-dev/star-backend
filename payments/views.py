@@ -155,6 +155,15 @@ class CreateChargeFan(APIView, ResponseViewMixin):
 
 
 def createcharge(customer_id, source_id, starsona_id, amount):
+
+    # Add card to stripe customer account
+    try:
+        cus_card = stripe.Customer.retrieve(customer_id, api_key=API_KEY)
+        cus_card.source = source_id
+        cus_card.save()
+    except Exception as e:
+        pass
+
     try:
         request_charge = stripe.Charge.create(
             amount=amount,
@@ -433,5 +442,32 @@ class StripeDashboard(APIView, ResponseViewMixin):
                 'stripe_details': stripe_details,
                 'card_details': card_details
             })
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
+
+
+class CardsList(APIView, ResponseViewMixin):
+    """
+        Get the card list added to a customer in stripe
+    """
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def get(self, request):
+        try:
+            customer = StargramzUser.objects.get(username=request.user)
+            try:
+                if customer.stripe_customer_id:
+                    account = stripe.Customer.retrieve(customer.stripe_customer_id, api_key=API_KEY)
+                    card_details = account.sources.data
+                    cards = {}
+                    for i, card in card_details:
+                        cards[i] = {'id': card.id, 'last4': card.last4}
+
+                    return self.jp_response('HTTP_200_OK', data={'cards': cards})
+                else:
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Not a stripe customer')
+            except Exception as e:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
