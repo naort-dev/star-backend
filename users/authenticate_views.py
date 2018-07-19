@@ -206,7 +206,7 @@ class ForgotPassword(APIView, ResponseViewMixin):
             except Config.DoesNotExist:
                 base_url = BASE_URL
 
-            web_reset_url = "%s%s%s" % (website_link, 'restpassword/?reset_id=',str(user.reset_id))
+            web_reset_url = "%s%s%s" % (website_link, 'resetpassword?reset_id=',str(user.reset_id))
 
             ctx = {
                 'base_url': base_url,

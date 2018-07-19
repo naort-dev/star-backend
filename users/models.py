@@ -247,6 +247,7 @@ class Celebrity(models.Model):
     check_comments = models.CharField('Check Payment Comments', max_length=300, blank=True, null=True)
     check_payments = models.BooleanField('Check Payment', default=False)
     has_fan_account = models.BooleanField('User has fan Account', default=False)
+    has_requested_referral = models.BooleanField('Referral requested', default=False)
 
     def __str__(self):
         return 'Celebrity Details'
