@@ -514,6 +514,14 @@ class CelebrityProfessionSerializer(serializers.ModelSerializer):
         return False
 
 
+class ProfessionTitleSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(read_only=True, source="profession.title")
+
+    class Meta:
+        model = CelebrityProfession
+        fields = ['title']
+
+
 class ProfileImageListSerializer(serializers.Serializer):
     user_id = serializers.IntegerField(required=False)
     photo = serializers.CharField(required=True)
@@ -672,10 +680,12 @@ class CelebrityAbuseSerializer(serializers.ModelSerializer):
 
 
 class SuggestionSerializer(serializers.ModelSerializer):
+    celebrity_profession = ProfessionTitleSerializer(read_only=True, many=True)
+    avatar_photo = ProfilePictureSerializer(read_only=True)
 
     class Meta:
         model = StargramzUser
-        fields = ('id', 'first_name', 'last_name', 'nick_name', 'get_short_name')
+        fields = ('id', 'first_name', 'last_name', 'nick_name', 'get_short_name', 'celebrity_profession', 'avatar_photo')
 
 
 class DeviceTokenSerializer(serializers.ModelSerializer):
