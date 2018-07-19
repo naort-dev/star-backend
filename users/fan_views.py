@@ -337,7 +337,10 @@ class CelebritySuggestionList(APIView, ResponseViewMixin):
             max_rate = 100000
 
         query_set = StargramzUser.objects.filter(celebrity_user__admin_approval=True,
-                                                 celebrity_user__rate__range=(min_rate, max_rate))
+                                                 celebrity_user__rate__range=(min_rate, max_rate)
+                                                 )\
+            .select_related('avatar_photo')\
+            .prefetch_related('images', 'celebrity_profession__profession')
         if available:
             query_set.filter(celebrity_user__availability=True)
 
