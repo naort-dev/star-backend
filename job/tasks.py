@@ -199,7 +199,7 @@ def generate_video_thumbnail():
 
                 # Rotate video thumbnail
                 print("Image has %d degree" % clip.rotation)
-                if clip.rotation > 0:
+                if clip.rotation in [90, 270]:
                     print("Rotating the image by %d degrees" % clip.rotation)
                     im = im.rotate(-clip.rotation, expand=True)
                 im.save(video_thumb, quality=99, optimize=True)
