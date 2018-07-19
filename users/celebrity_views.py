@@ -115,34 +115,10 @@ class CelebrityManagement(APIView, ResponseViewMixin):
             data = CelebrityProfileSerializer(
                 celebrity, fields=['rating', 'weekly_limits', 'featured', 'rating', 'remaining_limit', 'profession',
                                    'profession_name', 'charity', 'description', 'follow_count', 'rate',
-                                   'availability', 'stripe_user_id', 'pending_requests_count', 'check_payments']).data
+                                   'availability', 'stripe_user_id', 'pending_requests_count', 'check_payments',
+                                   'has_requested_referral']).data
             celebrity_professions = CelebrityProfession.objects.filter(user_id=pk).select_related('profession')
-            videos = StargramVideo.objects.filter(
-                stragramz_request__celebrity__id=pk,
-                stragramz_request__request_status=6,
-                stragramz_request__public_request=True
-            ).order_by('-stragramz_request__id')\
-            .select_related('stragramz_request')\
-            .prefetch_related('stragramz_request__celebrity', 'stragramz_request__occasion')[:20]
-            related_starsona_videos = StargramzVideoSerializer(
-                videos, many=True, fields=['s3_video_url', 's3_thumbnail_url','video_url',
-                                           'video_status', 'first_name', 'last_name', 'occasion',
-                                           'booking_id', 'booking_type', 'width', 'height']).data
-            booking_videos = dict()
-            videos = []
-            for video in related_starsona_videos:
-                if video['booking_id'] in booking_videos:
-                    booking_videos[video['booking_id']].append(video)
-                else:
-                    booking_videos[video['booking_id']] = [video]
-
-            for key, values in sorted(booking_videos.items()):
-                videos.append({'videos': values})
-            videos.reverse()
-            related_videos = videos[:10]
-
-            # Need to remove the related video as related videos are loaded from Featured videos API
-            data['related_videos'] = related_videos
+            data['related_videos'] = []
             celebrity_data = CelebrityProfessionSerializer(celebrity_professions, many=True).data
             data['profession_details'] = celebrity_data
             return dict(status='HTTP_200_OK', data={'celebrity': data}, content_type='application/json')
@@ -197,6 +173,11 @@ class ReferralRequest(APIView, ResponseViewMixin):
             html_content = html_template.render(ctx)
             mail_status = SendMail('Starsona Referral Activation', html_content, sender_email=config_email, to=config_email)
             if mail_status:
+                try:
+                    Celebrity.objects.filter(user=user).update(has_requested_referral=True)
+                except Exception as e:
+                    pass
+
                 return self.jp_response(s_code='HTTP_200_OK', data={'message': 'Successfully notified'})
             else:
                 return self.jp_error_response('HTTP_502_BAD_GATEWAY', 'UNKNOWN_QUERY',
