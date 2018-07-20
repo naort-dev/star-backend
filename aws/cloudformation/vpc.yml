@@ -41,6 +41,9 @@ Mappings:
       CIDR: '10.0.2.0/24'
     PrivateTwo:
       CIDR: '10.0.3.0/24'
+  Region2ELBAccountId:
+    us-east-1:
+      AccountId: '127311923021'   
 Resources:
   # VPC in which containers will be networked.
   # It has two public subnets, and two private subnets.
@@ -234,17 +237,39 @@ Resources:
             IpProtocol: -1
   PublicLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    DependsOn: LogsBucketPolicy
     Properties:
       Scheme: internet-facing
       LoadBalancerAttributes:
       - Key: idle_timeout.timeout_seconds
         Value: '30'
+      - Key: access_logs.s3.enabled
+        Value: true
+      - Key: access_logs.s3.bucket
+        Value: !Ref 'LogsBucket'
+      - Key: access_logs.s3.prefix
+        Value: Logs
       Subnets:
         # The load balancer is placed into the public subnets, so that traffic
         # from the internet can reach the load balancer directly via the internet gateway
         - !Ref PublicSubnetOne
         - !Ref PublicSubnetTwo
       SecurityGroups: [!Ref 'PublicLoadBalancerSG']
+  LogsBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+  LogsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref 'LogsBucket'
+      PolicyDocument:
+        Statement:
+        - Effect: Allow
+          Resource: !Join ['', 'arn:aws:s3:::', !Ref 'LogsBucket', /, Logs, /AWSLogs/, !Ref 'AWS::AccountId', /*]]
+          Principal:
+            AWS: !FindInMap [Region2ELBAccountId, !Ref 'AWS::Region', AccountId]
+          Action: ['s3:PutObject']
+          
   # A dummy target group is used to setup the ALB to just drop traffic
   # initially, before any real service target groups have been added.
   DummyTargetGroupPublic:
