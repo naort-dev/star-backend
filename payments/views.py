@@ -159,7 +159,7 @@ def createcharge(customer_id, source_id, starsona_id, amount):
     # Add card to stripe customer account
     try:
         cus_card = stripe.Customer.retrieve(customer_id, api_key=API_KEY)
-        cus_card.source = source_id
+        cus_card.sources.create(source={source_id})
         cus_card.save()
     except Exception as e:
         pass
