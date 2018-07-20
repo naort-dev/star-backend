@@ -265,7 +265,7 @@ Resources:
       PolicyDocument:
         Statement:
         - Effect: Allow
-          Resource: !Join ['', 'arn:aws:s3:::', !Ref 'LogsBucket', /, Logs, /AWSLogs/, !Ref 'AWS::AccountId', /*]]
+          Resource: !Join ['', ['arn:aws:s3:::', !Ref 'LogsBucket', '/', 'Logs', '/AWSLogs/', !Ref 'AWS::AccountId', '/*']]
           Principal:
             AWS: !FindInMap [Region2ELBAccountId, !Ref 'AWS::Region', AccountId]
           Action: ['s3:PutObject']
