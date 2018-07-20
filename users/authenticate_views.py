@@ -183,7 +183,7 @@ class ForgotPassword(APIView, ResponseViewMixin):
                 user.save()
             except StargramzUser.DoesNotExist:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_USER',
-                                              'No Stargramz account was found with given email address')
+                                              'Email is not registered with Starsona.')
             subject = 'Starsona Password Reset'
 
             try:
