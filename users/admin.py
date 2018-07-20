@@ -70,8 +70,9 @@ class NotificationSettingInline(admin.StackedInline):
 
 class CelebrityInline(admin.StackedInline):
     model = Celebrity
-    fields = ('rate', 'availability', 'admin_approval', 'rating', 'weekly_limits', 'remaining_limit', 'follow_count', 'stripe_user_id',
-              'featured', 'description', 'charity', 'has_fan_account', 'check_payments', 'check_comments')
+    fields = ('rate', 'availability', 'admin_approval', 'rating', 'weekly_limits', 'remaining_limit', 'follow_count',
+              'stripe_user_id', 'has_requested_referral', 'featured', 'description', 'charity', 'has_fan_account',
+              'check_payments', 'check_comments')
     readonly_fields = ('rating', 'follow_count', 'stripe_user_id', 'remaining_limit')
     max_num = 1
     verbose_name_plural = 'Celebrity Details'
@@ -223,8 +224,7 @@ class CelebrityUsersAdmin(UserAdmin):
         (None, {'fields': ('email', 'username', 'password')}),
         (_('Personal info'), {'fields': ('first_name', 'last_name', 'nick_name', 'phone', 'date_of_birth',
                                          'show_nick_name', 'order')}),
-        (_('Referral Details'), {'fields': ('referral_active', 'referral_code', 'referral_campaign',
-                                            'has_requested_referral')}),
+        (_('Referral Details'), {'fields': ('referral_active', 'referral_code', 'referral_campaign')}),
         (_('Important dates'), {'fields': ('last_login', 'created_date', 'modified_date',)}),
         (_('Payments'), {'fields': ('stripe_customer_id',)}),
         (_('Images'), {'fields': ('profile_images',)}),
