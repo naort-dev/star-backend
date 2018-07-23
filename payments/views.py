@@ -462,7 +462,11 @@ class CardsList(APIView, ResponseViewMixin):
                     card_details = account.sources.data
                     cards = {}
                     for i, card in enumerate(card_details):
-                        cards[i] = {'id': card['id'], 'last4': card['card']['last4']}
+                        cards[i] = {
+                            'id': card['id'],
+                            'last4': card['card']['last4'],
+                            'brand': card['card']['brand']
+                        }
                     return self.jp_response('HTTP_200_OK', data={'cards': cards})
                 else:
                     return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Not a stripe customer')
