@@ -761,3 +761,15 @@ class AWSSignedURLSerializer(serializers.Serializer):
 
     class Meta:
         fields = ('key', 'file_type', 'extension')
+
+
+class AWSPreSignedURLSerializer(serializers.Serializer):
+    key = serializers.ChoiceField(
+        required=True,
+        write_only=True,
+        choices=['profile_images', 'stargram_videos', 'authentication_videos']
+    )
+    file_name = serializers.CharField(required=True, write_only=True)
+
+    class Meta:
+        fields = ('key', 'file_name')
