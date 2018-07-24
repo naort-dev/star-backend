@@ -1,13 +1,14 @@
 {% include "emails/header.html" %}
-<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Hi {{ fan_name }},</p>
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Hi,</p>
 
 <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">
-{{ celebrity_name }} was unable to fulfill your booking request.  You were not charged, and we suggest trying to book {{ celebrity_name }} again at a later date.
-
-We're so sorry, but {{ celebrity_name }} was unable to fulfill your booking request. You were not charged, and we suggest trying to book {{ celebrity_name }} again at a later date.
+We're so sorry, but was unable to fulfill your booking request due to unforeseen circumstances. You, of course, were not charged for this request. You're welcome to make another request on the chance that will be available to fulfill your request.
 </p>
     <p style="text-align:center">
     &nbsp;<a href="{{ app_url }}" class="button-app">Make new request</a>
 </p>
-<p><br/>We hope to see you on Starsona again soon!</p>
+<p><br/>We hope to see you on Starsona again soon!<br/>
+Thanks,<br/>
+The Starsona Team
+</p>
 {% include "emails/footer.html" %}
