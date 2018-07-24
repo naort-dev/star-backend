@@ -156,6 +156,13 @@ def generate_video_thumbnail():
                 video_thumb = your_media_root + video_thumbnail_name
 
                 try:
+                    VideoFileClip(video_original)
+                except Exception:
+                    new_file = your_media_root + 'DUP_%s.mp4' % name
+                    fix_corrupted_video(video_original, new_file)
+                    video_original = new_file
+
+                try:
                     # Creating the image thumbnail from the video
                     clip = VideoFileClip(video_original)
                     if clip.rotation in [90, 270]:
@@ -871,6 +878,14 @@ def combine_video_clips(request_id):
             video_1_name = "V1_%s.mp4" % str(int(time.time()))
             video_2_name = "V2_%s.mp4" % str(int(time.time()))
 
+            try:
+                VideoFileClip(files[0])
+            except Exception:
+                new_file = your_media_root + 'DUP_%s.mp4' % str(int(time.time()))
+                fix_corrupted_video(files[0], new_file)
+                files[0] = new_file
+
+
             clip1 = VideoFileClip(files[0])
             #clip1 = video_rotation(clip1)
             if clip1.rotation == 90 or clip1.rotation == 270:
@@ -880,6 +895,13 @@ def combine_video_clips(request_id):
             clip1.write_videofile(your_media_root + video_1_name, audio_codec='aac',
                                        progress_bar=False,
                                        verbose=False)
+
+            try:
+                VideoFileClip(files[1])
+            except Exception:
+                new_file = your_media_root + 'DUP_%s.mp4' % str(int(time.time()))
+                fix_corrupted_video(files[1], new_file)
+                files[1] = new_file
 
             clip2 = VideoFileClip(files[1])
             #clip2 = video_rotation(clip2)
@@ -984,3 +1006,15 @@ def update_video_width_and_height():
                 print('Download Failed...')
 
     print('Completed the video size fix')
+
+
+def fix_corrupted_video(video_file, new_video_file):
+    """
+    Fixing issue with the corrupted video
+    :param video_file: Video original path
+    :param new_video_file: New video path
+    :return: 
+    """
+    sender_email = Config.objects.get(key='sender_email').value
+    SendMail('Fixing Corrupted video', 'Fixing Corrupted video', sender_email=sender_email, to='akhilns@qburst.com')
+    return os.system("ffmpeg -i %s -strict -2 -vcodec libx264 -acodec aac %s" % (video_file, new_video_file))
