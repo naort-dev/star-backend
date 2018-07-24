@@ -118,6 +118,7 @@ class StargramzUser(AbstractBaseUser, PermissionsMixin):
     referral_active = models.BooleanField('Activate referral for this user', default=False)
     referral_code = models.CharField('Referral Code', max_length=25, blank=True, null=True)
     referral_campaign = models.ForeignKey('Campaign', blank=True, null=True, related_name='campaign')
+    has_requested_referral = models.BooleanField('Referral requested', default=False)
 
     objects = StargramzUserManager()
 
@@ -247,7 +248,6 @@ class Celebrity(models.Model):
     check_comments = models.CharField('Check Payment Comments', max_length=300, blank=True, null=True)
     check_payments = models.BooleanField('Check Payment', default=False)
     has_fan_account = models.BooleanField('User has fan Account', default=False)
-    has_requested_referral = models.BooleanField('Referral requested', default=False)
 
     def __str__(self):
         return 'Celebrity Details'

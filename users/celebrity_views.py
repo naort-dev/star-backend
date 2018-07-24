@@ -115,8 +115,8 @@ class CelebrityManagement(APIView, ResponseViewMixin):
             data = CelebrityProfileSerializer(
                 celebrity, fields=['rating', 'weekly_limits', 'featured', 'rating', 'remaining_limit', 'profession',
                                    'profession_name', 'charity', 'description', 'follow_count', 'rate',
-                                   'availability', 'stripe_user_id', 'pending_requests_count', 'check_payments',
-                                   'has_requested_referral']).data
+                                   'availability', 'stripe_user_id', 'pending_requests_count', 'check_payments'
+                                   ]).data
             celebrity_professions = CelebrityProfession.objects.filter(user_id=pk).select_related('profession')
             data['related_videos'] = []
             celebrity_data = CelebrityProfessionSerializer(celebrity_professions, many=True).data
@@ -174,7 +174,8 @@ class ReferralRequest(APIView, ResponseViewMixin):
             mail_status = SendMail('Starsona Referral Activation', html_content, sender_email=config_email, to=config_email)
             if mail_status:
                 try:
-                    Celebrity.objects.filter(user=user).update(has_requested_referral=True)
+                    user.has_requested_referral = True
+                    user.save()
                 except Exception as e:
                     pass
 
