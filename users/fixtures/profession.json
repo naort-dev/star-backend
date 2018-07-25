@@ -73,7 +73,7 @@
     "model": "users.profession",
     "pk": 8,
     "fields": {
-      "title": "Radio podcasts",
+      "title": "Radio / Podcast",
       "file": "",
       "parent": null,
       "order": 4
@@ -273,7 +273,7 @@
     "model": "users.profession",
     "pk": 30,
     "fields": {
-      "title": "Ninja & Spartan",
+      "title": "Ninja / Spartan / Gladiator",
       "file": null,
       "parent": 1
     }
@@ -356,7 +356,7 @@
    "fields": {
      "title": "Radio Personality",
      "file": null,
-     "parent": 2
+     "parent": 8
     }
   },
   {
