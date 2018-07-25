@@ -160,6 +160,11 @@ def generate_video_thumbnail():
                 except Exception:
                     new_file = your_media_root + 'DUP_%s.mp4' % name
                     fix_corrupted_video(video_original, new_file)
+                    if not request_video.visibility:
+                        try:
+                            upload_image_s3(new_file, s3folder + request_video.video)
+                        except Exception:
+                            pass
                     video_original = new_file
 
                 try:
