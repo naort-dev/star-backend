@@ -838,6 +838,7 @@ def watermark_videos(video_original, name, your_media_root):
                 progress_bar=False,
                 verbose=False,
                 threads=4,
+                ffmpeg_params=['-movflags', '+faststart']
             )
             return True
         else:
@@ -897,9 +898,14 @@ def combine_video_clips(request_id):
                 clip1 = clip1.resize(clip1.size[::-1])
                 clip1.rotation = 0
 
-            clip1.write_videofile(your_media_root + video_1_name, audio_codec='aac',
-                                       progress_bar=False,
-                                       verbose=False)
+            clip1.write_videofile(
+                your_media_root + video_1_name,
+                audio_codec='aac',
+                progress_bar=False,
+                verbose=False,
+                threads=2,
+                ffmpeg_params=['-movflags', '+faststart']
+            )
 
             try:
                 VideoFileClip(files[1])
@@ -915,10 +921,12 @@ def combine_video_clips(request_id):
                 clip2.rotation = 0
 
             clip2.write_videofile(
-                your_media_root+video_2_name, audio_codec='aac',
+                your_media_root+video_2_name,
+                audio_codec='aac',
                 progress_bar=False,
                 verbose=False,
-                threads=2
+                threads=2,
+                ffmpeg_params = ['-movflags', '+faststart']
             )
 
             width, height = clip1.size
