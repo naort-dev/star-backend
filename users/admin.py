@@ -71,9 +71,9 @@ class NotificationSettingInline(admin.StackedInline):
 class CelebrityInline(admin.StackedInline):
     model = Celebrity
     fields = ('rate', 'availability', 'admin_approval', 'rating', 'weekly_limits', 'remaining_limit', 'follow_count',
-              'stripe_user_id', 'featured', 'description', 'charity', 'has_fan_account',
+              'featured', 'description', 'charity', 'has_fan_account',
               'check_payments', 'check_comments')
-    readonly_fields = ('rating', 'follow_count', 'stripe_user_id', 'remaining_limit')
+    readonly_fields = ('rating', 'follow_count', 'remaining_limit')
     max_num = 1
     verbose_name_plural = 'Celebrity Details'
     can_delete = False

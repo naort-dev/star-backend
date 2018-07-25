@@ -553,28 +553,28 @@ def send_payout():
 
             for payout in pending_payouts:
                 try:
-                    celebrity = Celebrity.objects.get(user_id=payout.celebrity_id)
+                    user = StargramzUser.objects.get(id=payout.celebrity_id)
                 except Exception as e:
                     print('Celebrity users are only paid')
                     update_payout(payout, 'users is not a celebrity')
                     break
 
-                if celebrity.stripe_user_id:
+                if user.stripe_user_id:
                     try:
-                        account = stripe.Account.retrieve(celebrity.stripe_user_id)
+                        account = stripe.Account.retrieve(user.stripe_user_id)
                         account.payout_schedule['interval'] = 'daily'
                         account.save()
                     except stripe.error.StripeError as e:
                         print(str(e))
                         update_payout(payout, str(e))
-                        user_failed = valid_dict(user_failed, celebrity.user, payout.fund_payed_out, str(e))
+                        user_failed = valid_dict(user_failed, user, payout.fund_payed_out, str(e))
                         break
 
                     try:
                         transfer = stripe.Transfer.create(
                             amount=int(float(payout.fund_payed_out)*100),
                             currency="usd",
-                            destination=celebrity.stripe_user_id,
+                            destination=user.stripe_user_id,
                             description=""
                         )
 
@@ -582,10 +582,10 @@ def send_payout():
                         payout.stripe_transaction_id = transfer.id
                         payout.stripe_response = json.dumps(transfer)
                         payout.save()
-                        user_paid = valid_dict(user_paid, celebrity.user, payout.fund_payed_out, 'Paid out')
+                        user_paid = valid_dict(user_paid, user, payout.fund_payed_out, 'Paid out')
                     except stripe.error.StripeError as e:
                         print(str(e))
-                        user_failed = valid_dict(user_failed, celebrity.user, payout.fund_payed_out, str(e))
+                        user_failed = valid_dict(user_failed, user, payout.fund_payed_out, str(e))
                         update_payout(payout, str(e))
                         break
                 else:
@@ -593,7 +593,7 @@ def send_payout():
                     update_payout(payout, 'Celebrity users doesnt have a stripe account')
                     user_not_paid = valid_dict(
                         user_not_paid,
-                        celebrity.user,
+                        user,
                         payout.fund_payed_out,
                         'Celebrity users doesnt have a stripe account'
                     )

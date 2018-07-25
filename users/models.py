@@ -119,6 +119,7 @@ class StargramzUser(AbstractBaseUser, PermissionsMixin):
     referral_code = models.CharField('Referral Code', max_length=25, blank=True, null=True)
     referral_campaign = models.ForeignKey('Campaign', blank=True, null=True, related_name='campaign')
     has_requested_referral = models.BooleanField('Referral requested', default=False)
+    stripe_user_id = models.CharField('Stripe User ID', max_length=150, blank=True, null=True)
 
     objects = StargramzUserManager()
 
@@ -244,6 +245,7 @@ class Celebrity(models.Model):
     remaining_limit = models.IntegerField('remain limit', blank=True, default=-1)
     created_date = models.DateTimeField('Created date', auto_now_add=True)
     view_count = models.IntegerField('View Count', default=0, blank=True)
+    # stripe_user_id need to be removed after the migrations
     stripe_user_id = models.CharField('Stripe User ID', max_length=150, blank=True, null=True)
     check_comments = models.CharField('Check Payment Comments', max_length=300, blank=True, null=True)
     check_payments = models.BooleanField('Check Payment', default=False)

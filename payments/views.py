@@ -334,9 +334,9 @@ def stripe_connect(request):
                 account.save()
 
                 try:
-                    celebrity = Celebrity.objects.get(user=stripe_account.celebrity)
-                    celebrity.stripe_user_id = response_data['stripe_user_id']
-                    celebrity.save()
+                    user = StargramzUser.objects.get(id=stripe_account.celebrity_id)
+                    user.stripe_user_id = response_data['stripe_user_id']
+                    user.save()
                 except Celebrity.DoesNotExist:
                     pass
 
@@ -428,7 +428,7 @@ class StripeDashboard(APIView, ResponseViewMixin):
 
     def get(self, request):
         try:
-            customer = Celebrity.objects.get(user__username=request.user)
+            customer = StargramzUser.objects.get(username=request.user)
             if customer.stripe_user_id:
                 account = stripe.Account.retrieve(customer.stripe_user_id)
                 acc_details = account.external_accounts.data[0]

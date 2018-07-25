@@ -88,7 +88,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ('first_name', 'last_name', 'nick_name', 'id', 'email', 'password', 'date_of_birth', 'featured_photo',
                   'authentication_token', 'status', 'sign_up_source', 'role_details', 'images', 'profile_photo',
                   'role', 'avatar_photo', 'show_nick_name', 'completed_fan_unseen_count', 'referral_code', 'promo_code',
-                  'user_id', 'has_requested_referral')
+                  'user_id', 'has_requested_referral', 'stripe_user_id')
         depth = 1
 
     def validate(self, data):
