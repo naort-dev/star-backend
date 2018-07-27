@@ -281,11 +281,31 @@
           </div>
           <!-- /.info-box -->
         </div>
+
+        <div class="col-md-12 col-sm-12 col-xs-12 hide">
+          <div class="info-box">
+            <span class="info-box-icon bg-green"><i class="fa fa-list"></i></span>
+
+            <div class="info-box-content ">
+              <button id="runprocess" process="-" style="margin-top:25px;">Generate Payouts</button>
+            </div>
+            <!-- /.info-box-content -->
+          </div>
+          <!-- /.info-box -->
+        </div>
     </div>
   </div>
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 <script>
 $(document).ready(function(){
+
+
+      $('#runprocess').click(function(){
+      func = $(this).attr('process');
+      $.ajax({url: "/api/v1/ajax/tasks/?process="+func, success: function(data){
+
+        }});
+      });
 
       function Dashboard(){
 

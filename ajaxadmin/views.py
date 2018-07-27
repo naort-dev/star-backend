@@ -17,7 +17,7 @@ from django.db import connection
 from datetime import datetime
 import urllib.request
 from PIL import Image
-from job.tasks import generate_thumbnail
+from job.tasks import *
 
 
 class StargramzView(APIView, ResponseViewMixin):
@@ -333,3 +333,21 @@ def avatar_image(request):
         return HttpResponse('Avatar image has been updated')
     else:
         return HttpResponse('Avatar image not updated.')
+
+
+def run_process(request):
+
+    if not request.user.is_superuser:
+        return HttpResponse('Not an admin user.')
+
+    if request.GET['process']:
+        process = request.GET['process']
+
+        if process == 'create_payout_records':
+            create_payout_records.delay()
+        if process == 'generate_video_thumbnail':
+            generate_video_thumbnail.delay()
+        if process == 'generate_thumbnail':
+            generate_thumbnail.delay()
+
+    return HttpResponse("Welcome")
