@@ -181,7 +181,9 @@ class FanUsersAdmin(UserAdmin):
         (None, {'fields': ('email', 'username', 'password')}),
         (_('Personal info'), {'fields': ('first_name', 'last_name', 'phone', 'date_of_birth')}),
         (_('Important dates'), {'fields': ('last_login', 'created_date', 'modified_date',)}),
-        (_('Payments'), {'fields': ('stripe_customer_id',)}),
+        (_('Payments'), {'fields': ('stripe_customer_id', 'stripe_user_id', 'check_payments')}),
+        (_('Referral Details'), {'fields': ('referral_active', 'referral_code', 'referral_campaign',
+                                            'has_requested_referral')}),
         (_('Images'), {'fields': ('profile_images',)})
     )
     search_fields = ('first_name', 'last_name', 'email',)
@@ -192,7 +194,7 @@ class FanUsersAdmin(UserAdmin):
         }),
     )
     ordering = ('email',)
-    readonly_fields = ('created_date', 'modified_date', 'profile_images', 'stripe_customer_id')
+    readonly_fields = ('created_date', 'modified_date', 'profile_images', 'stripe_customer_id', 'stripe_user_id')
     list_per_page = 10
     inlines = [RoleInline, NotificationSettingInline]
     ordering = ['-id', ]

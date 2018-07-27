@@ -83,6 +83,7 @@ class CelebrityManagement(APIView, ResponseViewMixin):
                                message='Invalid user details')
             return return_data
         fields = []
+        # Remove 'check_payments' after next app release
         field_list = ['profession', 'rate', 'weekly_limits', 'availability', 'description', 'charity', 'check_payments']
         for list_item in field_list:
             if list_item in request:
@@ -113,6 +114,7 @@ class CelebrityManagement(APIView, ResponseViewMixin):
             return dict(status='HTTP_400_BAD_REQUEST', e_code='INVALID_USER', message='Invalid user details')
         if celebrity:
             data = CelebrityProfileSerializer(
+                # Remove 'check_payments' from celebrity after next app release
                 celebrity, fields=['rating', 'weekly_limits', 'featured', 'rating', 'remaining_limit', 'profession',
                                    'profession_name', 'charity', 'description', 'follow_count', 'rate',
                                    'availability', 'stripe_user_id', 'pending_requests_count', 'check_payments'

@@ -88,7 +88,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ('first_name', 'last_name', 'nick_name', 'id', 'email', 'password', 'date_of_birth', 'featured_photo',
                   'authentication_token', 'status', 'sign_up_source', 'role_details', 'images', 'profile_photo',
                   'role', 'avatar_photo', 'show_nick_name', 'completed_fan_unseen_count', 'referral_code', 'promo_code',
-                  'user_id', 'has_requested_referral', 'stripe_user_id')
+                  'user_id', 'has_requested_referral', 'stripe_user_id', 'check_payments')
         depth = 1
 
     def validate(self, data):
@@ -488,7 +488,7 @@ class CelebrityProfileSerializer(CustomModelSerializer):
             CelebrityProfession.objects.filter(user=instance.user_id).delete()
             for profession in professions:
                 CelebrityProfession.objects.create(user_id=instance.user_id, profession_id=profession)
-        field_list = ['rate', 'weekly_limits', 'availability', 'description', 'charity', 'check_payments']
+        field_list = ['rate', 'weekly_limits', 'availability', 'description', 'charity']
         for list_item in field_list:
             if list_item in validated_data:
                 setattr(instance, list_item, validated_data.get(list_item))
@@ -562,7 +562,8 @@ class UsersProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StargramzUser
-        fields = ('first_name', 'last_name', 'date_of_birth', 'nick_name', 'profile_photo', 'show_nick_name')
+        fields = ('first_name', 'last_name', 'date_of_birth', 'nick_name', 'profile_photo', 'show_nick_name',
+                  'check_payments')
 
     def validate(self, data):
         errors = dict()
@@ -576,7 +577,8 @@ class UsersProfileSerializer(serializers.ModelSerializer):
         return data
 
     def update(self, instance, validated_data):
-        field_list = ['first_name', 'last_name', 'date_of_birth', 'nick_name', 'profile_photo', 'show_nick_name']
+        field_list = ['first_name', 'last_name', 'date_of_birth', 'nick_name', 'profile_photo', 'show_nick_name',
+                      'check_payments']
         for list_item in field_list:
             if list_item in validated_data:
                 setattr(instance, list_item, validated_data.get(list_item))

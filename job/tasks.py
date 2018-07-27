@@ -398,7 +398,7 @@ def create_payout_records():
                     'stripe_processing_fees': 0,
                     'starsona_company_charges': 0.00 if referee_discount == 100 else float(record.amount)*(25.0/100.0),
                     'fund_payed_out': float(record.amount)*(referee_discount/100.0),
-                    'status': PAYOUT_STATUS.check_pending if user.celebrity_user.check_payments else PAYOUT_STATUS.pending
+                    'status': PAYOUT_STATUS.check_pending if user.check_payments else PAYOUT_STATUS.pending
                 }
                 PaymentPayout.objects.update_or_create(
                     transaction_id=record.id,
@@ -491,7 +491,7 @@ def create_referral_payouts(record):
                     fund_payed_out=float(referral_amount),
                     referral_payout=True,
                     comments="Referral amount from %s" % record.celebrity.get_short_name(),
-                    status=PAYOUT_STATUS.check_pending if referral_user.celebrity_user.check_payments else PAYOUT_STATUS.pending
+                    status=PAYOUT_STATUS.check_pending if referral_user.check_payments else PAYOUT_STATUS.pending
                 )
 
     return True
