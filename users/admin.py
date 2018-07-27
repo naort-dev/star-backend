@@ -243,7 +243,7 @@ class CelebrityUsersAdmin(UserAdmin):
     )
     ordering = ('email',)
     readonly_fields = ('created_date', 'modified_date', 'profile_images', 'profile_video',
-                       'stripe_customer_id', 'featured_image')
+                       'stripe_customer_id', 'featured_image', 'stripe_user_id')
     list_per_page = 10
     inlines = [RoleInline, CelebrityInline, ProfessionInline, NotificationSettingInline, PayoutsTabular,
                RatingInline, ReferralTabular]
