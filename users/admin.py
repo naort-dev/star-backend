@@ -229,7 +229,7 @@ class CelebrityUsersAdmin(UserAdmin):
         (_('Referral Details'), {'fields': ('referral_active', 'referral_code', 'referral_campaign',
                                             'has_requested_referral')}),
         (_('Important dates'), {'fields': ('last_login', 'created_date', 'modified_date',)}),
-        (_('Payments'), {'fields': ('stripe_customer_id',)}),
+        (_('Payments'), {'fields': ('stripe_customer_id', 'stripe_user_id', 'check_payments')}),
         (_('Images'), {'fields': ('profile_images',)}),
         (_('Featured Image'), {'fields': ('featured_image',)}),
         (_('Video'), {'fields': ('profile_video',)})

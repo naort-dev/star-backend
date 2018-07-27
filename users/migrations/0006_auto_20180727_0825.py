@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
-from django.core.mail import send_mail
+
 
 def migrate_stripe_user_id(apps, schema_editor):
 
@@ -19,14 +19,7 @@ def migrate_stripe_user_id(apps, schema_editor):
                     customer.check_payments = True
                 customer.save()
             except Exception as e:
-                send_mail(
-                    'Migrations',
-                    str(e),
-                    "info@starsona.com",
-                    ['akhilns@qburst.com'],
-                    fail_silently=False,
-                    html_message=str(e)
-                )
+                print(str(e))
 
 
 class Migration(migrations.Migration):
