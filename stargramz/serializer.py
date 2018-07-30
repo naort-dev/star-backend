@@ -107,11 +107,13 @@ class StargramzVideoSerializer(CustomModelSerializer):
                 question, answer = StargramVideo.objects.filter(
                    stragramz_request_id=obj.stragramz_request_id,
                    status__in=[4, 5]
-                ).values_list('video', 'height', 'width').order_by('status')
+                ).values_list('video', 'height', 'width', 'thumbnail').order_by('status')
                 config = STARGRAM_VIDEOS
                 return {
                     'question': get_pre_signed_get_url(question[0], config),
+                    'question_thumb': get_pre_signed_get_url(question[3], config),
                     'answer': get_pre_signed_get_url(answer[0], config),
+                    'answer_thumb': get_pre_signed_get_url(answer[3], config),
                     'question_width': question[2],
                     'question_height': question[1],
                     'answer_width': answer[2],
