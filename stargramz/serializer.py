@@ -271,12 +271,12 @@ class StargramzRetrieveSerializer(StargramzSerializer):
 
     def get_from_audio_file(self, obj):
         if obj.from_audio_file:
-            return "%smedia/audios/%s" % (BASE_URL, obj.from_audio_file)
+            return get_pre_signed_get_url(obj.from_audio_file, '')
         return None
 
     def get_to_audio_file(self, obj):
         if obj.to_audio_file:
-            return "%smedia/audios/%s" % (BASE_URL, obj.to_audio_file)
+            return get_pre_signed_get_url(obj.to_audio_file, '')
         return None
 
 

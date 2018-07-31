@@ -17,7 +17,7 @@ from .models import Stargramrequest, StargramVideo, OccasionRelationship, Occasi
 from rest_framework.viewsets import ViewSet, GenericViewSet
 from utilities.pagination import CustomOffsetPagination
 import datetime
-from utilities.utils import datetime_range, get_pre_signed_get_url, check_user_role
+from utilities.utils import datetime_range, get_pre_signed_get_url, check_user_role, upload_image_s3
 from utilities.permissions import CustomPermission
 from job.tasks import delete_unwanted_files
 from rest_framework.decorators import detail_route
@@ -112,13 +112,19 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
 
     def handle_uploaded_file(self, file, file_extension):
         FILE_SAVE = AUDIO_SAVE
-        FILE_NAME = str(uuid.uuid4()) + file_extension
-        FILE_LOCATION = FILE_SAVE + FILE_NAME
+        file_name = str(uuid.uuid4())+file_extension
+        s3_file_name = 'audio/%s' % file_name
+
+        if not os.path.exists(FILE_SAVE):
+            os.makedirs(FILE_SAVE)
+
+        FILE_LOCATION = FILE_SAVE + file_name
         with open(FILE_LOCATION, 'wb+') as destination:
             for chunk in file.chunks():
                 destination.write(chunk)
             destination.close()
-        return FILE_NAME
+        upload_image_s3(FILE_LOCATION, s3_file_name)
+        return s3_file_name
 
     def mime_type_validation_and_extension(self, file):
         mime = magic.Magic(mime=True)
