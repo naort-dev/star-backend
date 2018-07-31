@@ -315,10 +315,11 @@ def get_profile_video(id):
 def get_audio(file_name):
 
     audio_html = '<audio controls preload="none" style="width:480px;">' \
-                 '<source src="/media/audios/%s" type="audio/mp4" />' \
+                 '<source src="%s" type="audio/mp4" />' \
                  '<p>Your browser does not support HTML5 audio.</p></audio>'
+    audio_file = get_pre_signed_get_url(file_name, '') if file_name else ''
 
-    return mark_safe((audio_html % file_name) if file_name else '<span>No audio available.</span>')
+    return mark_safe((audio_html % audio_file) if file_name else '<span>No audio available.</span>')
 
 
 def datetime_range(start_date, end_date):
