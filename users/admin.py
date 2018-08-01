@@ -21,7 +21,8 @@ class PayoutsTabular(admin.TabularInline):
     max_num = 25
     extra = 0
     min_num = 0
-    readonly_fields = ('id', 'request_name', 'fan_charged', 'starsona_company_charges', 'fund_payed_out')
+    readonly_fields = ('id', 'request_name', 'status', 'fan_charged', 'starsona_company_charges', 'comments',
+                       'fund_payed_out', 'referral_payout')
 
     def request_name(self, instance):
 
@@ -81,8 +82,8 @@ class CelebrityInline(admin.StackedInline):
 
 class RatingInline(admin.TabularInline):
     model = FanRating
-    fields = ('fan_rate', 'starsona', 'fan', 'created_date')
-    readonly_fields = ('fan_rate', 'starsona', 'fan', 'created_date')
+    fields = ('fan_rate', 'starsona', 'fan', 'comments', 'created_date')
+    readonly_fields = ('fan_rate', 'starsona', 'fan', 'comments', 'created_date')
     max_num = 10
     extra = 0
     min_num = 0
