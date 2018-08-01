@@ -156,14 +156,6 @@ class CreateChargeFan(APIView, ResponseViewMixin):
 
 def createcharge(customer_id, source_id, starsona_id, amount):
 
-    # Add card to stripe customer account
-    try:
-        cus_card = stripe.Customer.retrieve(customer_id, api_key=API_KEY)
-        cus_card.sources.create(source=source_id)
-        cus_card.save()
-    except Exception as e:
-        pass
-
     try:
         request_charge = stripe.Charge.create(
             amount=amount,
@@ -268,7 +260,7 @@ class AttachDetachSource(APIView, ResponseViewMixin):
                                               str(e))
             if request.data['action']:
                 try:
-                    cu.sources.create(source={request.data['source']})
+                    cu.sources.create(source=request.data['source'])
                     text = "attached"
                 except Exception as e:
                     return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', str(e))
