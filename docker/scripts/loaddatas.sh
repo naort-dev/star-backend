@@ -14,8 +14,8 @@ fi
 echo 'Creating superuser...'
 python manage.py shell -c "import os; from django.contrib.auth import get_user_model;\
      User = get_user_model(); \
-     User.objects.filter(username=os.environ.get('ADMIN_USERNAME'), is_superuser=True).delete(); \
-     User.objects.create_superuser(os.environ.get('ADMIN_USERNAME'), os.environ.get('ADMIN_PASSWORD'))"
+     User.objects.filter(username=os.environ.get('ADMIN_USERNAME'), is_superuser=True).count() == 0 and \
+     User.objects.create_superuser(os.environ.get('ADMIN_USERNAME'), os.environ.get('ADMIN_PASSWORD'));"
 
 echo 'Loading data...'
 python manage.py loaddata config/fixtures/config.json
