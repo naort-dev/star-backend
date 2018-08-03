@@ -359,8 +359,14 @@ class RequestList(GenericViewSet, ResponseViewMixin):
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
         mappings = UserRoleMapping.objects.get(user=user)
 
-        role = 'celebrity_id' if mappings.role.code == ROLES.celebrity else 'fan_id'
-        status_list = [[2, 3], [5], [6]] if mappings.role.code == ROLES.celebrity else [[2, 3, 1], [5], [6]]
+        role_list = {ROLES.celebrity: 'celebrity_id', ROLES.fan: 'fan_id'}
+
+        user_role = request.GET['role'] if 'role' in request.GET else None
+        role = user_role if user_role and user_role in ['fan_id', 'celebrity_id'] else role_list[mappings.role.code]
+
+        status_list = [[2, 3], [5], [6]] if role == 'celebrity_id' else [[2, 3, 1], [5], [6]]
+        # role = 'celebrity_id' if mappings.role.code == ROLES.celebrity else 'fan_id'
+        # status_list = [[2, 3], [5], [6]] if mappings.role.code == ROLES.celebrity else [[2, 3, 1], [5], [6]]
 
         if mappings.role.code == ROLES.celebrity:
             user.unseen_bookings = 0
@@ -375,7 +381,7 @@ class RequestList(GenericViewSet, ResponseViewMixin):
         filter_by_status = request.GET.get("status")
         if filter_by_status:
             if filter_by_status == 'all':
-                filter_by_status = '2, 3, 4, 5, 6' if mappings.role.code == ROLES.celebrity else '2, 3, 1, 5, 6'
+                filter_by_status = '2, 3, 4, 5, 6' if role == 'celebrity_id' else '2, 3, 1, 5, 6'
             try:
                 filter_by_status = ast.literal_eval(filter_by_status+',')
             except Exception as e:
