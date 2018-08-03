@@ -332,7 +332,7 @@ class ProfileImages(GenericAPIView, ResponseViewMixin):
         if serializer.is_valid():
             serializer.save()
             user.featured_photo_id = ProfileImage.objects.get(photo=featured_image, user=user).id if featured_image else \
-                ProfileImage.objects.get(photo=default_avatar_image, user=user).id
+                None
             user.avatar_photo_id = ProfileImage.objects.get(photo=avatar_image, user=user).id if avatar_image else \
                 ProfileImage.objects.get(photo=default_avatar_image, user=user).id
             user.save()
