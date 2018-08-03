@@ -1034,3 +1034,50 @@ def fix_corrupted_video(video_file, new_video_file):
         return os.system("ffmpeg -i %s -strict -2 -vcodec libx264 -acodec aac %s" % (video_file, new_video_file))
     else:
         return False
+
+
+@app.task
+def convert_to_mp3(booking_id):
+    """
+    Convert the webm audio file to mp3 to make it audible in mobile apps(iOS and Android)
+
+    :param booking_id
+    :return: boolean
+    """
+    your_audio_root = settings.MEDIA_ROOT + 'audios/'
+    booking = Stargramrequest.objects.get(id=booking_id)
+    is_update = False
+    if booking.from_audio_file:
+        booking.from_audio_file = process_audio_file(booking.from_audio_file, your_audio_root)
+        is_update = True
+    if booking.to_audio_file:
+        booking.to_audio_file = process_audio_file(booking.to_audio_file, your_audio_root)
+        is_update = True
+
+    if is_update:
+        booking.save()
+        print("Updated the audio files and uploaded to s3")
+
+    return True
+
+
+def process_audio_file(audio, audio_root):
+    """
+    Processing audio file download the audio file, convert the webm file and uploads
+    :param audio: Audio file path
+    :param audio_root: path of audio folder
+    :return: s3_file_name: s3 audio file name
+    """
+    if not os.path.exists(audio_root):
+        os.makedirs(audio_root)
+    audio_name = audio.replace('audio/', '')
+    download_file(audio_name, 'audio', audio_root)
+    name = audio_name.split(".", 1)[0]
+    extension = audio_name.split(".", 1)[1]
+    s3_file_name = 'audio/%s.mp3' % name
+    if extension.lower() == 'webm':
+        audio_file = audio_root + audio_name
+        new_audio_file = "%s%s.mp3" % (audio_root, name)
+        os.system("ffmpeg -i %s -vn -ab 128k -ar 44100 -y %s" % (audio_file, new_audio_file))
+        upload_image_s3(new_audio_file, s3_file_name)
+    return s3_file_name
