@@ -90,6 +90,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
         serializer = StargramzSerializer(data=request.data)
         if serializer.is_valid():
             request_created = serializer.save()
+            process_audio = False
 
             for INPUT_FILE_LABEL in INPUT_FILE_LABELS:
                 if INPUT_FILE_LABEL in request.FILES:
@@ -102,10 +103,14 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
                                                       'File Type not of able choices')
                     file_name = self.handle_uploaded_file(file, str(file_extension))
                     if str(file_extension) == '.webm':
-                        convert_to_mp3.apply_async((request_created.id,),
-                                                   eta=datetime.datetime.utcnow() + datetime.timedelta(minutes=int(1)))
+                        process_audio = True
                     setattr(request_created, INPUT_FILE_LABEL, file_name)
                     request_created.save()
+            if process_audio:
+                convert_to_mp3.apply_async(
+                    (request_created.id,),
+                    eta=datetime.datetime.utcnow() + datetime.timedelta(minutes=int(1))
+                )
             data = StargramzRetrieveSerializer(request_created).data
             return self.jp_response('HTTP_200_OK', data={'stargramz_response': data})
         else:
@@ -190,6 +195,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
         request.POST._mutable = mutable
         serializer = StargramzSerializer(data=request.data)
         if serializer.is_valid():
+            process_audio = False
             for INPUT_FILE_LABEL in INPUT_FILE_LABELS:
 
                 # For saving new audio files and removing old ones.
@@ -202,8 +208,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
                                                       'File Type not of able choices')
                     file_name = self.handle_uploaded_file(file, str(file_extension))
                     if str(file_extension) == '.webm':
-                        convert_to_mp3.apply_async((star_request.id,),
-                                                   eta=datetime.datetime.utcnow() + datetime.timedelta(minutes=int(1)))
+                        process_audio = True
                     input = getattr(star_request, INPUT_FILE_LABEL)
                     self.delete_file(input)
                     setattr(star_request, INPUT_FILE_LABEL, file_name)
@@ -214,6 +219,11 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
                     input = getattr(star_request, INPUT_FILE_LABEL)
                     self.delete_file(input)
                     setattr(star_request, INPUT_FILE_LABEL, file_name)
+            if process_audio:
+                convert_to_mp3.apply_async(
+                    (star_request.id,),
+                    eta=datetime.datetime.utcnow() + datetime.timedelta(minutes=int(1))
+                )
             star_request.occasion_id = request.data['occasion']
             star_request.request_details = request.data['request_details']
             star_request.public_request = request.data['public_request']
