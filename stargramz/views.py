@@ -496,7 +496,8 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
 
         if serializer.is_valid():
             # Adding Video for Live Question by Fans.
-            if check_user_role(user, ROLES.fan) and user.id == booking.fan_id and booking.request_type == REQUEST_TYPES.live_question_answer:
+            # check_user_role(user, ROLES.fan)
+            if booking.request_status in [0, 1] and user.id == booking.fan_id and booking.request_type == REQUEST_TYPES.live_question_answer:
                 editable = False
                 try:
                     edit_time = Config.objects.get(key='booking_edit_time').value
