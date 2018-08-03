@@ -328,6 +328,10 @@ class ProfileImages(GenericAPIView, ResponseViewMixin):
         if 'featured_image' in request.data:
             featured_image = request.data['featured_image']
             input_data['featured_image'] = featured_image
+        # Fix for iOS need to remove featured_photo in next release #remove
+        if 'featured_photo' in request.data:
+            featured_image = request.data['featured_photo']
+            input_data['featured_image'] = featured_image
         serializer = ProfileImageSerializer(data=input_data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
