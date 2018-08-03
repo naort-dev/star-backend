@@ -19,7 +19,6 @@ from utilities.pagination import CustomOffsetPagination
 import datetime
 from utilities.utils import datetime_range, get_pre_signed_get_url, check_user_role, upload_image_s3
 from utilities.permissions import CustomPermission
-from job.tasks import delete_unwanted_files
 from rest_framework.decorators import detail_route
 from django.db.models import Q
 import uuid
@@ -28,7 +27,7 @@ import os
 import ast
 from difflib import get_close_matches
 from .constants import *
-from job.tasks import generate_video_thumbnail, notify_email, combine_video_clips
+from job.tasks import generate_video_thumbnail, notify_email, combine_video_clips, convert_to_mp3
 from payments.models import StarsonaTransaction, TRANSACTION_STATUS
 from django.utils import timezone
 from hashids import Hashids
@@ -102,6 +101,9 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
                         return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CREATE',
                                                       'File Type not of able choices')
                     file_name = self.handle_uploaded_file(file, str(file_extension))
+                    if str(file_extension) == '.webm':
+                        convert_to_mp3.apply_async((request_created.id,),
+                                                   eta=datetime.datetime.utcnow() + datetime.timedelta(minutes=int(1)))
                     setattr(request_created, INPUT_FILE_LABEL, file_name)
                     request_created.save()
             data = StargramzRetrieveSerializer(request_created).data
@@ -123,6 +125,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
             for chunk in file.chunks():
                 destination.write(chunk)
             destination.close()
+
         upload_image_s3(FILE_LOCATION, s3_file_name)
         return s3_file_name
 
@@ -198,6 +201,9 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
                         return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CREATE',
                                                       'File Type not of able choices')
                     file_name = self.handle_uploaded_file(file, str(file_extension))
+                    if str(file_extension) == '.webm':
+                        convert_to_mp3.apply_async((star_request.id,),
+                                                   eta=datetime.datetime.utcnow() + datetime.timedelta(minutes=int(1)))
                     input = getattr(star_request, INPUT_FILE_LABEL)
                     self.delete_file(input)
                     setattr(star_request, INPUT_FILE_LABEL, file_name)
@@ -887,4 +893,3 @@ def page_not_found(request):
         404 page
     """
     return render(request=request, template_name='home/404.html', context={})
-
