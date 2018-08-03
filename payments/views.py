@@ -22,6 +22,7 @@ import requests
 from django.db.models import Sum
 from .tasks import change_request_status_to_pending
 from datetime import datetime, timedelta
+from config.constants import *
 
 API_KEY = SECRET_KEY
 stripe.api_key = API_KEY
@@ -335,7 +336,13 @@ def stripe_connect(request):
         except StripeAccount.DoesNotExist:
             pass
 
-    return render(request=request, template_name='home/connect.html')
+    try:
+        web_url = Config.objects.get(key='web_url').value
+    except Exception:
+        web_url = BASE_URL
+
+    data = {'web_url': web_url}
+    return render(request=request, template_name='home/connect.html', context=data)
 
 
 class EarningsList(GenericViewSet, ResponseViewMixin):
