@@ -1054,9 +1054,9 @@ def convert_to_mp3(booking_id):
         booking.to_audio_file = process_audio_file(booking.to_audio_file, your_audio_root)
         is_update = True
 
-    if is_update:
-        booking.save()
-        print("Updated the audio files and uploaded to s3")
+    #if is_update:
+    booking.save()
+    print("Updated the audio files and uploaded to s3")
 
     return True
 
@@ -1075,9 +1075,12 @@ def process_audio_file(audio, audio_root):
     name = audio_name.split(".", 1)[0]
     extension = audio_name.split(".", 1)[1]
     s3_file_name = 'audio/%s.mp3' % name
+    sender_email = Config.objects.get(key='sender_email').value
+    SendMail('Audio Conversion', 's3 Audio file is %s' % s3_file_name, sender_email=sender_email, to='akhilns@qburst.com')
     if extension.lower() == 'webm':
         audio_file = audio_root + audio_name
         new_audio_file = "%s%s.mp3" % (audio_root, name)
         os.system("ffmpeg -i %s -vn -ab 128k -ar 44100 -y %s" % (audio_file, new_audio_file))
+        SendMail('Audio Conversion', 'Audio file is %s' % new_audio_file, sender_email=sender_email, to='akhilns@qburst.com')
         upload_image_s3(new_audio_file, s3_file_name)
     return s3_file_name
