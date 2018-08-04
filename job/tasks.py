@@ -1080,7 +1080,14 @@ def process_audio_file(audio, audio_root):
     if extension.lower() == 'webm':
         audio_file = audio_root + audio_name
         new_audio_file = "%s%s.mp3" % (audio_root, name)
-        os.system("ffmpeg -i %s -vn -ab 128k -ar 44100 -y %s" % (audio_file, new_audio_file))
+        convert_audio_file(audio_file, new_audio_file)
         SendMail('Audio Conversion', 'Audio file is %s' % new_audio_file, sender_email=sender_email, to='akhilns@qburst.com')
         upload_image_s3(new_audio_file, s3_file_name)
     return s3_file_name
+
+
+def convert_audio_file(audio_file, new_audio_file):
+    """
+    Converting webm to mp3
+    """
+    return os.system("ffmpeg -i %s -vn -ab 128k -ar 44100 -y %s" % (audio_file, new_audio_file))
