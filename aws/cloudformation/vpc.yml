@@ -446,26 +446,16 @@ Outputs:
     Value: !Ref 'VPC'
     Export:
       Name: !Join [ ':', [ !Ref 'AWS::StackName', 'VPCId' ] ]
-  PublicSubnetOne:
-    Description: Public subnet one
-    Value: !Ref 'PublicSubnetOne'
+  PublicSubnets:
+    Description: Public subnets
+    Value: !Join [',', [!Ref 'PublicSubnetOne', !If [MultiAZ, !Ref PublicSubnetTwo, !Ref 'AWS::NoValue']]]
     Export:
-      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicSubnetOne' ] ]
-  PublicSubnetTwo:
-    Description: Public subnet two
-    Value: !If [MultiAZ, !Ref PublicSubnetTwo, !Ref 'AWS::NoValue']
-    Export:
-      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicSubnetTwo' ] ]
-  PrivateSubnetOne:
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicSubnets' ] ]
+  PrivateSubnets:
     Description: Private subnet one
-    Value: !Ref 'PrivateSubnetOne'
+    Value: !Join [',', [!Ref 'PrivateSubnetOne', !If [MultiAZ, !Ref PrivateSubnetTwo, !Ref 'AWS::NoValue']]]
     Export:
-      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PrivateSubnetOne' ] ]
-  PrivateSubnetTwo:
-    Description: Private subnet two
-    Value: !If [MultiAZ, !Ref PrivateSubnetTwo, !Ref 'AWS::NoValue']
-    Export:
-      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PrivateSubnetTwo' ] ]
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PrivateSubnets' ] ]
   FargateContainerSecurityGroup:
     Description: A security group used to allow Fargate containers to receive traffic
     Value: !Ref 'FargateContainerSecurityGroup'

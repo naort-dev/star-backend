@@ -216,10 +216,10 @@ Resources:
             - Fn::ImportValue:
                 !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
           Subnets:
+            Fn::Split:
+            - ','
             - Fn::ImportValue:
-                !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
-            - Fn::ImportValue:
-                !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
+                !Join [':', [!Ref 'StackName', 'PrivateSubnets']]
       TaskDefinition: !Ref 'NginxTaskDefinition'
       LoadBalancers:
         - ContainerName: 'nginx'
@@ -295,10 +295,10 @@ Resources:
     Properties:
       DBSubnetGroupDescription: !Ref 'AWS::StackName'
       SubnetIds:
-      - Fn::ImportValue:
-          !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
-      - Fn::ImportValue:
-          !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
+        Fn::Split:
+        - ','
+        - Fn::ImportValue:
+            !Join [':', [!Ref 'StackName', 'PrivateSubnets']]
 
   DB:
     Type: 'AWS::RDS::DBInstance'
@@ -324,10 +324,10 @@ Resources:
       Properties:
         Description: !Ref 'AWS::StackName'
         SubnetIds:
+          Fn::Split:
+          - ','
           - Fn::ImportValue:
-              !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
-          - Fn::ImportValue:
-              !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
+              !Join [':', [!Ref 'StackName', 'PrivateSubnets']]
 
   CacheParameters:
       Type: AWS::ElastiCache::ParameterGroup
@@ -435,10 +435,10 @@ Resources:
             - Fn::ImportValue:
                 !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
           Subnets:
+            Fn::Split:
+            - ','
             - Fn::ImportValue:
-                !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
-            - Fn::ImportValue:
-                !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
+                !Join [':', [!Ref 'StackName', 'PrivateSubnets']]
       TaskDefinition: !Ref 'GunicornTaskDefinition'
       LoadBalancers:
         - ContainerName: 'gunicorn'
@@ -545,10 +545,10 @@ Resources:
             - Fn::ImportValue:
                 !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
           Subnets:
-            - Fn::ImportValue:
-                !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
-            - Fn::ImportValue:
-                !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
+             Fn::Split:
+             - ','
+             - Fn::ImportValue:
+                 !Join [':', [!Ref 'StackName', 'PrivateSubnets']]
       TaskDefinition: !Ref 'CeleryBeatTaskDefinition'
 
   CeleryWorkerTaskDefinition:
@@ -615,10 +615,10 @@ Resources:
             - Fn::ImportValue:
                 !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
           Subnets:
+            Fn::Split:
+            - ','
             - Fn::ImportValue:
-                !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
-            - Fn::ImportValue:
-                !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
+                !Join [':', [!Ref 'StackName', 'PrivateSubnets']]
       TaskDefinition: !Ref 'CeleryWorkerTaskDefinition'
 
   #--------------------------------------------------------------------------------------------------------------------
