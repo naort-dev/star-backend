@@ -1074,18 +1074,18 @@ def process_audio_file(audio, audio_root):
     download_file(audio_name, 'audio', audio_root)
     name = audio_name.split(".", 1)[0]
     extension = audio_name.split(".", 1)[1]
-    s3_file_name = 'audio/%s.mp3' % name
+    s3_file_name = 'audio/%s.m4a' % name
     sender_email = Config.objects.get(key='sender_email').value
     SendMail('Audio Conversion', 's3 Audio file is %s' % s3_file_name, sender_email=sender_email, to='akhilns@qburst.com')
     if extension.lower() == 'webm':
         audio_file = audio_root + audio_name
-        new_audio_file = "%s%s.mp3" % (audio_root, name)
-        if convert_audio_file(audio_file, new_audio_file):
-            SendMail('Audio Conversion', 'Audio file is %s' % new_audio_file, sender_email=sender_email, to='akhilns@qburst.com')
-            try:
-                upload_image_s3(new_audio_file, s3_file_name)
-            except Exception as e:
-                SendMail('Audio Conversion', 'Audio file is %s' % str(e), sender_email=sender_email, to='akhilns@qburst.com')
+        new_audio_file = "%s%s.m4a" % (audio_root, name)
+        convert_audio_file(audio_file, new_audio_file)
+        SendMail('Audio Conversion', 'Audio file is %s' % new_audio_file, sender_email=sender_email, to='akhilns@qburst.com')
+        try:
+            upload_image_s3(new_audio_file, s3_file_name)
+        except Exception as e:
+            SendMail('Audio Conversion', 'Audio file is %s' % str(e), sender_email=sender_email, to='akhilns@qburst.com')
     return s3_file_name
 
 
@@ -1093,4 +1093,4 @@ def convert_audio_file(audio_file, new_audio_file):
     """
     Converting webm to mp3
     """
-    return os.system("ffmpeg -i %s -strict -2 -vn -ab 128k -ar 44100 -y %s" % (audio_file, new_audio_file))
+    return os.system("ffmpeg -i %s -strict -2 %s" % (audio_file, new_audio_file))
