@@ -2,9 +2,10 @@
 from django.utils.translation import ugettext_lazy as _
 from django.contrib import admin
 from .models import LogEvent, StarsonaTransaction, StripeAccount, PaymentPayout
+from utilities.admin_utils import ReadOnlyModelAdmin
 
 
-class TransactionAdmin(admin.ModelAdmin):
+class TransactionAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'starsona_id', 'fan', 'celebrity', 'transaction_status')
 
     fieldsets = (
@@ -19,7 +20,7 @@ class TransactionAdmin(admin.ModelAdmin):
                        'stripe_transaction_id', 'stripe_refund_id')
 
 
-class LogEventAdmin(admin.ModelAdmin):
+class LogEventAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'created_date', 'type', 'status_message', 'card_type')
 
     fieldsets = (
@@ -29,7 +30,7 @@ class LogEventAdmin(admin.ModelAdmin):
     readonly_fields = ('created_date',)
 
 
-class LogStripeAccountAdmin(admin.ModelAdmin):
+class LogStripeAccountAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'celebrity', 'status',)
 
     fieldsets = (
@@ -39,7 +40,7 @@ class LogStripeAccountAdmin(admin.ModelAdmin):
     readonly_fields = ('created_date', 'id', 'celebrity', 'status')
 
 
-class PayoutAdmin(admin.ModelAdmin):
+class PayoutAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'transaction_id', 'status', 'celebrity',)
     list_filter = ('status',)
 

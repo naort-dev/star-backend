@@ -5,6 +5,7 @@ from payments.models import StarsonaTransaction
 from config.models import Config
 from django.utils.safestring import mark_safe
 from utilities.utils import get_pre_signed_get_url, get_audio
+from utilities.admin_utils import ReadOnlyModelAdmin
 import json
 
 
@@ -91,7 +92,7 @@ class OrderRelationshipInline(admin.TabularInline):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-class OcccassionRelationshipAdmin(admin.ModelAdmin):
+class OcccassionRelationshipAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'title', 'status')
 
     fieldsets = (
@@ -100,7 +101,7 @@ class OcccassionRelationshipAdmin(admin.ModelAdmin):
     ordering = ('id',)
 
 
-class AbuseAdmin(admin.ModelAdmin):
+class AbuseAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'request_url', 'reported_by', 'read_flag')
     fieldsets = (
         (_('Basic info'), {'fields': ('request', 'comments', 'reported_by', 'read_flag')}),
@@ -114,7 +115,7 @@ class AbuseAdmin(admin.ModelAdmin):
     request_url.short_description = 'Request'
 
 
-class OccasionAdmin(admin.ModelAdmin):
+class OccasionAdmin(ReadOnlyModelAdmin):
     # form = CategoriesForm
     list_display = ('id', 'title')
 
@@ -126,7 +127,7 @@ class OccasionAdmin(admin.ModelAdmin):
     inlines = (OrderRelationshipInline,)
 
 
-class StargramrequestAdmin(admin.ModelAdmin):
+class StargramrequestAdmin(ReadOnlyModelAdmin):
 
     actions = ['make_complete']
     list_display = ('id', 'fan', 'celebrity', 'occasion', 'request_status',)
@@ -172,7 +173,7 @@ class StargramrequestAdmin(admin.ModelAdmin):
         return mark_safe("<table width='500px'>%s</table>" % string)
 
 
-class StargramVideosAdmin(admin.ModelAdmin):
+class StargramVideosAdmin(ReadOnlyModelAdmin):
 
     list_display = ('id', 'stragramz_request', 'video_duration', 'status', 'created_date')
 
@@ -213,6 +214,7 @@ class StargramVideosAdmin(admin.ModelAdmin):
                              % get_pre_signed_get_url(instance.video, config.value))
         else:
             return mark_safe('<span>No Video available.</span>')
+
 
 
 admin.site.register(ReportAbuse, AbuseAdmin)

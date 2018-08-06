@@ -42,7 +42,10 @@ class Konstants:
 ROLES = Konstants(
     K(fan='R1001', label='Fan'),
     K(celebrity='R1002', label='Celebrity'),
-    K(admin='R1003', label='Admin')
+    K(admin='R1003', label='Admin'),
+    K(group_account='R1004', label='Group Account'),
+    K(reviwer='R1005', label='Reviewer'),
+    K(watcher='R1006', label='Watcher')
 )
 
 
