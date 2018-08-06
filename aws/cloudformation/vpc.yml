@@ -16,17 +16,6 @@ Parameters:
     Default: starsona.com
     Description: Root domain name for email validation
 
-  AvailabilityZones:
-    Type: Number
-    Default: 1
-    Description: Number if alailabilty zones
-    AllowedValues:
-    - 1
-    - 2
-
-Conditions:
-  MultiAZ: !Not [!Equals [ !Ref AvailabilityZones, 1 ]]
-
 Mappings:
   # Hard values for the subnet masks. These masks define
   # the range of internal IP addresses that can be assigned.
@@ -80,7 +69,6 @@ Resources:
       MapPublicIpOnLaunch: true
   PublicSubnetTwo:
     Type: AWS::EC2::Subnet
-    Condition: MultiAZ
     Properties:
       AvailabilityZone:
          Fn::Select:
@@ -104,7 +92,6 @@ Resources:
       CidrBlock: !FindInMap ['SubnetConfig', 'PrivateOne', 'CIDR']
   PrivateSubnetTwo:
     Type: AWS::EC2::Subnet
-    Condition: MultiAZ
     Properties:
       AvailabilityZone:
          Fn::Select:
@@ -141,7 +128,6 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
   PublicSubnetTwoRouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
-    Condition: MultiAZ
     Properties:
       SubnetId: !Ref PublicSubnetTwo
       RouteTableId: !Ref PublicRouteTable
@@ -158,7 +144,6 @@ Resources:
   NatGatewayTwoAttachment:
     Type: AWS::EC2::EIP
     DependsOn: GatewayAttachement
-    Condition: MultiAZ
     Properties:
         Domain: vpc
   NatGatewayOne:
@@ -168,7 +153,6 @@ Resources:
       SubnetId: !Ref PublicSubnetOne
   NatGatewayTwo:
     Type: AWS::EC2::NatGateway
-    Condition: MultiAZ
     Properties:
       AllocationId: !GetAtt NatGatewayTwoAttachment.AllocationId
       SubnetId: !Ref PublicSubnetTwo
@@ -189,19 +173,16 @@ Resources:
       SubnetId: !Ref PrivateSubnetOne
   PrivateRouteTableTwo:
     Type: AWS::EC2::RouteTable
-    Condition: MultiAZ
     Properties:
       VpcId: !Ref 'VPC'
   PrivateRouteTwo:
     Type: AWS::EC2::Route
-    Condition: MultiAZ
     Properties:
       RouteTableId: !Ref PrivateRouteTableTwo
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId: !Ref NatGatewayTwo
   PrivateRouteTableTwoAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
-    Condition: MultiAZ
     Properties:
       RouteTableId: !Ref PrivateRouteTableTwo
       SubnetId: !Ref PrivateSubnetTwo
@@ -272,7 +253,7 @@ Resources:
         # The load balancer is placed into the public subnets, so that traffic
         # from the internet can reach the load balancer directly via the internet gateway
         - !Ref PublicSubnetOne
-        - !If [MultiAZ, !Ref PublicSubnetTwo, !Ref 'AWS::NoValue']
+        - !Ref PublicSubnetTwo
       SecurityGroups: [!Ref 'PublicLoadBalancerSG']
   LogsBucket:
     Type: AWS::S3::Bucket
@@ -446,16 +427,26 @@ Outputs:
     Value: !Ref 'VPC'
     Export:
       Name: !Join [ ':', [ !Ref 'AWS::StackName', 'VPCId' ] ]
-  PublicSubnets:
-    Description: Public subnets
-    Value: !Join [',', [!Ref 'PublicSubnetOne', !If [MultiAZ, !Ref PublicSubnetTwo, !Ref 'AWS::NoValue']]]
+  PublicSubnetOne:
+    Description: Public subnet one
+    Value: !Ref 'PublicSubnetOne'
     Export:
-      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicSubnets' ] ]
-  PrivateSubnets:
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicSubnetOne' ] ]
+  PublicSubnetTwo:
+    Description: Public subnet two
+    Value: !Ref 'PublicSubnetTwo'
+    Export:
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicSubnetTwo' ] ]
+  PrivateSubnetOne:
     Description: Private subnet one
-    Value: !Join [',', [!Ref 'PrivateSubnetOne', !If [MultiAZ, !Ref PrivateSubnetTwo, !Ref 'AWS::NoValue']]]
+    Value: !Ref 'PrivateSubnetOne'
     Export:
-      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PrivateSubnets' ] ]
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PrivateSubnetOne' ] ]
+  PrivateSubnetTwo:
+    Description: Private subnet two
+    Value: !Ref 'PrivateSubnetTwo'
+    Export:
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PrivateSubnetTwo' ] ]
   FargateContainerSecurityGroup:
     Description: A security group used to allow Fargate containers to receive traffic
     Value: !Ref 'FargateContainerSecurityGroup'
