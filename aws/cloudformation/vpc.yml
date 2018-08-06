@@ -451,6 +451,17 @@ Outputs:
     Value: !Join [',', [!Ref 'PublicSubnetOne', !If [MultiAZ, !Ref PublicSubnetTwo, !Ref 'AWS::NoValue']]]
     Export:
       Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicSubnets' ] ]
+  PublicSubnetOne:
+    Description: Public subnet one
+    Value: !Ref 'PublicSubnetOne'
+    Export:
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicSubnetOne' ] ]
+  PublicSubnetTwo:
+    Description: Public subnet two
+    Value: !Ref 'PublicSubnetOne'
+    Export:
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicSubnetTwo' ] ]
+
   PrivateSubnets:
     Description: Private subnet one
     Value: !Join [',', [!Ref 'PrivateSubnetOne', !If [MultiAZ, !Ref PrivateSubnetTwo, !Ref 'AWS::NoValue']]]
