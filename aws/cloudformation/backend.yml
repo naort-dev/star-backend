@@ -120,18 +120,9 @@ Parameters:
     MaxValue: 10
     Description: "The number of Cache Nodes the Cache Cluster should have"
 
-  AvailabilityZones:
-    Type: Number
-    Default: 1
-    Description: Number if alailabilty zones
-    AllowedValues:
-    - 1
-    - 2
-
 Conditions:
   ManagedBucket: !Not [ !Equals [!Ref 'BucketName', 'starsona'] ]
   ManagedIdentityPool:  !Equals [!Ref 'IdentityPoolId', '']
-  MultiAZ: !Not [!Equals [ !Ref AvailabilityZones, 1 ]]
 
 Resources:
 
@@ -158,7 +149,7 @@ Resources:
           Action: ['sts:AssumeRole']
       Path: /
       Policies:
-      - !Ref 'AWS::NoValue'
+      - !Ref "AWS::NoValue"
 
   #--------------------------------------------------------------------------------------------------------------------
   # WEB
@@ -216,10 +207,10 @@ Resources:
             - Fn::ImportValue:
                 !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
           Subnets:
-            Fn::Split:
-            - ','
             - Fn::ImportValue:
-                !Join [':', [!Ref 'StackName', 'PrivateSubnets']]
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
       TaskDefinition: !Ref 'NginxTaskDefinition'
       LoadBalancers:
         - ContainerName: 'nginx'
@@ -295,10 +286,10 @@ Resources:
     Properties:
       DBSubnetGroupDescription: !Ref 'AWS::StackName'
       SubnetIds:
-        Fn::Split:
-        - ','
-        - Fn::ImportValue:
-            !Join [':', [!Ref 'StackName', 'PrivateSubnets']]
+      - Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
+      - Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
 
   DB:
     Type: 'AWS::RDS::DBInstance'
@@ -324,10 +315,10 @@ Resources:
       Properties:
         Description: !Ref 'AWS::StackName'
         SubnetIds:
-          Fn::Split:
-          - ','
           - Fn::ImportValue:
-              !Join [':', [!Ref 'StackName', 'PrivateSubnets']]
+              !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
+          - Fn::ImportValue:
+              !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
 
   CacheParameters:
       Type: AWS::ElastiCache::ParameterGroup
@@ -348,17 +339,14 @@ Resources:
               !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
         Engine: 'memcached'
         NumCacheNodes: !Ref 'NumberOfCacheNodes'
-        AZMode: !If [MultiAZ, "cross-az", "single-az"]
+        AZMode: "cross-az"
         PreferredAvailabilityZones:
         - Fn::Select:
            - 0
            - Fn::GetAZs: {Ref: 'AWS::Region'}
-        - Fn::If:
-          - MultiAZ
-          - Fn::Select:
-             - 1
-             - Fn::GetAZs: {Ref: 'AWS::Region'}
-          - !Ref 'AWS::NoValue'
+        - Fn::Select:
+           - 1
+           - Fn::GetAZs: {Ref: 'AWS::Region'}
 
   #--------------------------------------------------------------------------------------------------------------------
   # GUNICORN
@@ -435,10 +423,10 @@ Resources:
             - Fn::ImportValue:
                 !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
           Subnets:
-            Fn::Split:
-            - ','
             - Fn::ImportValue:
-                !Join [':', [!Ref 'StackName', 'PrivateSubnets']]
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
       TaskDefinition: !Ref 'GunicornTaskDefinition'
       LoadBalancers:
         - ContainerName: 'gunicorn'
@@ -545,10 +533,10 @@ Resources:
             - Fn::ImportValue:
                 !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
           Subnets:
-             Fn::Split:
-             - ','
-             - Fn::ImportValue:
-                 !Join [':', [!Ref 'StackName', 'PrivateSubnets']]
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
       TaskDefinition: !Ref 'CeleryBeatTaskDefinition'
 
   CeleryWorkerTaskDefinition:
@@ -615,10 +603,10 @@ Resources:
             - Fn::ImportValue:
                 !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
           Subnets:
-            Fn::Split:
-            - ','
             - Fn::ImportValue:
-                !Join [':', [!Ref 'StackName', 'PrivateSubnets']]
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
+            - Fn::ImportValue:
+                !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
       TaskDefinition: !Ref 'CeleryWorkerTaskDefinition'
 
   #--------------------------------------------------------------------------------------------------------------------
