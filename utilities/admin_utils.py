@@ -1,9 +1,17 @@
 from django.contrib import admin
 from utilities.utils import get_user_role_details
-from users.models import StargramzUser
 
 
 class ReadOnlyTabularInline(admin.TabularInline):
+    """
+        ModelAdmin class that prevents modifications through the admin.
+
+        The changelist and the detail view work, but a 403 is returned
+        if one actually tries to edit an object.
+    """
+    def has_add_permission(self, request):
+        return True if verify_user_role(request) else False
+
     def get_readonly_fields(self, request, obj=None):
         read_only_fields = tuple([f.name for f in self.model._meta.fields]) + self.readonly_fields
         return self.readonly_fields if verify_user_role(request) else read_only_fields
@@ -17,6 +25,14 @@ class ReadOnlyTabularInline(admin.TabularInline):
 
 
 class ReadOnlyStackedInline(admin.StackedInline):
+    """
+        ModelAdmin class that prevents modifications through the admin.
+
+        The changelist and the detail view work, but a 403 is returned
+        if one actually tries to edit an object.
+    """
+    def has_add_permission(self, request):
+        return True if verify_user_role(request) else False
 
     def get_readonly_fields(self, request, obj=None):
         read_only_fields = tuple([f.name for f in self.model._meta.fields]) + self.readonly_fields
@@ -36,7 +52,6 @@ class ReadOnlyModelAdmin(admin.ModelAdmin):
 
     The changelist and the detail view work, but a 403 is returned
     if one actually tries to edit an object.
-
     """
 
     def get_readonly_fields(self, request, obj=None):
@@ -71,8 +86,7 @@ def verify_user_role(request):
     :param request:
     :return: Boolean
     """
-    user = StargramzUser.objects.get(username=request.user)
-    role = get_user_role_details(user)
+    role = get_user_role_details(request.user)
     if role['role_code'] == 'R1005' or role['role_code'] == 'R1006':
         return False
     else:

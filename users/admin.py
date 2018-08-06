@@ -84,7 +84,7 @@ class CelebrityInline(ReadOnlyStackedInline):
         user = StargramzUser.objects.get(username=request.user)
         role = get_user_role_details(user)
         if role['role_code'] == 'R1005':
-            readonly = ('rate', 'weekly_limits', 'rating', 'follow_count', 'remaining_limit')
+            readonly = ('rate', 'weekly_limits', 'rating', 'follow_count','has_fan_account', 'remaining_limit')
             return readonly
         elif role['role_code'] == 'R1006':
             return self.readonly_fields + self.fields

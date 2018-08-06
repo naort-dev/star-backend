@@ -5,11 +5,11 @@ from payments.models import StarsonaTransaction
 from config.models import Config
 from django.utils.safestring import mark_safe
 from utilities.utils import get_pre_signed_get_url, get_audio
-from utilities.admin_utils import ReadOnlyModelAdmin
+from utilities.admin_utils import ReadOnlyModelAdmin, ReadOnlyStackedInline, ReadOnlyTabularInline
 import json
 
 
-class AbuseInline(admin.StackedInline):
+class AbuseInline(ReadOnlyStackedInline):
     model = ReportAbuse
     fields = ('request', 'comments', 'reported_by', 'read_flag')
     min_num = 0
@@ -24,7 +24,7 @@ class AbuseInline(admin.StackedInline):
         return False
 
 
-class TransactionsInline(admin.StackedInline):
+class TransactionsInline(ReadOnlyStackedInline):
     model = StarsonaTransaction
     fields = ('starsona', 'fan', 'celebrity', 'transaction_status', 'source_id',
               'stripe_transaction_id', 'stripe_refund_id', 'amount', 'comments')
@@ -41,7 +41,7 @@ class TransactionsInline(admin.StackedInline):
         return False
 
 
-class StargramVideosInline(admin.StackedInline):
+class StargramVideosInline(ReadOnlyStackedInline):
     model = StargramVideo
     fields = ('stragramz_request', 'video_thumbnail', 'video_link', 'video',
               'duration', 'created_date')
@@ -81,7 +81,7 @@ class StargramVideosInline(admin.StackedInline):
             return mark_safe('<span>No Video available.</span>')
 
 
-class OrderRelationshipInline(admin.TabularInline):
+class OrderRelationshipInline(ReadOnlyTabularInline):
     model = OrderRelationship
     extra = 1
     can_delete = True
