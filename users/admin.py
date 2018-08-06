@@ -7,7 +7,7 @@ from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profe
 from role.models import Role
 from payments.models import PaymentPayout
 from utilities.konstants import ROLES
-from utilities.utils import get_profile_images, get_profile_video, get_featured_image
+from utilities.utils import get_profile_images, get_profile_video, get_featured_image, get_user_role_details
 from django.db.models import Q
 from django.utils.safestring import mark_safe
 from utilities.admin_utils import ReadOnlyModelAdmin, ReadOnlyStackedInline, ReadOnlyTabularInline
@@ -79,6 +79,17 @@ class CelebrityInline(ReadOnlyStackedInline):
     max_num = 1
     verbose_name_plural = 'Celebrity Details'
     can_delete = False
+
+    def get_readonly_fields(self, request, obj=None):
+        user = StargramzUser.objects.get(username=request.user)
+        role = get_user_role_details(user)
+        if role['role_code'] == 'R1005':
+            readonly = ('rate', 'weekly_limits', 'rating', 'follow_count', 'remaining_limit')
+            return readonly
+        elif role['role_code'] == 'R1006':
+            return self.readonly_fields + self.fields
+        else:
+            return self.readonly_fields
 
 
 class RatingInline(ReadOnlyTabularInline):
