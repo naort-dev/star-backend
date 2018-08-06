@@ -1093,4 +1093,4 @@ def convert_audio_file(audio_file, new_audio_file):
     """
     Converting webm to mp3
     """
-    return os.system("ffmpeg -i %s -vn -ab 128k -ar 44100 -y %s" % (audio_file, new_audio_file))
+    return os.system("ffmpeg -i %s -strict -2 -vn -ab 128k -ar 44100 -y %s" % (audio_file, new_audio_file))
