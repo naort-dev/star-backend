@@ -1080,12 +1080,12 @@ def process_audio_file(audio, audio_root):
     if extension.lower() == 'webm':
         audio_file = audio_root + audio_name
         new_audio_file = "%s%s.mp3" % (audio_root, name)
-        convert_audio_file(audio_file, new_audio_file)
-        SendMail('Audio Conversion', 'Audio file is %s' % new_audio_file, sender_email=sender_email, to='akhilns@qburst.com')
-        try:
-            upload_image_s3(new_audio_file, s3_file_name)
-        except Exception as e:
-            SendMail('Audio Conversion', 'Audio file is %s' % str(e), sender_email=sender_email, to='akhilns@qburst.com')
+        if convert_audio_file(audio_file, new_audio_file):
+            SendMail('Audio Conversion', 'Audio file is %s' % new_audio_file, sender_email=sender_email, to='akhilns@qburst.com')
+            try:
+                upload_image_s3(new_audio_file, s3_file_name)
+            except Exception as e:
+                SendMail('Audio Conversion', 'Audio file is %s' % str(e), sender_email=sender_email, to='akhilns@qburst.com')
     return s3_file_name
 
 
