@@ -107,7 +107,10 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
                     setattr(request_created, INPUT_FILE_LABEL, file_name)
                     request_created.save()
             if process_audio:
-                convert_audio.delay(request_created.id)
+                convert_audio.apply_async(
+                    (request_created.id,),
+                    eta=datetime.datetime.utcnow() + datetime.timedelta(minutes=int(2))
+                )
             data = StargramzRetrieveSerializer(request_created).data
             return self.jp_response('HTTP_200_OK', data={'stargramz_response': data})
         else:
@@ -217,7 +220,10 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
                     self.delete_file(input)
                     setattr(star_request, INPUT_FILE_LABEL, file_name)
             if process_audio:
-                convert_audio.delay(star_request.id)
+                convert_audio.apply_async(
+                    (star_request.id,),
+                    eta=datetime.datetime.utcnow() + datetime.timedelta(minutes=int(2))
+                )
             star_request.occasion_id = request.data['occasion']
             star_request.request_details = request.data['request_details']
             star_request.public_request = request.data['public_request']
