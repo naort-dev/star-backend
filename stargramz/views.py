@@ -27,7 +27,7 @@ import os
 import ast
 from difflib import get_close_matches
 from .constants import *
-from job.tasks import generate_video_thumbnail, notify_email, combine_video_clips, convert_to_mp3
+from job.tasks import generate_video_thumbnail, notify_email, combine_video_clips, convert_audio
 from payments.models import StarsonaTransaction, TRANSACTION_STATUS
 from django.utils import timezone
 from hashids import Hashids
@@ -217,7 +217,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
                     self.delete_file(input)
                     setattr(star_request, INPUT_FILE_LABEL, file_name)
             if process_audio:
-                convert_to_mp3.delay(star_request.id)
+                convert_audio.delay(star_request.id)
             star_request.occasion_id = request.data['occasion']
             star_request.request_details = request.data['request_details']
             star_request.public_request = request.data['public_request']

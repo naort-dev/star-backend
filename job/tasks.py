@@ -976,6 +976,9 @@ def download_file(video, s3folder, your_media_root):
     video_url = get_pre_signed_get_url(video, s3folder)
     video_download = your_media_root + video
 
+    if not os.path.exists(video_download):
+        os.makedirs(video_download)
+
     try:
         # Downloading video from s3
         urllib.request.urlretrieve(video_url, video_download)
@@ -1037,14 +1040,14 @@ def fix_corrupted_video(video_file, new_video_file):
 
 
 @app.task
-def convert_to_mp3(booking_id):
+def convert_audio(booking_id):
     """
     Convert the webm audio file to m4a to make it audible in mobile apps(iOS and Android)
 
     :param booking_id
     :return: boolean
     """
-    your_audio_root = settings.MEDIA_ROOT + 'audios/'
+    your_audio_root = settings.MEDIA_ROOT + 'uploads/'
     booking = Stargramrequest.objects.get(id=booking_id)
     is_update = False
     if booking.from_audio_file:
@@ -1067,24 +1070,33 @@ def process_audio_file(audio, audio_root):
     :param audio_root: path of audio folder
     :return s3_file_name: Name of the s3 file
     """
-    if not os.path.exists(audio_root):
-        os.makedirs(audio_root)
-    audio_name = audio.replace('audio/', '')
-    audio_file = download_file(audio_name, 'audio', audio_root)
-    name = audio_name.split(".", 1)[0]
-    extension = audio_name.split(".", 1)[1]
-    s3_file_name = 'audio/%s.m4a' % name
+    template = ''
     sender_email = Config.objects.get(key='sender_email').value
-    SendMail('Audio 1', 's3 file is %s' % s3_file_name, sender_email=sender_email, to='akhilns@qburst.com')
-    if extension.lower() == 'webm':
-        new_audio_file = "%s%s.m4a" % (audio_root, name)
-        convert_audio_file(audio_file, new_audio_file)
-        SendMail('Audio 2', 'Audio is %s' % new_audio_file, sender_email=sender_email, to='akhilns@qburst.com')
-        try:
-            upload_image_s3(new_audio_file, s3_file_name)
-        except Exception as e:
-            SendMail('Audio 3', 'file is %s' % str(e), sender_email=sender_email, to='akhilns@qburst.com')
-    return s3_file_name
+    if not os.path.exists(audio_root):
+        template = template + 'Creating new folder %s <br/>' % audio_root
+        os.makedirs(audio_root)
+    if check_file_exist_in_s3(audio) is not False:
+        audio_name = audio.replace('audio/', '')
+        template = template + 'Replace audio %s' % audio_name
+        audio_file = download_file(audio_name, 'audio', audio_root)
+        name = audio_name.split(".", 1)[0]
+        extension = audio_name.split(".", 1)[1]
+        template = template + 'Extension is %s <br/>' % extension
+        template = template + 'Downloaded file is %s <br/>' % audio_file
+        s3_file_name = 'audio/%s.m4a' % name
+        SendMail('Audio 1', template, sender_email=sender_email, to='akhilns@qburst.com')
+        if extension.lower() == 'webm':
+            new_audio_file = "%s%s.m4a" % (audio_root, name)
+            convert_audio_file(audio_file, new_audio_file)
+            template = template + 'Audio is %s <br/>' % new_audio_file
+            SendMail('Audio 2', template, sender_email=sender_email, to='akhilns@qburst.com')
+            try:
+                upload_image_s3(new_audio_file, s3_file_name)
+            except Exception as e:
+                SendMail('Audio 3', '%s and file is %s' % (template, str(e)), sender_email=sender_email, to='akhilns@qburst.com')
+        return s3_file_name
+    else:
+        SendMail('Not in s3', 'File not in s3', sender_email=sender_email, to='akhilns@qburst.com')
 
 
 def convert_audio_file(audio_file, new_audio_file):
