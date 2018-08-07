@@ -1070,14 +1070,13 @@ def process_audio_file(audio, audio_root):
     if not os.path.exists(audio_root):
         os.makedirs(audio_root)
     audio_name = audio.replace('audio/', '')
-    download_file(audio_name, 'audio', audio_root)
+    audio_file = download_file(audio_name, 'audio', audio_root)
     name = audio_name.split(".", 1)[0]
     extension = audio_name.split(".", 1)[1]
     s3_file_name = 'audio/%s.m4a' % name
     sender_email = Config.objects.get(key='sender_email').value
     SendMail('Audio 1', 's3 file is %s' % s3_file_name, sender_email=sender_email, to='akhilns@qburst.com')
     if extension.lower() == 'webm':
-        audio_file = audio_root + audio_name
         new_audio_file = "%s%s.m4a" % (audio_root, name)
         convert_audio_file(audio_file, new_audio_file)
         SendMail('Audio 2', 'Audio is %s' % new_audio_file, sender_email=sender_email, to='akhilns@qburst.com')
@@ -1092,4 +1091,9 @@ def convert_audio_file(audio_file, new_audio_file):
     """
     Converting webm to m4a
     """
-    return os.system("ffmpeg -i %s -strict -2 %s" % (audio_file, new_audio_file))
+    if os.path.exists(audio_file) and os.path.getsize(audio_file) > 10:
+        return os.system("ffmpeg -i %s -strict -2 %s" % (audio_file, new_audio_file))
+    else:
+        sender_email = Config.objects.get(key='sender_email').value
+        SendMail('Audio 4', 'File doesnt exist', sender_email=sender_email, to='akhilns@qburst.com')
+        return True
