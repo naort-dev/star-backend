@@ -119,6 +119,7 @@ class ProfessionInline(ReadOnlyStackedInline):
 class StargramzUserAdmin(UserAdmin, ReadOnlyModelAdmin):
     add_form = UserCreationForm
     list_display = ('id', 'username', 'first_name', 'last_name', 'user_types')
+    list_filter = ('stargramz_user__role__name',)
 
     def user_types(self, obj):
         role = UserRoleMapping.objects.get(user_id=obj.id)

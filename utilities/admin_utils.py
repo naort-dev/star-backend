@@ -76,9 +76,6 @@ class ReadOnlyModelAdmin(admin.ModelAdmin):
 
         return super().change_view(request, object_id, extra_context=extra_context)
 
-    def changelist_view(self, request, extra_context=None):
-        return super().changelist_view(request, extra_context=None)
-
 
 def verify_user_role(request):
     """
