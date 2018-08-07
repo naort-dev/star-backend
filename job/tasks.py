@@ -976,8 +976,8 @@ def download_file(video, s3folder, your_media_root):
     video_url = get_pre_signed_get_url(video, s3folder)
     video_download = your_media_root + video
 
-    if not os.path.exists(video_download):
-        os.makedirs(video_download)
+    if not os.path.exists(your_media_root):
+        os.makedirs(your_media_root)
 
     try:
         # Downloading video from s3
@@ -1070,33 +1070,24 @@ def process_audio_file(audio, audio_root):
     :param audio_root: path of audio folder
     :return s3_file_name: Name of the s3 file
     """
-    template = ''
-    sender_email = Config.objects.get(key='sender_email').value
     if not os.path.exists(audio_root):
-        template = template + 'Creating new folder %s <br/>' % audio_root
         os.makedirs(audio_root)
     if check_file_exist_in_s3(audio) is not False:
         audio_name = audio.replace('audio/', '')
-        template = template + 'Replace audio %s' % audio_name
         audio_file = download_file(audio_name, 'audio', audio_root)
         name = audio_name.split(".", 1)[0]
         extension = audio_name.split(".", 1)[1]
-        template = template + 'Extension is %s <br/>' % extension
-        template = template + 'Downloaded file is %s <br/>' % audio_file
         s3_file_name = 'audio/%s.m4a' % name
-        SendMail('Audio 1', template, sender_email=sender_email, to='akhilns@qburst.com')
         if extension.lower() == 'webm':
             new_audio_file = "%s%s.m4a" % (audio_root, name)
             convert_audio_file(audio_file, new_audio_file)
-            template = template + 'Audio is %s <br/>' % new_audio_file
-            SendMail('Audio 2', template, sender_email=sender_email, to='akhilns@qburst.com')
             try:
                 upload_image_s3(new_audio_file, s3_file_name)
-            except Exception as e:
-                SendMail('Audio 3', '%s and file is %s' % (template, str(e)), sender_email=sender_email, to='akhilns@qburst.com')
+            except Exception:
+                return audio
         return s3_file_name
     else:
-        SendMail('Not in s3', 'File not in s3', sender_email=sender_email, to='akhilns@qburst.com')
+        return audio
 
 
 def convert_audio_file(audio_file, new_audio_file):
@@ -1106,6 +1097,4 @@ def convert_audio_file(audio_file, new_audio_file):
     if os.path.exists(audio_file) and os.path.getsize(audio_file) > 10:
         return os.system("ffmpeg -i %s -strict -2 %s" % (audio_file, new_audio_file))
     else:
-        sender_email = Config.objects.get(key='sender_email').value
-        SendMail('Audio 4', 'File doesnt exist', sender_email=sender_email, to='akhilns@qburst.com')
-        return True
+        return False
