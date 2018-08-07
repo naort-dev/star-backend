@@ -287,7 +287,7 @@ class TransactionStargramzSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Stargramrequest
-        fields = ('id', 'fan', 'occasion', 'request_details')
+        fields = ('id', 'fan', 'occasion', 'request_details', 'booking_title')
 
     def get_request_details(self, obj):
         if obj.request_details:

@@ -84,7 +84,7 @@ def verify_user_role(request):
     :return: Boolean
     """
     role = get_user_role_details(request.user)
-    if role['role_code'] == 'R1005' or role['role_code'] == 'R1006':
+    if 'role_code' in role and (role['role_code'] == 'R1005' or role['role_code'] == 'R1006'):
         return False
     else:
         return True

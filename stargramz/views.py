@@ -107,7 +107,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
                     setattr(request_created, INPUT_FILE_LABEL, file_name)
                     request_created.save()
             if process_audio:
-                convert_to_mp3.delay(request_created.id)
+                convert_audio.delay(request_created.id)
             data = StargramzRetrieveSerializer(request_created).data
             return self.jp_response('HTTP_200_OK', data={'stargramz_response': data})
         else:

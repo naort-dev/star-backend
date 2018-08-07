@@ -1,6 +1,6 @@
 import os
 
-DEBUG = True
+DEBUG = False
 ALLOWED_HOSTS = ['*',]
 ENV_DIR = ''
 
