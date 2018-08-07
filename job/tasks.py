@@ -1074,7 +1074,7 @@ def process_audio_file(audio, audio_root):
         os.makedirs(audio_root)
     if check_file_exist_in_s3(audio) is not False:
         audio_name = audio.replace('audio/', '')
-        audio_file = download_file(audio_name, 'audio', audio_root)
+        audio_file = download_file(audio_name, 'audio/', audio_root)
         name = audio_name.split(".", 1)[0]
         extension = audio_name.split(".", 1)[1]
         s3_file_name = 'audio/%s.m4a' % name
