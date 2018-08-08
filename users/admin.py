@@ -44,6 +44,18 @@ class RoleInline(ReadOnlyStackedInline):
     verbose_name_plural = 'User role'
     can_delete = False
 
+    def get_readonly_fields(self, request, obj=None):
+        role = get_user_role_details(request.user)
+        if 'role_code' in role and role['role_code'] == 'R1005':
+            return self.readonly_fields
+        elif 'role_code' in role and role['role_code'] == 'R1006':
+            return self.readonly_fields + tuple([f.name for f in self.model._meta.fields])
+        else:
+            return self.readonly_fields
+
+    def has_change_permission(self, request, obj=None):
+        return True
+
 
 class ReferralTabular(ReadOnlyTabularInline):
     model = Referral
@@ -69,6 +81,18 @@ class NotificationSettingInline(ReadOnlyStackedInline):
     verbose_name_plural = 'Notification Settings'
     can_delete = False
 
+    def get_readonly_fields(self, request, obj=None):
+        role = get_user_role_details(request.user)
+        if 'role_code' in role and role['role_code'] == 'R1005':
+            return self.readonly_fields
+        elif 'role_code' in role and role['role_code'] == 'R1006':
+            return self.readonly_fields + tuple([f.name for f in self.model._meta.fields])
+        else:
+            return self.readonly_fields
+
+    def has_change_permission(self, request, obj=None):
+        return True
+
 
 class CelebrityInline(ReadOnlyStackedInline):
     model = Celebrity
@@ -84,10 +108,10 @@ class CelebrityInline(ReadOnlyStackedInline):
         user = StargramzUser.objects.get(username=request.user)
         role = get_user_role_details(user)
         if 'role_code' in role and role['role_code'] == 'R1005':
-            readonly = ('rate', 'weekly_limits', 'rating', 'follow_count','has_fan_account', 'remaining_limit')
+            readonly = ('rate', 'weekly_limits',) + self.readonly_fields
             return readonly
         elif 'role_code' in role and role['role_code'] == 'R1006':
-            return self.readonly_fields + self.fields
+            return self.readonly_fields + tuple([f.name for f in self.model._meta.fields])
         else:
             return self.readonly_fields
 
@@ -117,6 +141,18 @@ class ProfessionInline(ReadOnlyStackedInline):
     max_num = 3
     verbose_name_plural = 'Profession Details'
     can_delete = False
+
+    def get_readonly_fields(self, request, obj=None):
+        role = get_user_role_details(request.user)
+        if 'role_code' in role and role['role_code'] == 'R1005':
+            return self.readonly_fields
+        elif 'role_code' in role and role['role_code'] == 'R1006':
+            return self.readonly_fields + tuple([f.name for f in self.model._meta.fields])
+        else:
+            return self.readonly_fields
+
+    def has_change_permission(self, request, obj=None):
+        return True
 
 
 class StargramzUserAdmin(UserAdmin, ReadOnlyModelAdmin):
@@ -312,6 +348,16 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return True
+
+    def get_readonly_fields(self, request, obj=None):
+        role = get_user_role_details(request.user)
+        if 'role_code' in role and role['role_code'] == 'R1005':
+            return self.readonly_fields
+        elif 'role_code' in role and role['role_code'] == 'R1006':
+            return self.readonly_fields + tuple([f.name for f in self.model._meta.fields])
+        else:
+            return self.readonly_fields
+
 
 class ProfessionAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'title', 'parent', 'order')
