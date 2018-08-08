@@ -6,7 +6,7 @@ from ajaxadmin.serializer import StargramzAjaxSerializer
 from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
-from utilities.utils import upload_image_s3, get_pre_signed_get_url
+from utilities.utils import upload_image_s3, get_pre_signed_get_url, get_user_role_details
 import time
 import os
 from config.models import Config
@@ -137,6 +137,9 @@ def upload_images(request):
     """
     if not request.user.is_superuser:
         return HttpResponse('Not an admin user.')
+    role = get_user_role_details(request.user)
+    if 'role_code' in role and role['role_code'] == 'R1006':
+        return HttpResponse('Not an authorised user.')
 
     if request.method == 'POST' and request.FILES['image']:
 
@@ -185,6 +188,9 @@ def delete_images(request):
     """
     if not request.user.is_superuser:
         return HttpResponse('Not an admin user.')
+    role = get_user_role_details(request.user)
+    if 'role_code' in role and role['role_code'] == 'R1006':
+        return HttpResponse('Not an authorised user.')
 
     user_id = request.GET['user_id']
     id = request.GET['id']
@@ -209,6 +215,10 @@ def crop_images(request):
     """
         Crop the image and upload to s3
     """
+    role = get_user_role_details(request.user)
+    if 'role_code' in role and role['role_code'] == 'R1006':
+        return HttpResponse('Not an authorised user.')
+
     if not request.user.is_superuser:
         return HttpResponse('Not an admin user.')
 
@@ -265,6 +275,9 @@ def crop_featured_image(request):
     """
     if not request.user.is_superuser:
         return HttpResponse('Not an admin user.')
+    role = get_user_role_details(request.user)
+    if 'role_code' in role and role['role_code'] == 'R1006':
+        return HttpResponse('Not an authorised user.')
 
     if request.POST['featured_id']:
         pk = request.POST['featured_id']
@@ -321,6 +334,9 @@ def avatar_image(request):
 
     if not request.user.is_superuser:
         return HttpResponse('Not an admin user.')
+    role = get_user_role_details(request.user)
+    if 'role_code' in role and role['role_code'] == 'R1006':
+        return HttpResponse('Not an authorised user.')
 
     if request.POST['profile_image'] and request.POST['user_id']:
 
@@ -339,6 +355,9 @@ def run_process(request):
 
     if not request.user.is_superuser:
         return HttpResponse('Not an admin user.')
+    role = get_user_role_details(request.user)
+    if 'role_code' in role and role['role_code'] == 'R1006':
+        return HttpResponse('Not authorised.')
 
     if request.GET['process']:
         process = request.GET['process']
