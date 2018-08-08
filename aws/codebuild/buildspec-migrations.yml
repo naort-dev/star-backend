@@ -7,5 +7,5 @@ phases:
       - chmod +x aws/scripts/run-ecs-task.sh
   build:
     commands:
-      - aws/scripts/run-ecs-task.sh $ENV migration
-      - aws/scripts/run-ecs-task.sh $ENV load-data
+      - aws/scripts/run-ecs-task.sh production-backend-vpc $ENV migration
+      - aws/scripts/run-ecs-task.sh production-backend-vpc $ENV load-data

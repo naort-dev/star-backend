@@ -163,24 +163,6 @@ Resources:
           Name: Staging
           Actions:
             -
-              Name: vpc
-              InputArtifacts:
-                - Name: source
-                - Name: build
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Version: 1
-                Provider: CloudFormation
-              Configuration:
-                ActionMode: CREATE_UPDATE
-                RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
-                Capabilities: CAPABILITY_IAM
-                StackName: staging-backend-vpc
-                TemplateConfiguration: build::staging-vpc.json
-                TemplatePath: source::aws/cloudformation/vpc.yml
-              RunOrder: 1
-            -
               Name: app
               InputArtifacts:
                 - Name: source
@@ -197,7 +179,7 @@ Resources:
                 StackName: staging-backend-app
                 TemplateConfiguration: build::staging-backend.json
                 TemplatePath: source::aws/cloudformation/backend.yml
-              RunOrder: 2
+              RunOrder: 1
             -
               Name: migrations
               InputArtifacts:
@@ -228,24 +210,6 @@ Resources:
           Name: Production
           Actions:
             -
-              Name: vpc
-              InputArtifacts:
-                - Name: source
-                - Name: build
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Version: 1
-                Provider: CloudFormation
-              Configuration:
-                ActionMode: CREATE_UPDATE
-                RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
-                Capabilities: CAPABILITY_IAM
-                StackName: production-backend-vpc
-                TemplateConfiguration: build::production-vpc.json
-                TemplatePath: source::aws/cloudformation/vpc.yml
-              RunOrder: 1
-            -
               Name: app
               InputArtifacts:
                 - Name: source
@@ -262,7 +226,7 @@ Resources:
                 StackName: production-backend-app
                 TemplateConfiguration: build::production-backend.json
                 TemplatePath: source::aws/cloudformation/backend.yml
-              RunOrder: 2
+              RunOrder: 1
             -
               Name: migrations
               InputArtifacts:

@@ -5,6 +5,14 @@ Parameters:
     Type: String
     Description: The name of the parent networking stack
 
+  DomainName:
+    Type: String
+    Description: Domain name for ALB host based routing
+
+  PriorityPrefix:
+    Type: Number
+    Description: Prefix for ALB routing priorities
+
   Env:
     Type: String
     AllowedValues:
@@ -191,7 +199,7 @@ Resources:
     - WebLoadBalancerRuleStatic
     - WebLoadBalancerRuleMedia
     Properties:
-      ServiceName: 'web'
+      ServiceName: !Join ['-', [!Ref 'AWS::StackName', 'web']]
       Cluster:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'ClusterName']]
@@ -241,12 +249,14 @@ Resources:
         - TargetGroupArn: !Ref 'WebTargetGroup'
           Type: 'forward'
       Conditions:
+        - Field: host-header
+          Values: [!Ref 'DomainName']
         - Field: path-pattern
           Values: ['*']
       ListenerArn:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'PublicListenerHTTP']]
-      Priority: 1
+      Priority: !Join ['', [!Ref 'PriorityPrefix', '01']]
 
   WebLoadBalancerRuleStatic:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
@@ -255,12 +265,14 @@ Resources:
         - TargetGroupArn: !Ref 'WebTargetGroup'
           Type: 'forward'
       Conditions:
+        - Field: host-header
+          Values: [!Ref 'DomainName']
         - Field: path-pattern
           Values: ['/static/*']
       ListenerArn:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'PublicListenerHTTPS']]
-      Priority: 10
+      Priority: !Join ['', [!Ref 'PriorityPrefix', '10']]
 
   WebLoadBalancerRuleMedia:
     Type: AWS::ElasticLoadBalancingV2::ListenerRule
@@ -269,12 +281,14 @@ Resources:
         - TargetGroupArn: !Ref 'WebTargetGroup'
           Type: 'forward'
       Conditions:
+        - Field: host-header
+          Values: [!Ref 'DomainName']
         - Field: path-pattern
           Values: ['/media/*']
       ListenerArn:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'PublicListenerHTTPS']]
-      Priority: 20
+      Priority: !Join ['', [!Ref 'PriorityPrefix', '20']]
 
   #--------------------------------------------------------------------------------------------------------------------
   # POSTGRES
@@ -407,7 +421,7 @@ Resources:
     Type: AWS::ECS::Service
     DependsOn: BackendLoadBalancerRuleHTTPS
     Properties:
-      ServiceName: 'backend'
+      ServiceName: !Join ['-', [!Ref 'AWS::StackName', 'backend']]
       Cluster:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'ClusterName']]
@@ -457,12 +471,14 @@ Resources:
         - TargetGroupArn: !Ref 'BackendTargetGroup'
           Type: 'forward'
       Conditions:
+        - Field: host-header
+          Values: [!Ref 'DomainName']
         - Field: path-pattern
           Values: ['*']
       ListenerArn:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'PublicListenerHTTPS']]
-      Priority: 30
+      Priority: !Join ['', [!Ref 'PriorityPrefix', '30']]
 
   #--------------------------------------------------------------------------------------------------------------------
   # CELERY
@@ -517,7 +533,7 @@ Resources:
   CeleryBeatService:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: 'celery-beat'
+      ServiceName: !Join ['-', [!Ref 'AWS::StackName', 'celery-beat']]
       Cluster:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'ClusterName']]
@@ -587,7 +603,7 @@ Resources:
   CeleryWorkerService:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: 'celery-worker'
+      ServiceName: !Join ['-', [!Ref 'AWS::StackName', 'celery-worker']]
       Cluster:
         Fn::ImportValue:
           !Join [':', [!Ref 'StackName', 'ClusterName']]

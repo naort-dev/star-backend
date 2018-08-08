@@ -7,10 +7,6 @@ Description: This stack deploys a Fargate cluster that is in a VPC with both
              the private subnet, which can be used for private internal traffic
              between internal services.
 Parameters:
-  DomainName:
-    Type: String
-    Description: Domain name
-
   ValidationDomain:
     Type: String
     Default: starsona.com
@@ -313,12 +309,49 @@ Resources:
       Certificates:
       - CertificateArn: !Ref 'PublicLoadBalancerCertificate'
 
+  ListenerCertificate:
+    Type: AWS::ElasticLoadBalancingV2::ListenerCertificate
+    DependsOn:
+      - PublicLoadBalancerCertificate1
+      - PublicLoadBalancerCertificate2
+      - PublicLoadBalancerCertificate3
+    Properties:
+      Certificates:
+        - CertificateArn: !Ref 'PublicLoadBalancerCertificate1'
+        - CertificateArn: !Ref 'PublicLoadBalancerCertificate2'
+        - CertificateArn: !Ref 'PublicLoadBalancerCertificate3'
+      ListenerArn: !Ref 'PublicLoadBalancerListenerHTTPS'
+
   PublicLoadBalancerCertificate:
     Type: "AWS::CertificateManager::Certificate"
     Properties:
-      DomainName: !Ref 'DomainName'
+      DomainName: 'app.starsona.com'
       DomainValidationOptions:
-      - DomainName: !Ref 'DomainName'
+      - DomainName: 'app.starsona.com'
+        ValidationDomain: !Ref 'ValidationDomain'
+
+  PublicLoadBalancerCertificate1:
+    Type: "AWS::CertificateManager::Certificate"
+    Properties:
+      DomainName: 'starsona.com'
+      DomainValidationOptions:
+      - DomainName: 'starsona.com'
+        ValidationDomain: !Ref 'ValidationDomain'
+
+  PublicLoadBalancerCertificate2:
+    Type: "AWS::CertificateManager::Certificate"
+    Properties:
+      DomainName: 'app.staging.starsona.com'
+      DomainValidationOptions:
+      - DomainName: 'app.staging.starsona.com'
+        ValidationDomain: !Ref 'ValidationDomain'
+
+  PublicLoadBalancerCertificate3:
+    Type: "AWS::CertificateManager::Certificate"
+    Properties:
+      DomainName: 'staging.starsona.com'
+      DomainValidationOptions:
+      - DomainName: 'staging.starsona.com'
         ValidationDomain: !Ref 'ValidationDomain'
 
   # This is an IAM role which authorizes ECS to manage resources on your
@@ -452,8 +485,3 @@ Outputs:
     Value: !Ref 'FargateContainerSecurityGroup'
     Export:
       Name: !Join [ ':', [ !Ref 'AWS::StackName', 'FargateContainerSecurityGroup' ] ]
-  DomainName:
-    Description: Domain name
-    Value: !Ref 'DomainName'
-    Export:
-      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'DomainName' ] ]
