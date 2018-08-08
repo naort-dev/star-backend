@@ -31,32 +31,18 @@ from stargramz.models import StargramVideo
 from hashids import Hashids
 hashids = Hashids(min_length=8)
 
+
 def get_user_role_details(user):
     mappings = UserRoleMapping.objects.filter(user=user)
     role = {}
     if mappings:
         mapping = mappings[0]
-        if mapping.role.code == ROLES.fan:
-            role = {
-                'id': mapping.id,
-                'role_code': ROLES.fan,
-                'role_name': mapping.role.role_display(),
-                'is_complete': mapping.is_complete
-            }
-        elif mapping.role.code == ROLES.celebrity:
-            role = {
-                'id': mapping.id,
-                'role_code': ROLES.celebrity,
-                'role_name': mapping.role.role_display(),
-                'is_complete': mapping.is_complete
-            }
-        elif mapping.role.code == ROLES.admin:
-            role = {
-                'id': mapping.id,
-                'role_code': ROLES.admin,
-                'role_name': mapping.role.role_display(),
-                'is_complete': mapping.is_complete
-            }
+        role = {
+            'id': mapping.id,
+            'role_code': mapping.role.code,
+            'role_name': mapping.role.role_display(),
+            'is_complete': mapping.is_complete
+        }
     return role
 
 

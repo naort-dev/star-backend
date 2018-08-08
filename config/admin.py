@@ -1,9 +1,10 @@
 from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 from config.models import Config
+from utilities.admin_utils import ReadOnlyModelAdmin
 
 
-class ConfigAdmin(admin.ModelAdmin):
+class ConfigAdmin(ReadOnlyModelAdmin):
     """
         Configurable admin
     """

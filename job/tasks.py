@@ -976,6 +976,9 @@ def download_file(video, s3folder, your_media_root):
     video_url = get_pre_signed_get_url(video, s3folder)
     video_download = your_media_root + video
 
+    if not os.path.exists(your_media_root):
+        os.makedirs(your_media_root)
+
     try:
         # Downloading video from s3
         urllib.request.urlretrieve(video_url, video_download)
@@ -1037,14 +1040,14 @@ def fix_corrupted_video(video_file, new_video_file):
 
 
 @app.task
-def convert_to_mp3(booking_id):
+def convert_audio(booking_id):
     """
-    Convert the webm audio file to mp3 to make it audible in mobile apps(iOS and Android)
+    Convert the webm audio file to m4a to make it audible in mobile apps(iOS and Android)
 
     :param booking_id
     :return: boolean
     """
-    your_audio_root = settings.MEDIA_ROOT + 'audios/'
+    your_audio_root = settings.MEDIA_ROOT + 'uploads/'
     booking = Stargramrequest.objects.get(id=booking_id)
     is_update = False
     if booking.from_audio_file:
@@ -1054,9 +1057,8 @@ def convert_to_mp3(booking_id):
         booking.to_audio_file = process_audio_file(booking.to_audio_file, your_audio_root)
         is_update = True
 
-    #if is_update:
-    booking.save()
-    print("Updated the audio files and uploaded to s3")
+    if is_update:
+        booking.save()
 
     return True
 
@@ -1066,31 +1068,33 @@ def process_audio_file(audio, audio_root):
     Processing audio file download the audio file, convert the webm file and uploads
     :param audio: Audio file path
     :param audio_root: path of audio folder
-    :return: s3_file_name: s3 audio file name
+    :return s3_file_name: Name of the s3 file
     """
     if not os.path.exists(audio_root):
         os.makedirs(audio_root)
-    audio_name = audio.replace('audio/', '')
-    download_file(audio_name, 'audio', audio_root)
-    name = audio_name.split(".", 1)[0]
-    extension = audio_name.split(".", 1)[1]
-    s3_file_name = 'audio/%s.mp3' % name
-    sender_email = Config.objects.get(key='sender_email').value
-    SendMail('Audio Conversion', 's3 Audio file is %s' % s3_file_name, sender_email=sender_email, to='akhilns@qburst.com')
-    if extension.lower() == 'webm':
-        audio_file = audio_root + audio_name
-        new_audio_file = "%s%s.mp3" % (audio_root, name)
-        if convert_audio_file(audio_file, new_audio_file):
-            SendMail('Audio Conversion', 'Audio file is %s' % new_audio_file, sender_email=sender_email, to='akhilns@qburst.com')
+    if check_file_exist_in_s3(audio) is not False:
+        audio_name = audio.replace('audio/', '')
+        audio_file = download_file(audio_name, 'audio/', audio_root)
+        name = audio_name.split(".", 1)[0]
+        extension = audio_name.split(".", 1)[1]
+        s3_file_name = 'audio/%s.m4a' % name
+        if extension.lower() == 'webm':
+            new_audio_file = "%s%s.m4a" % (audio_root, name)
+            convert_audio_file(audio_file, new_audio_file)
             try:
                 upload_image_s3(new_audio_file, s3_file_name)
-            except Exception as e:
-                SendMail('Audio Conversion', 'Audio file is %s' % str(e), sender_email=sender_email, to='akhilns@qburst.com')
-    return s3_file_name
+            except Exception:
+                return audio
+        return s3_file_name
+    else:
+        return audio
 
 
 def convert_audio_file(audio_file, new_audio_file):
     """
-    Converting webm to mp3
+    Converting webm to m4a
     """
-    return os.system("ffmpeg -i %s -vn -ab 128k -ar 44100 -y %s" % (audio_file, new_audio_file))
+    if os.path.exists(audio_file) and os.path.getsize(audio_file) > 10:
+        return os.system("ffmpeg -i %s -strict -2 %s" % (audio_file, new_audio_file))
+    else:
+        return False

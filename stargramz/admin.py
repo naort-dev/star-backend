@@ -5,10 +5,11 @@ from payments.models import StarsonaTransaction
 from config.models import Config
 from django.utils.safestring import mark_safe
 from utilities.utils import get_pre_signed_get_url, get_audio
+from utilities.admin_utils import ReadOnlyModelAdmin, ReadOnlyStackedInline, ReadOnlyTabularInline
 import json
 
 
-class AbuseInline(admin.StackedInline):
+class AbuseInline(ReadOnlyStackedInline):
     model = ReportAbuse
     fields = ('request', 'comments', 'reported_by', 'read_flag')
     min_num = 0
@@ -23,7 +24,7 @@ class AbuseInline(admin.StackedInline):
         return False
 
 
-class TransactionsInline(admin.StackedInline):
+class TransactionsInline(ReadOnlyStackedInline):
     model = StarsonaTransaction
     fields = ('starsona', 'fan', 'celebrity', 'transaction_status', 'source_id',
               'stripe_transaction_id', 'stripe_refund_id', 'amount', 'comments')
@@ -40,7 +41,7 @@ class TransactionsInline(admin.StackedInline):
         return False
 
 
-class StargramVideosInline(admin.StackedInline):
+class StargramVideosInline(ReadOnlyStackedInline):
     model = StargramVideo
     fields = ('stragramz_request', 'video_thumbnail', 'video_link', 'video',
               'duration', 'created_date')
@@ -80,7 +81,7 @@ class StargramVideosInline(admin.StackedInline):
             return mark_safe('<span>No Video available.</span>')
 
 
-class OrderRelationshipInline(admin.TabularInline):
+class OrderRelationshipInline(ReadOnlyTabularInline):
     model = OrderRelationship
     extra = 1
     can_delete = True
@@ -91,7 +92,7 @@ class OrderRelationshipInline(admin.TabularInline):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-class OcccassionRelationshipAdmin(admin.ModelAdmin):
+class OcccassionRelationshipAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'title', 'status')
 
     fieldsets = (
@@ -100,7 +101,7 @@ class OcccassionRelationshipAdmin(admin.ModelAdmin):
     ordering = ('id',)
 
 
-class AbuseAdmin(admin.ModelAdmin):
+class AbuseAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'request_url', 'reported_by', 'read_flag')
     fieldsets = (
         (_('Basic info'), {'fields': ('request', 'comments', 'reported_by', 'read_flag')}),
@@ -114,7 +115,7 @@ class AbuseAdmin(admin.ModelAdmin):
     request_url.short_description = 'Request'
 
 
-class OccasionAdmin(admin.ModelAdmin):
+class OccasionAdmin(ReadOnlyModelAdmin):
     # form = CategoriesForm
     list_display = ('id', 'title')
 
@@ -126,7 +127,7 @@ class OccasionAdmin(admin.ModelAdmin):
     inlines = (OrderRelationshipInline,)
 
 
-class StargramrequestAdmin(admin.ModelAdmin):
+class StargramrequestAdmin(ReadOnlyModelAdmin):
 
     actions = ['make_complete']
     list_display = ('id', 'fan', 'celebrity', 'occasion', 'request_status',)
@@ -172,7 +173,7 @@ class StargramrequestAdmin(admin.ModelAdmin):
         return mark_safe("<table width='500px'>%s</table>" % string)
 
 
-class StargramVideosAdmin(admin.ModelAdmin):
+class StargramVideosAdmin(ReadOnlyModelAdmin):
 
     list_display = ('id', 'stragramz_request', 'video_duration', 'status', 'created_date')
 
@@ -213,6 +214,7 @@ class StargramVideosAdmin(admin.ModelAdmin):
                              % get_pre_signed_get_url(instance.video, config.value))
         else:
             return mark_safe('<span>No Video available.</span>')
+
 
 
 admin.site.register(ReportAbuse, AbuseAdmin)

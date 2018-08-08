@@ -7,12 +7,13 @@ from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profe
 from role.models import Role
 from payments.models import PaymentPayout
 from utilities.konstants import ROLES
-from utilities.utils import get_profile_images, get_profile_video, get_featured_image
+from utilities.utils import get_profile_images, get_profile_video, get_featured_image, get_user_role_details
 from django.db.models import Q
 from django.utils.safestring import mark_safe
+from utilities.admin_utils import ReadOnlyModelAdmin, ReadOnlyStackedInline, ReadOnlyTabularInline
 
 
-class PayoutsTabular(admin.TabularInline):
+class PayoutsTabular(ReadOnlyTabularInline):
     model = PaymentPayout
     fields = ('id', 'request_name', 'status', 'fan_charged', 'starsona_company_charges',
               'fund_payed_out', 'comments', 'referral_payout')
@@ -36,7 +37,7 @@ class PayoutsTabular(admin.TabularInline):
         return False
 
 
-class RoleInline(admin.StackedInline):
+class RoleInline(ReadOnlyStackedInline):
     model = UserRoleMapping
     fields = ('role', 'is_complete')
     max_num = 1
@@ -44,7 +45,7 @@ class RoleInline(admin.StackedInline):
     can_delete = False
 
 
-class ReferralTabular(admin.TabularInline):
+class ReferralTabular(ReadOnlyTabularInline):
     model = Referral
     fields = ('id', 'referee', 'created_date')
     verbose_name_plural = 'Referrals'
@@ -60,7 +61,7 @@ class ReferralTabular(admin.TabularInline):
         return False
 
 
-class NotificationSettingInline(admin.StackedInline):
+class NotificationSettingInline(ReadOnlyStackedInline):
     model = SettingsNotifications
     fields = ('celebrity_starsona_request', 'celebrity_starsona_message', 'celebrity_account_updates',
               'fan_account_updates', 'fan_starsona_messages', 'fan_starsona_videos', 'fan_email_starsona_videos')
@@ -69,7 +70,7 @@ class NotificationSettingInline(admin.StackedInline):
     can_delete = False
 
 
-class CelebrityInline(admin.StackedInline):
+class CelebrityInline(ReadOnlyStackedInline):
     model = Celebrity
     fields = ('rate', 'availability', 'admin_approval', 'rating', 'weekly_limits', 'remaining_limit', 'follow_count',
               'featured', 'description', 'charity', 'has_fan_account',
@@ -79,8 +80,19 @@ class CelebrityInline(admin.StackedInline):
     verbose_name_plural = 'Celebrity Details'
     can_delete = False
 
+    def get_readonly_fields(self, request, obj=None):
+        user = StargramzUser.objects.get(username=request.user)
+        role = get_user_role_details(user)
+        if role['role_code'] == 'R1005':
+            readonly = ('rate', 'weekly_limits', 'rating', 'follow_count','has_fan_account', 'remaining_limit')
+            return readonly
+        elif role['role_code'] == 'R1006':
+            return self.readonly_fields + self.fields
+        else:
+            return self.readonly_fields
 
-class RatingInline(admin.TabularInline):
+
+class RatingInline(ReadOnlyTabularInline):
     model = FanRating
     fields = ('fan_rate', 'starsona', 'fan', 'comments', 'created_date')
     readonly_fields = ('fan_rate', 'starsona', 'fan', 'comments', 'created_date')
@@ -96,7 +108,7 @@ class RatingInline(admin.TabularInline):
         return False
 
 
-class ProfessionInline(admin.StackedInline):
+class ProfessionInline(ReadOnlyStackedInline):
     model = CelebrityProfession
     fields = ('profession', )
     max_num = 3
@@ -104,9 +116,10 @@ class ProfessionInline(admin.StackedInline):
     can_delete = False
 
 
-class StargramzUserAdmin(UserAdmin):
+class StargramzUserAdmin(UserAdmin, ReadOnlyModelAdmin):
     add_form = UserCreationForm
     list_display = ('id', 'username', 'first_name', 'last_name', 'user_types')
+    list_filter = ('stargramz_user__role__name',)
 
     def user_types(self, obj):
         role = UserRoleMapping.objects.get(user_id=obj.id)
@@ -134,7 +147,7 @@ class StargramzUserAdmin(UserAdmin):
     ordering = ['-id', ]
 
 
-class AdminUsersAdmin(UserAdmin):
+class AdminUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     name = 'myadmin'
     add_form = UserCreationForm
     list_display = ('id', 'username', 'first_name', 'last_name', 'user_types')
@@ -169,7 +182,7 @@ class AdminUsersAdmin(UserAdmin):
         return self.model.objects.filter(stargramz_user__role_id=role_id)
 
 
-class FanUsersAdmin(UserAdmin):
+class FanUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     add_form = UserCreationForm
     list_display = ('id', 'first_name', 'last_name', 'username',)
 
@@ -213,7 +226,7 @@ class FanUsersAdmin(UserAdmin):
         profile_images.short_description = "Profile Images"
 
 
-class CelebrityUsersAdmin(UserAdmin):
+class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     add_form = UserCreationForm
     list_display = ('id', 'first_name', 'last_name', 'username', 'order')
     list_filter = ('celebrity_user__admin_approval', 'stargramz_user__is_complete')
@@ -286,7 +299,7 @@ class CelebrityUsersAdmin(UserAdmin):
                                          Q(celebrity_user__isnull=False))
 
 
-class ProfessionAdmin(admin.ModelAdmin):
+class ProfessionAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'title', 'parent', 'order')
     search_fields = ('title',)
     ordering = ('title',)
@@ -304,14 +317,14 @@ class ProfessionAdmin(admin.ModelAdmin):
         return fieldsets
 
 
-class RatingAdmin(admin.ModelAdmin):
+class RatingAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'fan_rate', 'celebrity', 'fan')
     list_per_page = 10
     ordering = ('id',)
     ordering = ['id', ]
 
 
-class CampaignAdmin(admin.ModelAdmin):
+class CampaignAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'title', 'discount', 'created_date')
 
     list_per_page = 10

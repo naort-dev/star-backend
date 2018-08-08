@@ -22,5 +22,29 @@
       "code": "R1003",
       "name": "Admin"
     }
+  },
+  {
+    "model": "role.role",
+    "pk": 4,
+    "fields": {
+      "code": "R1004",
+      "name": "Group Account"
+    }
+  },
+  {
+    "model": "role.role",
+    "pk": 5,
+    "fields": {
+      "code": "R1005",
+      "name": "Reviewer"
+    }
+  },
+  {
+    "model": "role.role",
+    "pk": 6,
+    "fields": {
+      "code": "R1006",
+      "name": "Watcher"
+    }
   }
 ]
