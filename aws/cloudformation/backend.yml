@@ -43,10 +43,6 @@ Parameters:
     Type: String
     Default: starsona
 
-  DatabaseSnapshot:
-    Type: String
-    Default: ''
-
   BucketName:
     Type: String
     AllowedValues:
@@ -135,7 +131,6 @@ Parameters:
 Conditions:
   ManagedBucket: !Not [ !Equals [!Ref 'BucketName', 'starsona'] ]
   ManagedIdentityPool:  !Equals [!Ref 'IdentityPoolId', '']
-  RestoreDatabaseSnapshot: !Not [ !Equals [!Ref 'DatabaseSnapshot', ''] ]
 
 Resources:
 
@@ -321,7 +316,6 @@ Resources:
       MasterUsername: !Ref 'DatabaseUser'
       MasterUserPassword: !Ref 'DatabasePassword'
       DBSubnetGroupName: !Ref 'DBSubnets'
-      DBSnapshotIdentifier: !If [RestoreDatabaseSnapshot, !Ref 'DatabaseSnapshot', !Ref 'AWS::NoValue']
       VPCSecurityGroups:
         - Fn::ImportValue:
             !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
