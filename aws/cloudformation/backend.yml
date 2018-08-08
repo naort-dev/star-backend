@@ -321,7 +321,7 @@ Resources:
       MasterUsername: !Ref 'DatabaseUser'
       MasterUserPassword: !Ref 'DatabasePassword'
       DBSubnetGroupName: !Ref 'DBSubnets'
-      DBSnapshotIdentifier: !If [RestoreDatabaseSnapshot, !Ref 'DatabaseSnapshot', !Ref 'AWS::NoValue'] ;
+      DBSnapshotIdentifier: !If [RestoreDatabaseSnapshot, !Ref 'DatabaseSnapshot', !Ref 'AWS::NoValue']
       VPCSecurityGroups:
         - Fn::ImportValue:
             !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
