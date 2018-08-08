@@ -234,7 +234,7 @@ Resources:
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
       TargetType: ip
-      Name: !Join ['-', [!Ref 'AWS::StackName', 'web']]
+      #Name: !Join ['-', [!Ref 'AWS::StackName', 'web']]
       Port: !Ref 'HttpPort'
       Protocol: HTTP
       UnhealthyThresholdCount: 2
@@ -456,7 +456,7 @@ Resources:
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
       TargetType: ip
-      Name: !Join ['-', [!Ref 'AWS::StackName', 'backend']]
+      #Name: !Join ['-', [!Ref 'AWS::StackName', 'backend']]
       Port: !Ref 'BackendPort'
       Protocol: HTTP
       UnhealthyThresholdCount: 2
