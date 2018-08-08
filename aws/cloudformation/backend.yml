@@ -324,7 +324,7 @@ Resources:
   # MEMCACHED
   # Results Backend for Celery
   #--------------------------------------------------------------------------------------------------------------------
-  CacheSubnetGroup:
+  CacheSubnets:
       Type: AWS::ElastiCache::SubnetGroup
       Properties:
         Description: !Ref 'AWS::StackName'
@@ -346,7 +346,7 @@ Resources:
       Type: AWS::ElastiCache::CacheCluster
       Properties:
         CacheParameterGroupName: !Ref 'CacheParameters'
-        CacheSubnetGroupName: !Ref 'CacheSubnetGroup'
+        CacheSubnetGroupName: !Ref 'CacheSubnets'
         CacheNodeType: !Ref 'CacheNodeType'
         VpcSecurityGroupIds:
           - Fn::ImportValue:
