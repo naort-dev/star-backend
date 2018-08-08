@@ -68,12 +68,10 @@ class ReadOnlyModelAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return True if verify_user_role(request) else False
 
-    def change_view(self, request, object_id=None, form_url='', extra_context=None):
-        extra_context = extra_context or {}
-        if not verify_user_role(request):
+    def change_view(self, request, object_id=None, form_url='', extra_context={}):
+        if not extra_context and not verify_user_role(request):
             extra_context['show_save_and_continue'] = False
             extra_context['show_save'] = False
-
         return super().change_view(request, object_id, extra_context=extra_context)
 
 

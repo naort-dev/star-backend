@@ -91,6 +91,9 @@ class CelebrityInline(ReadOnlyStackedInline):
         else:
             return self.readonly_fields
 
+    def has_change_permission(self, request, obj=None):
+        return True
+
 
 class RatingInline(ReadOnlyTabularInline):
     model = FanRating
@@ -298,6 +301,17 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
         return self.model.objects.filter(Q(stargramz_user__role_id=role_id) |
                                          Q(celebrity_user__isnull=False))
 
+    def change_view(self, request, object_id=None, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        role = get_user_role_details(request.user)
+        if 'role_code' in role and role['role_code'] == 'R1005':
+            extra_context['show_save_and_continue'] = True
+            extra_context['show_save'] = True
+
+        return super().change_view(request, object_id, extra_context=extra_context)
+
+    def has_change_permission(self, request, obj=None):
+        return True
 
 class ProfessionAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'title', 'parent', 'order')
