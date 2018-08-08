@@ -295,7 +295,7 @@ Resources:
   # Database
   #--------------------------------------------------------------------------------------------------------------------
 
-  DBSubnetGroup:
+  DBSubnets:
     Type: 'AWS::RDS::DBSubnetGroup'
     Properties:
       DBSubnetGroupDescription: !Ref 'AWS::StackName'
@@ -315,7 +315,7 @@ Resources:
       EngineVersion: '9.5'
       MasterUsername: !Ref 'DatabaseUser'
       MasterUserPassword: !Ref 'DatabasePassword'
-      DBSubnetGroupName: !Ref 'DBSubnetGroup'
+      DBSubnetGroupName: !Ref 'DBSubnets'
       VPCSecurityGroups:
         - Fn::ImportValue:
             !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
