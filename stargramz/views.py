@@ -842,8 +842,8 @@ def profile_detail(request, user_id):
         Get the web view for Profile details
     """
     try:
-        profile_id = int(hashids.decode(user_id)[0])
-    except Exception as e:
+        profile_id = VanityUrl.objects.values_list('user_id', flat=True).get(name=user_id)
+    except Exception:
         pass
 
     data = {
