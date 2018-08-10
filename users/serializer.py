@@ -9,7 +9,8 @@ from utilities.konstants import INPUT_DATE_FORMAT, OUTPUT_DATE_FORMAT, ROLES
 from config.models import Config
 from config.constants import *
 from .models import StargramzUser, SIGN_UP_SOURCE_CHOICES, Celebrity, Profession, UserRoleMapping, ProfileImage, \
-    CelebrityAbuse, CelebrityProfession, CelebrityFollow, DeviceTokens, SettingsNotifications, FanRating, Referral
+    CelebrityAbuse, CelebrityProfession, CelebrityFollow, DeviceTokens, SettingsNotifications, FanRating, Referral,\
+    VanityUrl
 from .impersonators import IMPERSONATOR
 from role.models import Role
 from datetime import datetime, timedelta
@@ -111,7 +112,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         return obj.referral_code if obj.referral_active and obj.referral_campaign else None
 
     def get_user_id(self, obj):
-        return hashids.encode(obj.id)
+        try:
+            return VanityUrl.objects.values_list('name', flat=True).get(user=obj.id)
+        except Exception:
+            return ''
 
     def get_images(self, obj):
         exclude_ids = []
@@ -624,7 +628,10 @@ class UserSerializer(serializers.ModelSerializer):
             return [{}]
 
     def get_user_id(self, obj):
-        return hashids.encode(obj.id)
+        try:
+            return VanityUrl.objects.values_list('name', flat=True).get(user=obj.id)
+        except Exception:
+            return ''
 
     def get_celebrity_follow(self, obj):
         if self.context['request'].user:

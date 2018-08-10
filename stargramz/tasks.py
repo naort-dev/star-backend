@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals
 from main.celery import app
 from django.db.models import Q
 from .models import Stargramrequest, STATUS_TYPES
+from users.models import VanityUrl
 from django.utils import timezone
 import datetime
 from notification.tasks import send_notification
@@ -64,6 +65,11 @@ def cancel_starsona_celebrity_no_response():
         sender_email = Config.objects.get(key='sender_email').value
         base_url = Config.objects.get(key='base_url').value
 
+        try:
+            vanity_url = VanityUrl.objects.values_list('name', flat=True).get(user_id=request.celebrity.id)
+        except Exception:
+            vanity_url = ''
+
         ctx = {
             'base_url': base_url,
             'celebrity_name': request.celebrity.get_short_name(),
@@ -72,8 +78,8 @@ def cancel_starsona_celebrity_no_response():
             'app_url': generate_branch_io_url(
                 title="%s was unable to fulfill your booking request" % request.celebrity.get_short_name(),
                 desc="%s was unable to fulfill your booking request." % request.celebrity.get_short_name(),
-                mob_url='profile/?profile_id=%s' % hashids.encode(request.celebrity.id),
-                desktop_url='%sapplinks/profile/%s' % (base_url, hashids.encode(request.celebrity.id)),
+                mob_url='profile/?profile_id=%s' % vanity_url,
+                desktop_url='%sapplinks/profile/%s' % (base_url, vanity_url),
                 image_url='%smedia/web-images/starsona_logo.png' % base_url,
             )
         }

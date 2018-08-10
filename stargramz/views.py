@@ -10,7 +10,7 @@ from utilities.konstants import ROLES, NOTIFICATION_TYPES
 from config.models import Config
 from config.constants import *
 from utilities.constants import BASE_URL
-from users.models import StargramzUser, Celebrity, UserRoleMapping, ProfileImage
+from users.models import StargramzUser, Celebrity, UserRoleMapping, ProfileImage, VanityUrl
 import json
 from .models import Stargramrequest, StargramVideo, OccasionRelationship, Occasion, STATUS_TYPES, REQUEST_TYPES,\
     VIDEO_STATUS
@@ -865,13 +865,17 @@ def profile_detail(request, user_id):
         picture = ProfileImage.objects.values('thumbnail').get(id=profile.get('user__avatar_photo'))
 
         config = Config.objects.get(key='profile_images')
+        try:
+            vanity_url = VanityUrl.objects.values_list('name', flat=True).get(user_id=profile_id)
+        except Exception:
+            vanity_url = ''
 
         data = {
             "id": user_id,
             "description": "Book a personalized video shout-out from %s %s" %
                            (profile.get("user__first_name"), profile.get("user__last_name")),
             "image": get_pre_signed_get_url(picture.get('thumbnail'), config.value, 1314000),
-            "url": "%sapplinks/profile/%s" % (BASE_URL, user_id),
+            "url": "%sapplinks/profile/%s" % (BASE_URL, vanity_url),
             "title": "%s" % (profile.get("user__first_name")+' '+profile.get("user__last_name") if not profile.get("user__nick_name", None)
                              else profile.get("user__nick_name", None))
             }

@@ -10,7 +10,7 @@ from payments.models import StarsonaTransaction
 from django.utils import timezone
 import datetime
 from users.serializer import ProfilePictureSerializer, CelebrityRatingSerializer, CelebrityProfessionSerializer
-from users.models import ProfileImage, FanRating, CelebrityProfession, StargramzUser, CelebrityFollow
+from users.models import ProfileImage, FanRating, CelebrityProfession, StargramzUser, CelebrityFollow, VanityUrl
 from payments.models import StarsonaTransaction
 from django.db.models import Q
 from hashids import Hashids
@@ -74,7 +74,10 @@ class StargramzVideoSerializer(CustomModelSerializer):
         fields = '__all__'
 
     def get_user_id(self, obj):
-        return hashids.encode(obj.stragramz_request.celebrity_id)
+        try:
+            return VanityUrl.objects.values_list('name', flat=True).get(user_id=obj.stragramz_request.celebrity_id)
+        except Exception:
+            return ''
 
     def get_booking_id(self, obj):
         return hashids.encode(obj.stragramz_request_id)
