@@ -28,7 +28,7 @@ urlpatterns = [
     url(r'^applinks/reset$', TemplateView.as_view(template_name="home/index.html")),
     url(r'^(?P<id>[0-9a-zA-Z]{5,8})/$', play_video, name="play-video"),
     url(r'^video/(?P<id>[0-9a-zA-Z]{5,8})/$', play_video, name="play-video"),
-    url(r'^applinks/profile/(?P<user_id>[0-9a-zA-Z]{5,8})/$', profile_detail, name="profile-details"),
+    url(r'^applinks/profile/(?P<user_id>[-\w]+)/$', profile_detail, name="profile-details"),
     url(r'^applinks/request/(?P<role>[0-9a-zA-Z]{5})/(?P<request_id>[0-9a-zA-Z]{5,8})$', request_detail, name="request-details"),
     url(r'^api/v1/ajax/', include('ajaxadmin.urls')),
     url(r'^api/v1/user/', include('users.urls')),
