@@ -422,11 +422,15 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
             return self.jp_error_response('HTTP_403_FORBIDDEN', 'INVALID_USER', 'Not an authorized user.')
 
         data = RegisterSerializer(user, context={'request': request}).data
+        try:
+            vanity_url = VanityUrl.objects.values_list('name', flat=True).get(user_id=user.id)
+        except Exception:
+            vanity_url = ''
         data['role_details'] = get_user_role_details(user)
         response_data = dict(user=data)
         data['is_follow'] = True if user_followed else False
         data['authentication_token'] = None
-        data['share_url'] = '%sapplinks/profile/%s/' % (BASE_URL, str(hashids.encode(user.pk)))
+        data['share_url'] = '%sapplinks/profile/%s/' % (BASE_URL, str(vanity_url))
         data['celebrity'] = celebrity
         data['unseen_bookings'] = 0
 
@@ -508,10 +512,13 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
                                           self.error_msg_string(serializer.errors))
 
     def verify_hash_token(self, pk):
+
         try:
-            return int(hashids.decode(pk)[0])
+            user_id = VanityUrl.objects.values_list('user', flat=True).get(name=pk)
+            return int(user_id)
         except Exception:
             return pk
+
 
 
 class DeviceToken(APIView, ResponseViewMixin):

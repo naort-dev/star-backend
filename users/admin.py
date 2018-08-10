@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import admin
 from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profession, \
-    UserRoleMapping, Celebrity, CelebrityProfession, SettingsNotifications, FanRating, Campaign, Referral
+    UserRoleMapping, Celebrity, CelebrityProfession, SettingsNotifications, FanRating, Campaign, Referral, VanityUrl
 from role.models import Role
 from payments.models import PaymentPayout
 from utilities.konstants import ROLES
@@ -71,6 +71,14 @@ class ReferralTabular(ReadOnlyTabularInline):
     def has_add_permission(self, request):
 
         return False
+
+
+class VanityUrlInline(ReadOnlyStackedInline):
+    model = VanityUrl
+    fields = ('name',)
+    readonly_fields = ('name',)
+    can_delete = False
+    max_num = 1
 
 
 class NotificationSettingInline(ReadOnlyStackedInline):
@@ -298,7 +306,7 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     readonly_fields = ('created_date', 'modified_date', 'profile_images', 'profile_video',
                        'stripe_customer_id', 'featured_image', 'stripe_user_id')
     list_per_page = 10
-    inlines = [RoleInline, CelebrityInline, ProfessionInline, NotificationSettingInline, PayoutsTabular,
+    inlines = [RoleInline, VanityUrlInline, CelebrityInline, ProfessionInline, NotificationSettingInline, PayoutsTabular,
                RatingInline, ReferralTabular]
     ordering = ['-id', ]
 

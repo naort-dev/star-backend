@@ -6,7 +6,7 @@ from django.dispatch import receiver
 from django.db.models import F
 from role.models import Role
 from utilities.konstants import Konstants, K, ROLES, NOTIFICATION_TYPES as device_notify
-from .utils import generate_referral_unique_code
+from .utils import generate_referral_unique_code, generate_vanity_url
 from django.core.validators import MaxValueValidator, MinValueValidator
 from .constants import *
 from stargramz.models import Stargramrequest
@@ -422,3 +422,19 @@ class Referral(models.Model):
     referee = models.ForeignKey('StargramzUser', related_name='refer_referee')
     source = models.CharField('Source', max_length=100)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
+
+
+class VanityUrl(models.Model):
+    name = models.CharField('Name', unique=True, max_length=100)
+    user = models.OneToOneField('StargramzUser', related_name='vanity_urls', blank=False)
+    created_date = models.DateTimeField('Created Date', auto_now_add=True)
+
+
+@receiver(post_save, sender=StargramzUser)
+def execute_after_save(sender, instance, created, *args, **kwargs):
+    if created:
+        code = generate_vanity_url(instance)
+        try:
+            VanityUrl.objects.create(name=code, user=instance)
+        except Exception:
+            pass
