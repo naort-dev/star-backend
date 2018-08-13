@@ -27,6 +27,10 @@ do
 done
 fi
 
+if [ -n "$BACKGROUND" ]; then
+    eval "$BACKGROUND" &
+fi
+
 echo "Starting main process:"
 echo "    $@"
 exec "$@"

@@ -599,6 +599,7 @@ Resources:
           - { Name: STRIPE_CLIENT_ID, Value: !Ref 'StripeClientId' }
           - { Name: STRIPE_SECRET_KEY, Value: !Ref 'StripeSecretKey' }
           - { Name: BRANCH_IO_KEY, Value: !Ref 'BranchIOKey' }
+          - { Name: BACKGROUND, Value: 'python manage.py celery_metrics'}
 
   CeleryWorkerService:
     Type: AWS::ECS::Service
@@ -624,6 +625,105 @@ Resources:
             - Fn::ImportValue:
                 !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
       TaskDefinition: !Ref 'CeleryWorkerTaskDefinition'
+
+#  AutoscalingRole:
+#    Type: AWS::IAM::Role
+#    Properties:
+#      AssumeRolePolicyDocument:
+#        Statement:
+#        - Effect: Allow
+#          Principal:
+#            Service: [application-autoscaling.amazonaws.com]
+#          Action: ['sts:AssumeRole']
+#      Path: /
+#      Policies:
+#      - PolicyName: service-autoscaling
+#        PolicyDocument:
+#          Statement:
+#          - Effect: Allow
+#            Action:
+#            - 'application-autoscaling:*'
+#            - 'cloudwatch:DescribeAlarms'
+#            - 'cloudwatch:PutMetricAlarm'
+#            - 'ecs:DescribeServices'
+#            - 'ecs:UpdateService'
+#            Resource: '*'
+#
+#  CeleryWorkerScalingTarget:
+#    Type: AWS::ApplicationAutoScaling::ScalableTarget
+#    DependsOn: CeleryWorkerService
+#    Properties:
+#      MaxCapacity: 1
+#      MinCapacity: 0
+#      ResourceId: !Join
+#        - '/'
+#        - - 'service'
+#          - Fn::ImportValue:
+#              !Join [':', [!Ref 'StackName', 'ClusterName']]
+#          - !Join ['-', [!Ref 'AWS::StackName', 'celery-worker']]
+#      RoleARN: !GetAtt [AutoscalingRole, Arn]
+#      ScalableDimension: ecs:service:DesiredCount
+#      ServiceNamespace: ecs
+#
+#  CeleryWorkerScalingPolicyUp:
+#    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+#    Properties:
+#      PolicyName: CeleryWorkerStepPolicy
+#      PolicyType: StepScaling
+#      ScalingTargetId: !Ref 'CeleryWorkerScalingTarget'
+#      StepScalingPolicyConfiguration:
+#        AdjustmentType: ChangeInCapacity
+#        Cooldown: 60
+#        MetricAggregationType: Average
+#        StepAdjustments:
+#        - MetricIntervalLowerBound: 0
+#          ScalingAdjustment: 1
+#
+#  SQSAlarmScaleUp:
+#    Type: AWS::CloudWatch::Alarm
+#    Properties:
+#      EvaluationPeriods: 1
+#      Statistic: Sum
+#      Threshold: 0
+#      AlarmDescription: Alarm if our there are messages in SQS queue
+#      Period: 60
+#      AlarmActions: [!Ref 'CeleryWorkerScalingPolicyUp']
+#      Namespace: AWS/SQS
+#      Dimensions:
+#        - Name: QueueName
+#          Value: !Join ['-', [!Ref 'AWS::StackName', 'celery']]
+#      ComparisonOperator: GreaterThanThreshold
+#      MetricName: ApproximateNumberOfMessagesVisible
+#
+#  CeleryWorkerScalingPolicyDown:
+#    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+#    Properties:
+#      PolicyName: CeleryWorkerStepPolicy
+#      PolicyType: StepScaling
+#      ScalingTargetId: !Ref 'CeleryWorkerScalingTarget'
+#      StepScalingPolicyConfiguration:
+#        AdjustmentType: ExactCapacity
+#        Cooldown: 60
+#        MetricAggregationType: Average
+#        StepAdjustments:
+#        - MetricIntervalUpperBound: 0
+#          ScalingAdjustment: 0
+#
+#  SQSAlarmScaleDown:
+#    Type: AWS::CloudWatch::Alarm
+#    Properties:
+#      EvaluationPeriods: 1
+#      Statistic: Sum
+#      Threshold: 0
+#      AlarmDescription: Alarm if our there are messages in SQS queue
+#      Period: 60
+#      AlarmActions: [!Ref 'CeleryWorkerScalingPolicyDown']
+#      Namespace: Celery
+#      Dimensions:
+#        - Name: QueueName
+#          Value: !Join ['-', [!Ref 'AWS::StackName', 'celery']]
+#      ComparisonOperator: LessThanOrEqualToThreshold
+#      MetricName: TotalCount
 
   #--------------------------------------------------------------------------------------------------------------------
   # Initialization and migration
