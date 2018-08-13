@@ -599,7 +599,7 @@ Resources:
           - { Name: STRIPE_CLIENT_ID, Value: !Ref 'StripeClientId' }
           - { Name: STRIPE_SECRET_KEY, Value: !Ref 'StripeSecretKey' }
           - { Name: BRANCH_IO_KEY, Value: !Ref 'BranchIOKey' }
-          - { Name: BACKGROUND, Value: 'python manage.py celery_metrics'}
+          #- { Name: BACKGROUND, Value: 'python manage.py celery_metrics'}
 
   CeleryWorkerService:
     Type: AWS::ECS::Service
