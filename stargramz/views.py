@@ -507,7 +507,7 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
 
                     if editable:
                         video = serializer.save(status=4, visibility=False)
-                        generate_video_thumbnail.delay()
+                        generate_video_thumbnail.delay(id=video.id)
                         StargramVideo.objects.filter(stragramz_request_id=booking.id).exclude(id=video.id).delete()
                     else:
                         try:
@@ -616,7 +616,7 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
         video_status = 5 if stargramz_request.request_type == REQUEST_TYPES.live_question_answer else 1
         visible = False if video_status == 5 else True
         video_saved = serializer.save(status=video_status, visibility=visible)
-        generate_video_thumbnail.delay()
+        generate_video_thumbnail.delay(id=video_saved.id)
         if stargramz_request.request_type == REQUEST_TYPES.live_question_answer:
             combine_video_clips.delay(stargramz_request.id)
         self.booking_update(stargramz_request, STATUS_TYPES.video_approval)

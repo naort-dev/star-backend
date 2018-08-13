@@ -121,12 +121,17 @@ def rotate_image(image_original):
 
 
 @app.task
-def generate_video_thumbnail():
+def generate_video_thumbnail(**kwargs):
     """
         Creating the video thumbnail from s3 uploaded video
     """
     imageio.plugins.ffmpeg.download()
-    videos = StargramVideo.objects.filter(thumbnail__isnull=True)
+
+    video_id = kwargs.pop('id', None)
+    query_set = StargramVideo.objects.filter(thumbnail__isnull=True)
+    if video_id:
+        query_set = query_set.filter(id=video_id)
+    videos = query_set
     config = Config.objects.get(key='stargram_videos')
     s3folder = config.value
     delete_water_mark_video = delete_logo = None
@@ -954,18 +959,19 @@ def combine_video_clips(request_id):
 
             if os.path.exists(your_media_root + combined_video_name):
                 upload_image_s3(your_media_root + combined_video_name, s3folder + combined_video_name)
-                StargramVideo.objects.create(
+                new_video = StargramVideo.objects.create(
                     stragramz_request_id=request_id,
                     video=combined_video_name,
                     status=VIDEO_STATUS.completed,
                     visibility=True
                 )
+                generate_video_thumbnail.delay(id=new_video.id)
                 print('Created new combined video...')
                 for video in request_videos:
                     video.thumbnail = None
                     video.visibility = True
                     video.save()
-                generate_video_thumbnail.delay()
+                    generate_video_thumbnail.delay(id=video.id)
 
         except Exception as e:
             print(str(e))

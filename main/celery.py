@@ -54,6 +54,11 @@ app.conf.beat_schedule = {
     },
 }
 app.conf.timezone = 'UTC'
+app.conf.task_routes = {
+    'job.tasks.generate_video_thumbnail': {'queue': 'videos'},
+    'job.tasks.combine_video_clips': {'queue': 'videos'}
+}
+
 # This reads, e.g., CELERY_ACCEPT_CONTENT = ['json'] from settings.py:
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
