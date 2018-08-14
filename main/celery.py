@@ -70,3 +70,5 @@ app.conf.broker_transport_options = {
 
 app.conf.task_reject_on_worker_lost = True
 app.conf.task_acks_late = True
+app.worker_concurrency = 1
+app.worker_prefetch_multiplier = 1
