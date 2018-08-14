@@ -734,37 +734,64 @@ Resources:
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
 
-  CeleryVideosScalingPolicy:
+  CeleryVideosScalingPolicyUp:
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
     Properties:
-      PolicyName: CeleryVideosStepPolicy
+      PolicyName: CeleryVideosScalingPolicyUp
       PolicyType: StepScaling
       ScalingTargetId: !Ref 'CeleryVideosScalingTarget'
       StepScalingPolicyConfiguration:
         AdjustmentType: ChangeInCapacity
-        Cooldown: 1200
+        Cooldown: 600
         MetricAggregationType: Maximum
         StepAdjustments:
         - MetricIntervalLowerBound: 0
           ScalingAdjustment: 1
-        - MetricIntervalUpperBound: 0
-          ScalingAdjustment: -1
 
-  CeleryVideosAlarm:
+  CeleryVideosAlarmUp:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      EvaluationPeriods: 20
+      EvaluationPeriods: 1
       Statistic: Sum
       Threshold: 1
-      AlarmDescription: Alarm if our there are messages in SQS queue
-      Period: 60
-      AlarmActions: [!Ref 'CeleryVideosScalingPolicy']
-      OKActions: [!Ref 'CeleryVideosScalingPolicy']
+      AlarmDescription: Alarm if our there are some messages in SQS queue
+      Period: 600
+      AlarmActions: [!Ref 'CeleryVideosScalingPolicyUp']
       Namespace: AWS/SQS
       Dimensions:
         - Name: QueueName
           Value: !Join ['-', [!Ref 'AWS::StackName', 'videos']]
       ComparisonOperator: GreaterThanOrEqualToThreshold
+      MetricName: ApproximateNumberOfMessagesVisible
+
+  CeleryVideosScalingPolicyDown:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: CeleryVideosScalingPolicyDown
+      PolicyType: StepScaling
+      ScalingTargetId: !Ref 'CeleryVideosScalingTarget'
+      StepScalingPolicyConfiguration:
+        AdjustmentType: ExactCapacity
+        Cooldown: 600
+        MetricAggregationType: Maximum
+        StepAdjustments:
+        - MetricIntervalUpperBound: 0
+          ScalingAdjustment: 0
+
+  CeleryVideosAlarmDown:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      EvaluationPeriods: 1
+      Statistic: Sum
+      Threshold: 1
+      AlarmDescription: Alarm if our there are no messages in SQS queue
+      Period: 1800
+      AlarmActions: [!Ref 'CeleryVideosScalingPolicyDown']
+      Namespace: AWS/SQS
+      Dimensions:
+        - Name: QueueName
+          Value: !Join ['-', [!Ref 'AWS::StackName', 'videos']]
+      ComparisonOperator: LessThanThreshold
       MetricName: ApproximateNumberOfMessagesVisible
 
   #--------------------------------------------------------------------------------------------------------------------
