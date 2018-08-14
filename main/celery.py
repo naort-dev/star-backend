@@ -68,3 +68,5 @@ app.conf.broker_transport_options = {
     'polling_interval':  int(os.environ.get('QUEUE_POLLING_INTERVAL', '60')),
 }
 
+app.conf.task_reject_on_worker_lost = True
+app.conf.task_acks_late = True

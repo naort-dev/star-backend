@@ -295,7 +295,7 @@ Resources:
   # Database
   #--------------------------------------------------------------------------------------------------------------------
 
-  DBSubnets:
+  DBSubnetGroup:
     Type: 'AWS::RDS::DBSubnetGroup'
     Properties:
       DBSubnetGroupDescription: !Ref 'AWS::StackName'
@@ -315,7 +315,7 @@ Resources:
       EngineVersion: '9.5'
       MasterUsername: !Ref 'DatabaseUser'
       MasterUserPassword: !Ref 'DatabasePassword'
-      DBSubnetGroupName: !Ref 'DBSubnets'
+      DBSubnetGroupName: !Ref 'DBSubnetGroup'
       VPCSecurityGroups:
         - Fn::ImportValue:
             !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
@@ -324,7 +324,7 @@ Resources:
   # MEMCACHED
   # Results Backend for Celery
   #--------------------------------------------------------------------------------------------------------------------
-  CacheSubnets:
+  CacheSubnetGroup:
       Type: AWS::ElastiCache::SubnetGroup
       Properties:
         Description: !Ref 'AWS::StackName'
@@ -346,7 +346,7 @@ Resources:
       Type: AWS::ElastiCache::CacheCluster
       Properties:
         CacheParameterGroupName: !Ref 'CacheParameters'
-        CacheSubnetGroupName: !Ref 'CacheSubnets'
+        CacheSubnetGroupName: !Ref 'CacheSubnetGroup'
         CacheNodeType: !Ref 'CacheNodeType'
         VpcSecurityGroupIds:
           - Fn::ImportValue:
