@@ -625,7 +625,7 @@ Resources:
                 !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
       TaskDefinition: !Ref 'CeleryWorkerTaskDefinition'
 
-   CeleryVideosTaskDefinition:
+  CeleryVideosTaskDefinition:
      Type: AWS::ECS::TaskDefinition
      Properties:
        Family: !Join ['-', [!Ref 'AWS::StackName', 'celery-videos']]
@@ -742,8 +742,8 @@ Resources:
       ScalingTargetId: !Ref 'CeleryVideosScalingTarget'
       StepScalingPolicyConfiguration:
         AdjustmentType: ChangeInCapacity
-        Cooldown: 60
-        MetricAggregationType: Average
+        Cooldown: 1200
+        MetricAggregationType: Maximum
         StepAdjustments:
         - MetricIntervalLowerBound: 0
           ScalingAdjustment: 1
@@ -753,7 +753,7 @@ Resources:
   CeleryVideosAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      EvaluationPeriods: 1
+      EvaluationPeriods: 20
       Statistic: Sum
       Threshold: 1
       AlarmDescription: Alarm if our there are messages in SQS queue
