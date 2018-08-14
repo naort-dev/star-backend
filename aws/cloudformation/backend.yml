@@ -792,7 +792,7 @@ Resources:
         - Name: QueueName
           Value: !Join ['-', [!Ref 'AWS::StackName', 'videos']]
       ComparisonOperator: LessThanThreshold
-      MetricName: ApproximateNumberOfMessagesVisible
+      MetricName: ApproximateNumberOfMessagesNotVisible
 
   #--------------------------------------------------------------------------------------------------------------------
   # Initialization and migration
