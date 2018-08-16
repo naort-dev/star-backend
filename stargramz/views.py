@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
+from rest_framework.generics import GenericAPIView
 from rest_framework import viewsets
 from utilities.mixins import ResponseViewMixin
 from .serializer import OccasionSerializer, StargramzSerializer, StargramzVideoSerializer, StargramzRetrieveSerializer,\
-    RequestStatusSerializer, ReportAbuseSerializer, OccasionCreateSerializer
+    RequestStatusSerializer, ReportAbuseSerializer, OccasionCreateSerializer, CommentSerializer, CommentReplySerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from utilities.konstants import ROLES, NOTIFICATION_TYPES
@@ -13,7 +14,7 @@ from utilities.constants import BASE_URL
 from users.models import StargramzUser, Celebrity, UserRoleMapping, ProfileImage, VanityUrl
 import json
 from .models import Stargramrequest, StargramVideo, OccasionRelationship, Occasion, STATUS_TYPES, REQUEST_TYPES,\
-    VIDEO_STATUS
+    VIDEO_STATUS, Comment
 from rest_framework.viewsets import ViewSet, GenericViewSet
 from utilities.pagination import CustomOffsetPagination
 import datetime
@@ -712,7 +713,8 @@ class FeaturedVideo(GenericViewSet, ResponseViewMixin):
             page, fields=[
                 'duration', 'full_name', 'booking_type', 'celebrity_id', 'booking_id', 'fan_avatar_photo', 'user_id',
                 's3_video_url', 's3_thumbnail_url', 'avatar_photo', 'professions', 'created_date', 'booking_title',
-                'video_url', 'width', 'height', 'question_answer_videos', 'following', 'occasion', 'fan_name'
+                'video_url', 'width', 'height', 'question_answer_videos', 'following', 'occasion', 'fan_name',
+                'comments_count', 'video_id'
             ],
             many=True
         )
@@ -908,3 +910,40 @@ def page_not_found(request):
         404 page
     """
     return render(request=request, template_name='home/404.html', context={})
+
+
+class CommentsView(GenericAPIView, ResponseViewMixin):
+    """
+        The list of celebrities and celebrity search
+    """
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+    pagination_class = CustomOffsetPagination
+
+    def get(self, request, pk):
+
+        try:
+            video_id = hashids.decode(pk)[0]
+        except Exception as e:
+            pass
+
+        try:
+            comment_details = Comment.objects.filter(video_id=video_id, reply=None)
+            comments = self.paginate_queryset(comment_details)
+            serializer = CommentReplySerializer(comments, many=True)
+            return self.paginator.get_paginated_response(serializer.data, key_name='comment_list')
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
+
+    def post(self, request):
+        try:
+            user = StargramzUser.objects.get(username=request.user)
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
+        request.data['user'] = user.id
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return self.jp_response('HTTP_200_OK', data={"comments": serializer.data})
+        else:
+            return self.jp_response('HTTP_404_NOT_FOUND', data={"comments": serializer.errors})

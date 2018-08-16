@@ -208,6 +208,7 @@ class StargramVideo(models.Model):
     visibility = models.BooleanField('Public Visibility', default=True)
     width = models.IntegerField('Width', blank=True, null=True)
     height = models.IntegerField('Height', blank=True, null=True)
+    comments_count = models.IntegerField('Comments count', blank=True, null=True, default=0)
 
     def __str__(self):
         return 'Starsona Video'
@@ -233,3 +234,22 @@ class ReportAbuse(models.Model):
 def verify_abuse_reported(sender, instance, **kwargs):
     if kwargs.get('created', False):
         report_abuse_notify.delay(instance.reported_by_id, instance.request_id)
+
+
+class Comment(models.Model):
+    video = models.ForeignKey('StargramVideo', related_name='comment_video')
+    comments = models.TextField('Comments')
+    user = models.ForeignKey('users.StargramzUser', related_name='commented_user')
+    reply = models.ForeignKey('self', blank=True, null=True, related_name='reply_comment')
+    created_date = models.DateTimeField('Created Date', auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_date']
+
+@receiver(post_save, sender=Comment)
+def update_comments_count(sender, instance, **kwargs):
+    video_comments_count = Comment.objects.filter(video=instance.video).count()
+    try:
+        StargramVideo.objects.filter(id=instance.video_id).update(comments_count=video_comments_count)
+    except Exception as e:
+        pass
