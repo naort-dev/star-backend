@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Occasion, Stargramrequest, StargramVideo, OccasionRelationship, ReportAbuse, REQUEST_TYPES
+from .models import Occasion, Stargramrequest, StargramVideo, OccasionRelationship, ReportAbuse, REQUEST_TYPES, Comment
 from config.models import Config
 from config.constants import *
 import json
@@ -318,3 +318,30 @@ class ReportAbuseSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReportAbuse
         fields = ('request', 'comments', 'reported_by')
+
+
+class CommentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Comment
+        fields = ('user', 'comments', 'video', 'reply')
+
+
+class CommentUser(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = StargramzUser
+        fields = ('image_url', 'get_short_name',)
+
+    def get_image_url(self, obj):
+        config = PROFILE_IMAGES
+        return get_pre_signed_get_url(str(obj.avatar_photo), config)
+
+
+class CommentReplySerializer(serializers.ModelSerializer):
+    user = CommentUser(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ('user', 'comments', 'created_date')
