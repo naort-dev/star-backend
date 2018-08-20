@@ -703,7 +703,7 @@ class FeaturedVideo(GenericViewSet, ResponseViewMixin):
         # Filter celebrity videos for related video sections
         if filter_by_related_id:
             try:
-                filter_by_related_id = hashids.decode(filter_by_related_id)[0]
+                filter_by_related_id = VanityUrl.objects.values_list('user', flat=True).get(name=filter_by_related_id)
             except Exception:
                 filter_by_related_id = filter_by_related_id
             query_set = query_set.filter(stragramz_request__celebrity=filter_by_related_id)
@@ -822,8 +822,8 @@ def play_video(request, id):
 
         data = {
             "id": id,
-            "video": get_pre_signed_get_url(video.video, config.value, 1314000),
-            "image": get_pre_signed_get_url(video.thumbnail, config.value, 1314000),
+            "video": get_pre_signed_get_url(video.video, config.value, 31536000),
+            "image": get_pre_signed_get_url(video.thumbnail, config.value, 31536000),
             "url": "%s%s" % (BASE_URL, id),
             "celebrity": video.stragramz_request.celebrity.get_short_name(),
             "base_url": BASE_URL,
@@ -876,7 +876,7 @@ def profile_detail(request, user_id):
             "id": user_id,
             "description": "Book a personalized video shout-out from %s %s" %
                            (profile.get("user__first_name"), profile.get("user__last_name")),
-            "image": get_pre_signed_get_url(picture.get('thumbnail'), config.value, 1314000),
+            "image": get_pre_signed_get_url(picture.get('thumbnail'), config.value, 31536000),
             "url": "%sapplinks/profile/%s" % (BASE_URL, vanity_url),
             "title": "%s" % (profile.get("user__first_name")+' '+profile.get("user__last_name") if not profile.get("user__nick_name", None)
                              else profile.get("user__nick_name", None))
@@ -916,17 +916,14 @@ class CommentsView(GenericAPIView, ResponseViewMixin):
     """
         The list of celebrities and celebrity search
     """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated, CustomPermission,)
-    pagination_class = CustomOffsetPagination
-
     def get(self, request, pk):
+        self.pagination_class = CustomOffsetPagination
+        self.permission_classes = (CustomPermission,)
 
         try:
             video_id = hashids.decode(pk)[0]
         except Exception as e:
             pass
-
         try:
             comment_details = Comment.objects.filter(video_id=video_id, reply=None)
             comments = self.paginate_queryset(comment_details)
@@ -936,6 +933,11 @@ class CommentsView(GenericAPIView, ResponseViewMixin):
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
 
     def post(self, request):
+
+        self.authentication_classes = (TokenAuthentication,)
+        self.permission_classes = (IsAuthenticated, CustomPermission,)
+        self.pagination_class = CustomOffsetPagination
+
         try:
             user = StargramzUser.objects.get(username=request.user)
         except Exception as e:

@@ -36,7 +36,7 @@ def generate_vanity_url(instance, value_exist=0):
     :return: vanity url name
     """
     from users.models import VanityUrl
-    name = ''.join(e for e in get_full_name(instance) if e.isalpha() or e == '-')
+    name = ''.join(e for e in get_full_name(instance) if e.isalpha())
     code = name.lower()
     if value_exist > 0 or len(code) == 0:
         chars = string.digits
@@ -56,4 +56,4 @@ def get_full_name(instance):
     """
     if instance.show_nick_name and instance.nick_name:
         return instance.nick_name
-    return ' '.join(filter(None, [instance.first_name, '-', instance.last_name]))
+    return ' '.join(filter(None, [instance.first_name, instance.last_name]))
