@@ -321,6 +321,14 @@ class ReportAbuseSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    video = serializers.CharField(required=True)
+
+    def validate_video(self, value):
+        try:
+            video = hashids.decode(value)[0]
+            return StargramVideo.objects.get(pk=video)
+        except Exception:
+            raise serializers.ValidationError("Invalid Video")
 
     class Meta:
         model = Comment
