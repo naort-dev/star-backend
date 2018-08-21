@@ -111,8 +111,12 @@ def get_pre_signed_get_url(filename, folder, expires_in=3600):
     """
         Get pre signed url to download a file.
     """
-    s3 = boto3.client('s3', aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
-                      aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
+    s3 = boto3.client(
+        's3',
+        aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+        aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+        aws_session_token=''
+    )
     url = s3.generate_presigned_url(
         ClientMethod='get_object',
         Params={
