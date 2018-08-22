@@ -457,7 +457,7 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
                 video, fields=[
                     'duration', 'full_name', 'celebrity_id', 's3_video_url', 's3_thumbnail_url', 'avatar_photo',
                     'professions', 'created_date', 'booking_title', 'video_url', 'width', 'height', 'booking_id',
-                    'booking_type', 'video_status'
+                    'booking_type', 'video_status', 'comments_count'
                 ],
                 many=True
             )
@@ -622,8 +622,9 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
             combine_video_clips.delay(stargramz_request.id)
         self.booking_update(stargramz_request, STATUS_TYPES.video_approval)
         self.transaction_update(transaction, TRANSACTION_STATUS.captured, 'Successfully captured')
-        data = StargramzVideoSerializer(video_saved,
-                                        fields=['stragramz_request', 'video', 'video_status', 'duration', 'thumbnail']).data
+        data = StargramzVideoSerializer(video_saved, fields=[
+            'stragramz_request', 'video', 'video_status', 'duration', 'thumbnail', 'comments_count'
+        ]).data
         sender_email = Config.objects.get(key='sender_email').value
         admin_email = Config.objects.get(key='admin_email').value
         try:
@@ -923,7 +924,7 @@ class CommentsView(GenericAPIView, ResponseViewMixin):
         try:
             video_id = hashids.decode(pk)[0]
         except Exception as e:
-            pass
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
         try:
             comment_details = Comment.objects.filter(video_id=video_id, reply=None)
             comments = self.paginate_queryset(comment_details)
@@ -946,6 +947,6 @@ class CommentsView(GenericAPIView, ResponseViewMixin):
         serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return self.jp_response('HTTP_200_OK', data={"comments": serializer.data})
+            return self.jp_response('HTTP_200_OK', data={"comments": "Added the comments"})
         else:
             return self.jp_response('HTTP_404_NOT_FOUND', data={"comments": serializer.errors})
