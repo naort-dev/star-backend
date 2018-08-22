@@ -876,6 +876,17 @@ Resources:
       VersioningConfiguration:
         Status: Enabled
     DeletionPolicy: Delete
+  
+  PublicProfileImages:
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref 'BucketName'
+      PolicyDocument:
+        Statement:
+        - Effect: Allow
+          Action: [ "s3:GetObject" ]
+          Principal: "*"
+          Resource: !Join ['', ['arn:aws:s3:::', !Ref 'BucketName', '/images/profile/*']]
 
   S3BucketPolicy:
     Type: AWS::IAM::Policy
