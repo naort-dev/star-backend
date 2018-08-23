@@ -115,7 +115,6 @@ def get_pre_signed_get_url(filename, folder, expires_in=3600):
         's3',
         aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
         aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
-        aws_session_token=''
     )
     url = s3.generate_presigned_url(
         ClientMethod='get_object',
@@ -126,6 +125,21 @@ def get_pre_signed_get_url(filename, folder, expires_in=3600):
         ExpiresIn=expires_in
     )
     return url
+
+
+def get_s3_public_url(filename, folder):
+    """
+    Get the url for a public file in s3
+    :param folder:
+    :param filename:
+    :return: formatted S3 URL
+    """
+    s3 = boto3.client(
+        's3',
+        aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+        aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY')
+    )
+    return '{}/{}/{}'.format(s3.meta.endpoint_url, os.environ.get('AWS_STORAGE_BUCKET_NAME'), folder + filename)
 
 
 def upload_image_s3(path, filename):

@@ -3,7 +3,7 @@ from .models import Occasion, Stargramrequest, StargramVideo, OccasionRelationsh
 from config.models import Config
 from config.constants import *
 import json
-from utilities.utils import CustomModelSerializer, get_pre_signed_get_url
+from utilities.utils import CustomModelSerializer, get_pre_signed_get_url, get_s3_public_url
 from .constants import REQUEST_STATUS_CHOICES, REQUEST_EDIT_ALLOWED_TIME
 from utilities.constants import BASE_URL, SHORT_BASE_URL
 from payments.models import StarsonaTransaction
@@ -345,7 +345,7 @@ class CommentUser(serializers.ModelSerializer):
 
     def get_image_url(self, obj):
         config = PROFILE_IMAGES
-        return get_pre_signed_get_url(str(obj.avatar_photo), config)
+        return get_s3_public_url(str(obj.avatar_photo), config)
 
 
 class CommentReplySerializer(serializers.ModelSerializer):
