@@ -211,7 +211,7 @@ class StargramVideo(models.Model):
     comments_count = models.IntegerField('Comments count', blank=True, null=True, default=0)
 
     def __str__(self):
-        return 'Starsona Video'
+        return 'Starsona Video - %s' % str(self.pk)
 
     class Meta:
         verbose_name = 'Videos'
@@ -242,6 +242,9 @@ class Comment(models.Model):
     user = models.ForeignKey('users.StargramzUser', related_name='commented_user')
     reply = models.ForeignKey('self', blank=True, null=True, related_name='reply_comment')
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
+
+    def __str__(self):
+        return 'Comment - %s' % str(self.pk)
 
     class Meta:
         ordering = ['-created_date']

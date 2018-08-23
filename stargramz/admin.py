@@ -1,6 +1,7 @@
 from django.utils.translation import ugettext_lazy as _
 from django.contrib import admin
-from .models import Occasion, Stargramrequest, StargramVideo, OccasionRelationship, ReportAbuse, OrderRelationship
+from .models import Occasion, Stargramrequest, StargramVideo, OccasionRelationship, ReportAbuse, OrderRelationship,\
+    Comment
 from payments.models import StarsonaTransaction
 from config.models import Config
 from django.utils.safestring import mark_safe
@@ -216,7 +217,17 @@ class StargramVideosAdmin(ReadOnlyModelAdmin):
             return mark_safe('<span>No Video available.</span>')
 
 
+class CommentsAdmin(ReadOnlyModelAdmin):
+    list_display = ('id', 'video', 'user', 'created_date')
 
+    fieldsets = (
+        (_('Comment info'), {'fields': ('video', 'comments', 'user', 'created_date',)}),
+    )
+    readonly_fields = ('created_date',)
+    search_fields = ('comments',)
+
+
+admin.site.register(Comment, CommentsAdmin)
 admin.site.register(ReportAbuse, AbuseAdmin)
 admin.site.register(Occasion, OccasionAdmin)
 admin.site.register(Stargramrequest, StargramrequestAdmin)
