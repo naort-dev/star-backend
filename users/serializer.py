@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from .constants import LINK_EXPIRY_DAY, ROLE_ERROR_CODE, EMAIL_ERROR_CODE, NEW_OLD_SAME_ERROR_CODE, \
     OLD_PASSWORD_ERROR_CODE, PROFILE_PHOTO_REMOVED, MAX_RATING_VALUE, MIN_RATING_VALUE, FIRST_NAME_ERROR_CODE
-from utilities.utils import CustomModelSerializer, get_pre_signed_get_url, datetime_range
+from utilities.utils import CustomModelSerializer, get_pre_signed_get_url, datetime_range, get_s3_public_url
 from django.core.validators import MaxValueValidator, MinValueValidator
 import re
 from utilities.permissions import CustomValidationError, error_function
@@ -45,12 +45,12 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
 
     def get_s3_image_url(self, obj):
         config = PROFILE_IMAGES
-        return get_pre_signed_get_url(obj.photo, config)
+        return get_s3_public_url(obj.photo, config)
 
     def get_s3_thumbnail_url(self, obj):
         if obj.thumbnail is not None:
             config = PROFILE_IMAGES
-            return get_pre_signed_get_url(obj.thumbnail, config)
+            return get_s3_public_url(obj.thumbnail, config)
         else:
             return None
 

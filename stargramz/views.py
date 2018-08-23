@@ -18,7 +18,7 @@ from .models import Stargramrequest, StargramVideo, OccasionRelationship, Occasi
 from rest_framework.viewsets import ViewSet, GenericViewSet
 from utilities.pagination import CustomOffsetPagination
 import datetime
-from utilities.utils import datetime_range, get_pre_signed_get_url, check_user_role, upload_image_s3
+from utilities.utils import datetime_range, get_pre_signed_get_url, check_user_role, upload_image_s3, get_s3_public_url
 from utilities.permissions import CustomPermission
 from rest_framework.decorators import detail_route
 from django.db.models import Q
@@ -877,7 +877,7 @@ def profile_detail(request, user_id):
             "id": user_id,
             "description": "Book a personalized video shout-out from %s %s" %
                            (profile.get("user__first_name"), profile.get("user__last_name")),
-            "image": get_pre_signed_get_url(picture.get('thumbnail'), config.value, 31536000),
+            "image": get_s3_public_url(picture.get('thumbnail'), config.value, 31536000),
             "url": "%sapplinks/profile/%s" % (BASE_URL, vanity_url),
             "title": "%s" % (profile.get("user__first_name")+' '+profile.get("user__last_name") if not profile.get("user__nick_name", None)
                              else profile.get("user__nick_name", None))
