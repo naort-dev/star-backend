@@ -856,7 +856,7 @@ def watermark_videos(video_original, name, your_media_root):
         return False
 
 
-@app.task(name='combine_video_clip')
+@app.task
 def combine_video_clips(request_id):
     """
         Combine two videos to one with same resolution
