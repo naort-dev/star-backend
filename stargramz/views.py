@@ -926,10 +926,17 @@ class CommentsView(GenericAPIView, ResponseViewMixin):
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
         try:
-            comment_details = Comment.objects.filter(video_id=video_id, reply=None)
+            kwargs = {'video_id': video_id, 'reply': None}
+            try:
+                comment_id = request.GET['last_comment'] if 'last_comment' in request.GET else None
+                if comment_id and int(comment_id) > 0:
+                    kwargs.update({'pk__lt': request.GET['last_comment']})
+            except Exception:
+                pass
+            comment_details = Comment.objects.filter(**kwargs)
             comments = self.paginate_queryset(comment_details)
             serializer = CommentReplySerializer(comments, many=True)
-            return self.paginator.get_paginated_response(serializer.data, key_name='comment_list')
+            return self.paginator.get_paginated_response(serializer.data.__reversed__(), key_name='comment_list')
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
 
