@@ -31,6 +31,27 @@ size = (300, 300)
 video_thumb_size = (400, 400)
 
 
+from celery import signals
+tasks_active = 0
+last_task_complete = time.time()
+
+@signals.heartbeat_sent.connect
+def heartbeat_sent(sender, **kwargs):
+    if tasks_active > 0:
+        print('tasks active: %d' % tasks_active)
+    else:
+        print('idle for %f sec' % (time.time() - last_task_complete))
+    
+@signals.task_prerun.connect
+def task_prerun(task_id, task, args, **kwargs):
+    tasks_active += 1
+
+@signals.task_postrun.connect
+def task_postrun(task_id, task, args, **kwargs):
+    tasks_active -= 1
+    last_task_complete = time.time()
+    
+
 def video_rotation(video):
     """
         Rotate the video based on orientation
