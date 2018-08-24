@@ -571,7 +571,7 @@ Resources:
       ContainerDefinitions:
         - Name: 'celery-worker'
           Image: !Join ['', [!Ref 'ImageRepository', 'backend-celery', !Ref 'ImageTag']]
-          Command: ["celery", "-A", "main", "worker", "--concurrency", "1", "--prefetch-multiplier", "1", "-Ofair"]
+          Command: ["celery", "-A", "main", "worker", "--concurrency", "1", "--prefetch-multiplier", "1", "--pool", "eventlet", "-Ofair"]
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -641,7 +641,7 @@ Resources:
        ContainerDefinitions:
          - Name: 'celery-videos'
            Image: !Join ['', [!Ref 'ImageRepository', 'backend-celery', !Ref 'ImageTag']]
-           Command: ["celery", "-A", "main", "worker", "-Q", "videos", "--concurrency", "1", "--prefetch-multiplier", "1", "-Ofair"]
+           Command: ["celery", "-A", "main", "worker", "-Q", "videos", "--concurrency", "1", "--prefetch-multiplier", "1", "--pool", "eventlet", "-Ofair"]
            LogConfiguration:
              LogDriver: awslogs
              Options:
