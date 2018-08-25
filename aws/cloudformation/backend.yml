@@ -669,6 +669,13 @@ Resources:
            - { Name: STRIPE_CLIENT_ID, Value: !Ref 'StripeClientId' }
            - { Name: STRIPE_SECRET_KEY, Value: !Ref 'StripeSecretKey' }
            - { Name: BRANCH_IO_KEY, Value: !Ref 'BranchIOKey' }
+           - { Name: MAX_IDLE, Value: 300 }
+           - { Name: MIN_COUNT, Value: 0 }
+           - Name: ECS_CLUSTER
+             Value:
+               Fn::ImportValue:
+                 !Join [':', [!Ref 'StackName', 'ClusterName']]
+           - { Name: ECS_SERVICE, Value: !Join ['-', [!Ref 'AWS::StackName', 'celery-videos']] }
 
   CeleryVideosService:
     Type: AWS::ECS::Service
@@ -722,7 +729,7 @@ Resources:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
     DependsOn: CeleryVideosService
     Properties:
-      MaxCapacity: 1
+      MaxCapacity: 2
       MinCapacity: 0
       ResourceId: !Join
         - '/'

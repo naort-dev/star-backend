@@ -32,17 +32,48 @@ video_thumb_size = (400, 400)
 
 
 from celery import signals
+import boto3
+import sys
+
 tasks_active = 0
 last_task_complete = time.time()
+max_idle = int(os.environ.get('MAX_IDLE', 0))
+min_count = int(os.environ.get('MIN_COUNT', 1))
 
 @signals.heartbeat_sent.connect
 def heartbeat_sent(sender, **kwargs):
     global tasks_active
     global last_task_complete
-    if tasks_active > 0:
-        print('tasks active: %d' % tasks_active)
-    else:
-        print('idle for %f sec' % (time.time() - last_task_complete))
+    global max_idle
+    global min_count
+    if tasks_active > 0 or max_idle <= 0:
+        return
+
+    idle = time.time() - last_task_complete
+    if idle < max_idle:
+        return
+
+    last_task_complete = time.time()
+    ecs_cluster = os.environ.get('ECS_CLUSTER')
+    ecs_service = os.environ.get('ECS_SERVICE')
+    if not (ecs_cluster and ecs_service):
+        return
+
+    client = boto3.client('ecs')
+    service = client.describe_services(
+        cluster=ecs_cluster,
+        services=[ecs_service])['services'][0]
+
+    desiredCount = service['desiredCount']
+
+    if desiredCount > min_count:
+        print('idle for %f sec, shutting down...' % idle)
+        client.update_service(
+            cluster=ecs_cluster,
+            service=ecs_service,
+            desiredCount=desiredCount - 1)
+        sys.exit(0)
+
     
 @signals.task_prerun.connect
 def task_prerun(task_id, task, args, **kwargs):
