@@ -37,6 +37,8 @@ last_task_complete = time.time()
 
 @signals.heartbeat_sent.connect
 def heartbeat_sent(sender, **kwargs):
+    global tasks_active
+    global last_task_complete
     if tasks_active > 0:
         print('tasks active: %d' % tasks_active)
     else:
@@ -44,10 +46,13 @@ def heartbeat_sent(sender, **kwargs):
     
 @signals.task_prerun.connect
 def task_prerun(task_id, task, args, **kwargs):
+    global tasks_active
     tasks_active += 1
 
 @signals.task_postrun.connect
 def task_postrun(task_id, task, args, **kwargs):
+    global tasks_active
+    global last_task_complete
     tasks_active -= 1
     last_task_complete = time.time()
     
