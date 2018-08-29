@@ -877,7 +877,7 @@ def profile_detail(request, user_id):
             "id": user_id,
             "description": "Book a personalized video shout-out from %s %s" %
                            (profile.get("user__first_name"), profile.get("user__last_name")),
-            "image": get_s3_public_url(picture.get('thumbnail'), config.value, 31536000),
+            "image": get_s3_public_url(picture.get('thumbnail'), config.value),
             "url": "%sapplinks/profile/%s" % (BASE_URL, vanity_url),
             "title": "%s" % (profile.get("user__first_name")+' '+profile.get("user__last_name") if not profile.get("user__nick_name", None)
                              else profile.get("user__nick_name", None))
