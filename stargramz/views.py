@@ -868,6 +868,7 @@ def profile_detail(request, user_id):
         picture = ProfileImage.objects.values('thumbnail').get(id=profile.get('user__avatar_photo'))
 
         config = Config.objects.get(key='profile_images')
+        web_url = Config.objects.get(key='web_url').value
         try:
             vanity_url = VanityUrl.objects.values_list('name', flat=True).get(user_id=profile_id)
         except Exception:
@@ -880,7 +881,8 @@ def profile_detail(request, user_id):
             "image": get_s3_public_url(picture.get('thumbnail'), config.value),
             "url": "%sapplinks/profile/%s" % (BASE_URL, vanity_url),
             "title": "%s" % (profile.get("user__first_name")+' '+profile.get("user__last_name") if not profile.get("user__nick_name", None)
-                             else profile.get("user__nick_name", None))
+                             else profile.get("user__nick_name", None)),
+            "weburl": "%s%s" % (web_url, vanity_url)
             }
 
     except Celebrity.DoesNotExist:

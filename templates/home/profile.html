@@ -29,6 +29,8 @@
     <meta itemprop="description" content="{{ description }}">
     <meta itemprop="image" content="{{ image }}">
 
+    <meta http-equiv="refresh" content="0; url={{ weburl }}" />
+
     {% include "home/apps.html" with request='profile' arg='profile_id' %}
 </head>
 <body>
@@ -69,6 +71,9 @@
         }, 2000);
         window.location = ios_package+'://profile/?profile_id='+'{{ id }}';
     }
+    setTimeout(function(){
+        window.location = '{{ weburl }}';
+    }, 3000);
 </script>
 </body>
 </html>
