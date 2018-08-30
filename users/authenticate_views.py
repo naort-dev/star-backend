@@ -426,11 +426,12 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
             vanity_url = VanityUrl.objects.values_list('name', flat=True).get(user_id=user.id)
         except Exception:
             vanity_url = ''
+        web_url = Config.objects.get(key='web_url').value
         data['role_details'] = get_user_role_details(user)
         response_data = dict(user=data)
         data['is_follow'] = True if user_followed else False
         data['authentication_token'] = None
-        data['share_url'] = '%sapplinks/profile/%s/' % (BASE_URL, str(vanity_url))
+        data['share_url'] = '%s%s' % (web_url, str(vanity_url))
         data['celebrity'] = celebrity
         data['unseen_bookings'] = 0
 

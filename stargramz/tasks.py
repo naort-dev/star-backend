@@ -64,6 +64,7 @@ def cancel_starsona_celebrity_no_response():
         subject = "We're so sorry!"
         sender_email = Config.objects.get(key='sender_email').value
         base_url = Config.objects.get(key='base_url').value
+        web_url = Config.objects.get(key='web_url').value
 
         try:
             vanity_url = VanityUrl.objects.values_list('name', flat=True).get(user_id=request.celebrity.id)
@@ -79,7 +80,7 @@ def cancel_starsona_celebrity_no_response():
                 title="%s was unable to fulfill your booking request" % request.celebrity.get_short_name(),
                 desc="%s was unable to fulfill your booking request." % request.celebrity.get_short_name(),
                 mob_url='profile/?profile_id=%s' % vanity_url,
-                desktop_url='%sapplinks/profile/%s' % (base_url, vanity_url),
+                desktop_url='%s%s' % (web_url, vanity_url),
                 image_url='%smedia/web-images/starsona_logo.png' % base_url,
             )
         }
