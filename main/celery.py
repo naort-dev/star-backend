@@ -3,8 +3,17 @@ import os
 from django.conf import settings
 from celery import Celery
 from celery.schedules import crontab
+import datetime
+import pytz
 
+CELERY_ENABLE_UTC = False
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings.common')
+
+
+def get_now_fun():
+    # PDT timezone for celery Beat
+    return datetime.datetime.now(pytz.timezone('US/Pacific'))
+
 
 app = Celery(
     'main',
@@ -13,44 +22,45 @@ app = Celery(
 )
 
 app.config_from_object('django.conf:settings', namespace='CELERY')
+
 app.conf.beat_schedule = {
     'schedule-1': {
         'task': 'update_remaining_limit',
-        'schedule': crontab(minute=0, hour=0, day_of_week='monday'),
+        'schedule': crontab(minute=0, hour=0, day_of_week='monday', nowfun=get_now_fun),
     },
     'schedule-2': {
         'task': 'notification_request_remainder',
-        'schedule': crontab(minute=0, hour=0),
+        'schedule': crontab(minute=0, hour=0, nowfun=get_now_fun),
         'args': (5, 6),
     },
     'schedule-3': {
         'task': 'notification_request_remainder',
-        'schedule': crontab(minute=0, hour=0),
+        'schedule': crontab(minute=0, hour=0, nowfun=get_now_fun),
         'args': (6, 7),
     },
     'schedule-4': {
         'task': 'cancel_notification_no_response',
-        'schedule': crontab(minute=0, hour=0),
+        'schedule': crontab(minute=0, hour=0, nowfun=get_now_fun),
     },
     'schedule-5': {
         'task': 'remove_unused_fcm_tokens',
-        'schedule': crontab(minute=0, hour=0, day_of_week='monday'),
+        'schedule': crontab(minute=0, hour=0, day_of_week='monday', nowfun=get_now_fun),
     },
     'schedule-6': {
         'task': 'notify_admin_video_approvals',
-        'schedule': crontab(minute=0, hour=0),
+        'schedule': crontab(minute=0, hour=0, nowfun=get_now_fun),
     },
     'schedule-7': {
         'task': 'create_monthly_payouts',
-        'schedule': crontab(minute=0, hour=0, day_of_month=1),
+        'schedule': crontab(minute=0, hour=0, day_of_month=1, nowfun=get_now_fun),
     },
     'schedule-8': {
         'task': 'resend_failed_payouts',
-        'schedule': crontab(minute=0, hour=0, day_of_month=6),
+        'schedule': crontab(minute=0, hour=0, day_of_month=6, nowfun=get_now_fun),
     },
     'schedule-9': {
         'task': 'resend_failed_payouts',
-        'schedule': crontab(minute=1, hour=0, day_of_month=1),
+        'schedule': crontab(minute=1, hour=0, day_of_month=1, nowfun=get_now_fun),
     },
 }
 app.conf.timezone = 'UTC'
