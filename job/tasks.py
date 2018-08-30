@@ -10,7 +10,7 @@ from main.celery import app
 import boto3
 from botocore.exceptions import ClientError
 import os
-from PIL import Image, ExifTags
+from PIL import Image, ExifTags, ImageOps
 from django.conf import settings
 from django.template.loader import get_template
 from users.models import ProfileImage, Celebrity, StargramzUser, Campaign
@@ -130,8 +130,8 @@ def generate_thumbnail():
                 try:
                     # Generate Thumbnail
                     thumb = Image.open(image_original)
-                    thumb.thumbnail(size, Image.LANCZOS)
-                    thumb.save(thumbnail, quality=99, optimize=True)
+                    thumb = ImageOps.fit(thumb, size, Image.ANTIALIAS, 0, (0.5, 0.5))
+                    thumb.save(thumbnail)
                 except Exception as e:
                     print(str(e))
 
