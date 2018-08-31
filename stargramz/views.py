@@ -683,8 +683,11 @@ class FeaturedVideo(GenericViewSet, ResponseViewMixin):
         ).select_related('stragramz_request').prefetch_related(
             'stragramz_request__occasion',
             'stragramz_request__celebrity',
+            'stragramz_request__fan',
             'stragramz_request__celebrity__celebrity_profession__profession',
-            'stragramz_request__celebrity__avatar_photo'
+            'stragramz_request__celebrity__avatar_photo',
+            'stragramz_request__fan__avatar_photo',
+            'stragramz_request__celebrity__vanity_urls'
         ).extra(select=extra_select, order_by=order_by)
 
         if filter_by_name:
@@ -707,7 +710,11 @@ class FeaturedVideo(GenericViewSet, ResponseViewMixin):
                 filter_by_related_id = VanityUrl.objects.values_list('user', flat=True).get(name=filter_by_related_id)
             except Exception:
                 filter_by_related_id = filter_by_related_id
-            query_set = query_set.filter(stragramz_request__celebrity=filter_by_related_id)
+            try:
+                if type(filter_by_related_id) == int:
+                    query_set = query_set.filter(stragramz_request__celebrity=filter_by_related_id)
+            except Exception:
+                pass
 
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(

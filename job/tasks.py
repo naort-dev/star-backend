@@ -130,8 +130,8 @@ def generate_thumbnail():
                 try:
                     # Generate Thumbnail
                     thumb = Image.open(image_original)
-                    thumb = ImageOps.fit(thumb, size, Image.ANTIALIAS, 0, (0.5, 0.5))
-                    thumb.save(thumbnail)
+                    thumb.thumbnail(size, Image.LANCZOS)
+                    thumb.save(thumbnail, quality=80, optimize=True)
                 except Exception as e:
                     print(str(e))
 

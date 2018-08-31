@@ -56,28 +56,20 @@ class StargramzVideoSerializer(CustomModelSerializer):
     fan_avatar_photo = ProfilePictureSerializer(read_only=True, source="stragramz_request.fan.avatar_photo")
     professions = CelebrityProfessionSerializer(read_only=True, source="stragramz_request.celebrity.celebrity_profession", many=True)
     booking_title = serializers.CharField(read_only=True, source="stragramz_request.booking_title")
-
     video_status = serializers.SerializerMethodField(read_only=True)
     status = serializers.SerializerMethodField(read_only=True)
     s3_video_url = serializers.SerializerMethodField(read_only=True)
     s3_thumbnail_url = serializers.SerializerMethodField(read_only=True)
     video_url = serializers.SerializerMethodField(read_only=True)
     following = serializers.SerializerMethodField(read_only=True)
-    user_id = serializers.SerializerMethodField(read_only=True)
     video_id = serializers.SerializerMethodField(read_only=True)
     occasion = serializers.CharField(read_only=True, source="stragramz_request.occasion.title")
-
+    user_id = serializers.CharField(read_only=True, source="stragramz_request.celebrity.vanity_urls.name")
     question_answer_videos = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = StargramVideo
         fields = '__all__'
-
-    def get_user_id(self, obj):
-        try:
-            return VanityUrl.objects.values_list('name', flat=True).get(user_id=obj.stragramz_request.celebrity_id)
-        except Exception:
-            return ''
 
     def get_booking_id(self, obj):
         return hashids.encode(obj.stragramz_request_id)
