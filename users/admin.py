@@ -76,7 +76,6 @@ class ReferralTabular(ReadOnlyTabularInline):
 class VanityUrlInline(ReadOnlyStackedInline):
     model = VanityUrl
     fields = ('name',)
-    readonly_fields = ('name',)
     can_delete = False
     max_num = 1
 
