@@ -710,11 +710,7 @@ class FeaturedVideo(GenericViewSet, ResponseViewMixin):
                 filter_by_related_id = VanityUrl.objects.values_list('user', flat=True).get(name=filter_by_related_id)
             except Exception:
                 filter_by_related_id = filter_by_related_id
-            try:
-                if type(filter_by_related_id) == int:
-                    query_set = query_set.filter(stragramz_request__celebrity=filter_by_related_id)
-            except Exception:
-                pass
+            query_set = query_set.filter(stragramz_request__celebrity=filter_by_related_id)
 
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(
