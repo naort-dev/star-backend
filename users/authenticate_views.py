@@ -410,8 +410,12 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
 
     @detail_route(methods=['get'], permission_classes=[CustomPermission], authentication_classes=[])
     def get_details(self, request, pk=None, user_followed=None, user_logged_in=None):
-        pk = self.verify_hash_token(pk)
 
+        try:
+            pk = self.verify_hash_token(pk)
+            pk = int(pk)
+        except Exception:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'User Does not Exist')
         try:
             user = StargramzUser.objects.get(id=pk)
         except StargramzUser.DoesNotExist:
@@ -455,8 +459,12 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
     def retrieve(self, request, pk):
         user_followed = True
 
-        pk = self.verify_hash_token(pk)
-        logged_in_user = None
+        try:
+            pk = self.verify_hash_token(pk)
+            logged_in_user = None
+            pk = int(pk)
+        except Exception:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'User Does not Exist')
         try:
             logged_in_user = StargramzUser.objects.values_list('id', flat=True).get(username=request.user)
         except StargramzUser.DoesNotExist:
