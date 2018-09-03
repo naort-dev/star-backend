@@ -763,7 +763,7 @@ Resources:
       Threshold: 1
       TreatMissingData: notBreaching
       AlarmDescription: Alarm if our there are some messages in SQS queue
-      Period: 600
+      Period: 300
       AlarmActions: [!Ref 'CeleryVideosScalingPolicyUp']
       Namespace: AWS/SQS
       Dimensions:
