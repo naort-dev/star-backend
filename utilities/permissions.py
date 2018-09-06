@@ -2,7 +2,7 @@ from config.models import Config
 from rest_framework import status
 from rest_framework.exceptions import APIException, _get_error_details
 from rest_framework.permissions import BasePermission
-from .constants import ANDROID, ANDROID_CONFIG_KEY, IOS, IOS_CONFIG_KEY
+from .constants import ANDROID, ANDROID_CONFIG_KEY, IOS, IOS_CONFIG_KEY, WEB
 from config.constants import *
 from django.utils.translation import ugettext_lazy as _
 from django.utils import six
@@ -52,6 +52,8 @@ class CustomPermission(BasePermission):
             android_version = ANDROID_VERSION
             ios_version = IOS_VERSION
 
+        if 'HTTP_DEVICE' in request.META and request.META['HTTP_DEVICE'].lower() == WEB:
+            return True
 
         if 'HTTP_VERSION' in request.META and 'HTTP_DEVICE' in request.META:
             if request.META['HTTP_DEVICE'].lower() == ANDROID:
