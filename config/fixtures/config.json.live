@@ -194,7 +194,7 @@
     "pk": 20,
     "fields": {
       "key": "aws_pool_id",
-      "value": "us-east-1:36416d3e-5488-4132-bb21-840bb062646b",
+      "value": "us-east-1:60231d40-3dbe-442a-9389-f2c2701ac4ba",
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }
@@ -204,7 +204,7 @@
     "pk": 21,
     "fields": {
       "key": "aws_bucket_name",
-      "value": "starsona",
+      "value": "starsona-prb-usea1",
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }
