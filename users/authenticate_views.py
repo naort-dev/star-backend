@@ -30,6 +30,7 @@ from utilities.permissions import CustomPermission
 from utilities.constants import REDIRECT_LINK, BASE_URL
 from hashids import Hashids
 from .utils import generate_random_code
+from distutils.version import StrictVersion
 import time
 hashids = Hashids(min_length=8)
 
@@ -252,6 +253,7 @@ class ResetPassword(APIView, ResponseViewMixin):
             (token, created) = Token.objects.get_or_create(user=user)
             data['authentication_token'] = token.key
             data['id'] = user.id
+            data['user_id'] = hashids.encode(user.id)
             return self.jp_response(s_code='HTTP_200_OK', data={"details": data})
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE',
@@ -435,7 +437,11 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
         response_data = dict(user=data)
         data['is_follow'] = True if user_followed else False
         data['authentication_token'] = None
-        data['share_url'] = '%s%s' % (web_url, str(vanity_url))
+        # Remove the condition on next version release, fix for v4.4
+        if StrictVersion(request.META['HTTP_VERSION']) < '4.4':
+            data['share_url'] = '%sapplinks/profile/%s/' % (BASE_URL, str(vanity_url))
+        else:
+            data['share_url'] = '%s%s' % (web_url, str(vanity_url))
         data['celebrity'] = celebrity
         data['unseen_bookings'] = 0
 
