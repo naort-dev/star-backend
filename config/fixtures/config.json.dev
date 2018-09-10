@@ -223,7 +223,7 @@
     "model": "config.config",
     "pk": 23,
     "fields": {
-      "key": "reactions",
+      "key": "reaction_files",
       "value": "reactions/",
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
@@ -234,7 +234,7 @@
     "pk": 24,
     "fields": {
       "key": "request_feedback",
-      "value": "Poor quality,Mispronounced names,Abusive behaviour,Language",
+      "value": "Poor quality,Mispronounced names,Abusive behavior,Too short of a video,Language,Other",
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }

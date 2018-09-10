@@ -966,9 +966,11 @@ class CommentsView(GenericAPIView, ResponseViewMixin):
 
 
 class ReactionView(APIView, ResponseViewMixin):
-
+    """
+        Reaction video against a booking request video
+    """
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated, CustomPermission,)
+    permission_classes = (IsAuthenticated, CustomPermission)
 
     def post(self, request):
 
@@ -976,10 +978,15 @@ class ReactionView(APIView, ResponseViewMixin):
             user = StargramzUser.objects.get(username=request.user)
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
+
         request.data['user'] = user.id
         serializer = ReactionSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return self.jp_response('HTTP_200_OK', data={"comments": "Added the reaction file"})
+            return self.jp_response('HTTP_200_OK', data={"reactions": "Added the reaction details"})
         else:
-            return self.jp_response('HTTP_404_NOT_FOUND', data={"comments": serializer.errors})
+            return self.jp_error_response(
+                'HTTP_400_BAD_REQUEST',
+                'INVALID_LOGIN',
+                self.error_msg_string(serializer.errors)
+            )
