@@ -435,10 +435,14 @@ class VanityUrl(models.Model):
 def execute_after_save(sender, instance, created, *args, **kwargs):
     if created:
         count = 0
-        if kwargs.get('count'):
-            count = int(kwargs.get('count')) + 1
+        try:
+            if kwargs.get('count'):
+                count = int(kwargs.get('count')) + 1
+        except Exception:
+            pass
         code = generate_vanity_url(instance, count)
         try:
             VanityUrl.objects.create(name=code, user=instance)
         except Exception:
+            count = count+1
             execute_after_save(sender, instance, created, count=count)

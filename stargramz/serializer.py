@@ -367,10 +367,14 @@ class ReactionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         files = validated_data.get('files')
         for file in files:
-            reaction = Reaction.objects.create(
-                booking=validated_data.get('booking'),
-                user=validated_data.get('user'),
-                file_type=file.get('file_type'),
-                reaction_file=file.get('reaction_file'),
-            )
-        return reaction
+            try:
+                Reaction.objects.create(
+                    booking=validated_data.get('booking'),
+                    user=validated_data.get('user'),
+                    file_type=file.get('file_type'),
+                    reaction_file=file.get('reaction_file'),
+                )
+                return True
+            except Exception:
+                return False
+        return False
