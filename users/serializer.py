@@ -663,7 +663,7 @@ class CelebrityRatingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FanRating
-        fields = ('fan', 'celebrity', 'comments', 'overall_rating', 'fan_rate', 'starsona')
+        fields = ('fan', 'celebrity', 'comments', 'reason', 'overall_rating', 'fan_rate', 'starsona')
 
     def validate(self, data):
         celebrity = data.get('celebrity')

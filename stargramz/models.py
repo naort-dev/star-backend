@@ -52,6 +52,11 @@ REQUEST_TYPES = Konstants(
     K(live_question_answer=3, label='Live Question and Answer')
 )
 
+FILE_TYPES = Konstants(
+    K(image=1, label='Image'),
+    K(video=2, label='Video')
+)
+
 
 class OccasionRelationship(models.Model):
     """
@@ -256,3 +261,17 @@ def update_comments_count(sender, instance, **kwargs):
         StargramVideo.objects.filter(id=instance.video_id).update(comments_count=video_comments_count)
     except Exception as e:
         pass
+
+
+class Reaction(models.Model):
+    booking = models.ForeignKey('Stargramrequest', related_name='booking_reaction')
+    user = models.ForeignKey('users.StargramzUser', related_name='user_reaction')
+    file_type = models.IntegerField('File type', choices=FILE_TYPES.choices())
+    reaction_file = models.CharField('Reaction File', max_length=600, blank=False)
+    file_thumbnail = models.CharField('Thumbnail', max_length=600, null=True, blank=True)
+    admin_approval = models.BooleanField('Admin Approved', default=False)
+    order = models.IntegerField('list order', blank=True, null=True)
+    created_date = models.DateTimeField('Created Date', auto_now_add=True)
+
+    def __str__(self):
+        return 'Reaction - %s' % str(self.pk)

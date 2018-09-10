@@ -1,11 +1,11 @@
 from django.utils.translation import ugettext_lazy as _
 from django.contrib import admin
 from .models import Occasion, Stargramrequest, StargramVideo, OccasionRelationship, ReportAbuse, OrderRelationship,\
-    Comment
+    Comment, Reaction
 from payments.models import StarsonaTransaction
 from config.models import Config
 from django.utils.safestring import mark_safe
-from utilities.utils import get_pre_signed_get_url, get_audio
+from utilities.utils import get_pre_signed_get_url, get_audio, get_s3_public_url
 from utilities.admin_utils import ReadOnlyModelAdmin, ReadOnlyStackedInline, ReadOnlyTabularInline
 import json
 
@@ -228,6 +228,33 @@ class CommentsAdmin(ReadOnlyModelAdmin):
     search_fields = ('comments',)
 
 
+class ReactionsAdmin(ReadOnlyModelAdmin):
+    list_display = ('id', 'booking', 'user', 'created_date')
+
+    fieldsets = (
+        (_('Reaction info'), {'fields': ('booking', 'file_type', 'reaction_file', 'file_link', 'user', 'created_date',)}),
+    )
+    readonly_fields = ('file_link', 'created_date',)
+    search_fields = ('booking', 'user',)
+
+    def file_link(self, instance):
+        """
+            Embed the video from S3
+        """
+        config = Config.objects.get(key='reactions')
+
+        if instance.file_type == 2:
+            return mark_safe('<video width="320" height="240" controls><source src="%s" type="video/mp4">'
+                             'Your browser does not support the video tag.</video>'
+                             % get_s3_public_url(instance.reaction_file, config.value))
+        elif instance.file_type == 1:
+            return mark_safe('<image width="320" height="240" src="%s"/>'
+                             % get_s3_public_url(instance.reaction_file, config.value))
+        else:
+            return mark_safe('<span>No File available.</span>')
+
+
+admin.site.register(Reaction, ReactionsAdmin)
 admin.site.register(Comment, CommentsAdmin)
 admin.site.register(ReportAbuse, AbuseAdmin)
 admin.site.register(Occasion, OccasionAdmin)
