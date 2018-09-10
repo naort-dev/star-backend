@@ -328,15 +328,16 @@ class ProfileImage(models.Model):
 class FanRating(models.Model):
     fan = models.ForeignKey(StargramzUser, on_delete=models.CASCADE, related_name='fan_rate_user')
     celebrity = models.ForeignKey(StargramzUser, on_delete=models.CASCADE, related_name='celebrity_rate_user')
-    fan_rate = models.DecimalField('fan_rating', max_digits=4, decimal_places=2, blank=True, default=0.00,
+    fan_rate = models.DecimalField('Fan rating', max_digits=4, decimal_places=2, blank=True, default=0.00,
                                    validators=[MinValueValidator(MIN_RATING_VALUE),
                                                MaxValueValidator(MAX_RATING_VALUE)])
     starsona = models.ForeignKey(Stargramrequest, related_name='request_rating')
-    comments = models.CharField(max_length=260)
-    created_date = models.DateTimeField('created_date', auto_now_add=True)
+    reason = models.CharField('Reason', max_length=260, blank=True)
+    comments = models.CharField('Comments', max_length=260, blank=True)
+    created_date = models.DateTimeField('Created date', auto_now_add=True)
 
     def __str__(self):
-        return 'Fan Rating'
+        return 'Fan Rating for Booking - %s' % self.starsona_id
 
 
 class CelebrityFollow(models.Model):

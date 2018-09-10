@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Occasion, Stargramrequest, StargramVideo, OccasionRelationship, ReportAbuse, REQUEST_TYPES, Comment
+from .models import Occasion, Stargramrequest, StargramVideo, OccasionRelationship, ReportAbuse, REQUEST_TYPES, \
+    Comment, Reaction, FILE_TYPES
 from config.models import Config
 from config.constants import *
 import json
@@ -346,3 +347,30 @@ class CommentReplySerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ('id', 'user', 'comments', 'created_date')
+
+
+class FilesSerializer(serializers.Serializer):
+    file_type = serializers.ChoiceField(allow_blank=False, required=True, choices=FILE_TYPES.choices())
+    reaction_file = serializers.CharField(required=True)
+
+    class Meta:
+        fields = ('file_type', 'reaction_file',)
+
+
+class ReactionSerializer(serializers.ModelSerializer):
+    files = FilesSerializer(many=True)
+
+    class Meta:
+        model = Reaction
+        fields = ('booking', 'files', 'user')
+
+    def create(self, validated_data):
+        files = validated_data.get('files')
+        for file in files:
+            reaction = Reaction.objects.create(
+                booking=validated_data.get('booking'),
+                user=validated_data.get('user'),
+                file_type=file.get('file_type'),
+                reaction_file=file.get('reaction_file'),
+            )
+        return reaction

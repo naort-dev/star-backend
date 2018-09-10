@@ -4,7 +4,8 @@ from rest_framework.generics import GenericAPIView
 from rest_framework import viewsets
 from utilities.mixins import ResponseViewMixin
 from .serializer import OccasionSerializer, StargramzSerializer, StargramzVideoSerializer, StargramzRetrieveSerializer,\
-    RequestStatusSerializer, ReportAbuseSerializer, OccasionCreateSerializer, CommentSerializer, CommentReplySerializer
+    RequestStatusSerializer, ReportAbuseSerializer, OccasionCreateSerializer, CommentSerializer, \
+    CommentReplySerializer, ReactionSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from utilities.konstants import ROLES, NOTIFICATION_TYPES
@@ -960,5 +961,25 @@ class CommentsView(GenericAPIView, ResponseViewMixin):
         if serializer.is_valid():
             serializer.save()
             return self.jp_response('HTTP_200_OK', data={"comments": "Added the comments"})
+        else:
+            return self.jp_response('HTTP_404_NOT_FOUND', data={"comments": serializer.errors})
+
+
+class ReactionView(APIView, ResponseViewMixin):
+
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def post(self, request):
+
+        try:
+            user = StargramzUser.objects.get(username=request.user)
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
+        request.data['user'] = user.id
+        serializer = ReactionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return self.jp_response('HTTP_200_OK', data={"comments": "Added the reaction file"})
         else:
             return self.jp_response('HTTP_404_NOT_FOUND', data={"comments": serializer.errors})

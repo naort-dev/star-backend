@@ -225,7 +225,11 @@ class CelebrityRate(APIView, ResponseViewMixin):
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', 'Invalid Celebrity User')
         serializer = CelebrityRatingSerializer(data=request.data)
         if serializer.is_valid():
-            fields = {'fan_rate': request.data['fan_rate'], 'comments': request.data['comments']}
+            fields = {
+                'fan_rate': request.data['fan_rate'],
+                'comments': request.data['comments'],
+                'reason': request.data['reason'],
+            }
             celebrity_fan_rating, created = FanRating.objects.update_or_create(
                 fan_id=fan.id, celebrity_id=celebrity_user.user_id, starsona_id=request.data['starsona'],
                 defaults=fields)
