@@ -241,7 +241,7 @@ class ReactionsAdmin(ReadOnlyModelAdmin):
         """
             Embed the video from S3
         """
-        config = Config.objects.get(key='reactions')
+        config = Config.objects.get(key='reaction_files')
 
         if instance.file_type == 2:
             return mark_safe('<video width="320" height="240" controls><source src="%s" type="video/mp4">'
