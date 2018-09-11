@@ -228,7 +228,7 @@ class CelebrityRate(APIView, ResponseViewMixin):
             fields = {
                 'fan_rate': request.data['fan_rate'],
                 'comments': request.data['comments'],
-                'reason': request.data['reason'],
+                'reason': serializer.validated_data.get('reason', ''),
             }
             celebrity_fan_rating, created = FanRating.objects.update_or_create(
                 fan_id=fan.id, celebrity_id=celebrity_user.user_id, starsona_id=request.data['starsona'],
