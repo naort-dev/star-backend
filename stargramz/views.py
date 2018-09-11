@@ -12,7 +12,8 @@ from utilities.konstants import ROLES, NOTIFICATION_TYPES
 from config.models import Config
 from config.constants import *
 from utilities.constants import BASE_URL
-from users.models import StargramzUser, Celebrity, UserRoleMapping, ProfileImage, VanityUrl
+from users.models import StargramzUser, Celebrity, UserRoleMapping, ProfileImage, VanityUrl, FanRating
+from users.serializer import CelebrityRatingSerializer
 import json
 from .models import Stargramrequest, StargramVideo, OccasionRelationship, Occasion, STATUS_TYPES, REQUEST_TYPES,\
     VIDEO_STATUS, Comment
@@ -965,7 +966,7 @@ class CommentsView(GenericAPIView, ResponseViewMixin):
             return self.jp_response('HTTP_404_NOT_FOUND', data={"comments": serializer.errors})
 
 
-class ReactionView(APIView, ResponseViewMixin):
+class BookingFeedbackView(APIView, ResponseViewMixin):
     """
         Reaction video against a booking request video
     """
@@ -979,14 +980,32 @@ class ReactionView(APIView, ResponseViewMixin):
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
 
-        request.data['user'] = user.id
-        serializer = ReactionSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
+        try:
+            booking, celebrity = Stargramrequest.objects.values_list('id', 'celebrity').get(id=request.data.get('booking'))
+        except Stargramrequest.DoesNotExist as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
+
+        request.data['user'] = request.data['fan'] = user.id
+        request.data['starsona'] = booking
+        request.data['celebrity'] = celebrity
+        rating = CelebrityRatingSerializer(data=request.data)
+        reaction = ReactionSerializer(data=request.data)
+
+        if reaction.is_valid() and rating.is_valid():
+            reaction.save()
+            fields = {
+                'fan_rate': rating.validated_data.get('fan_rate'),
+                'comments': rating.validated_data.get('comments', ''),
+                'reason': rating.validated_data.get('reason', ''),
+            }
+            FanRating.objects.update_or_create(
+                fan_id=user.id, celebrity_id=celebrity, starsona_id=booking,
+                defaults=fields)
             return self.jp_response('HTTP_200_OK', data={"reactions": "Added the reaction details"})
         else:
+            errors = reaction.errors if reaction.errors else rating.errors
             return self.jp_error_response(
                 'HTTP_400_BAD_REQUEST',
                 'INVALID_LOGIN',
-                self.error_msg_string(serializer.errors)
+                self.error_msg_string(errors)
             )

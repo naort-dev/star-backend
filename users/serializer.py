@@ -650,13 +650,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class CelebrityRatingSerializer(serializers.ModelSerializer):
-    fan_rate = serializers.DecimalField(
-        read_only=True,
-        max_digits=6,
-        decimal_places=2,
-        default=0.00,
-        validators=[MinValueValidator(MIN_RATING_VALUE), MaxValueValidator(MAX_RATING_VALUE)]
-    )
     comments = serializers.CharField(max_length=260, allow_blank=True, required=False)
     overall_rating = serializers.DecimalField(read_only=True, max_digits=6, decimal_places=2,
                                               source="celebrity.celebrity_user.rating")
@@ -673,7 +666,7 @@ class CelebrityRatingSerializer(serializers.ModelSerializer):
             Stargramrequest.objects.get(fan=fan, celebrity=celebrity, id=starsona.id)
             return data
         except Stargramrequest.DoesNotExist:
-            raise serializers.ValidationError('Starsona does not exist for this user')
+            raise serializers.ValidationError('Booking does not exist for this user')
 
 
 class CelebrityFollowSerializer(serializers.Serializer):

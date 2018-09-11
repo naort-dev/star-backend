@@ -204,6 +204,7 @@ class FanFavouriteStars(GenericViewSet, ResponseViewMixin):
         return self.paginator.get_paginated_response(serializer.data, key_name='celebrity_list')
 
 
+# Remove this API after the next release Already handled the booking feedback in feedback API
 class CelebrityRate(APIView, ResponseViewMixin):
 
     authentication_classes = (TokenAuthentication,)
