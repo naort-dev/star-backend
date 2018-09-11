@@ -14,6 +14,9 @@ from .tasks import alert_fans_celebrity_available, alert_admin_celebrity_updates
 from django.apps import apps
 from django.db.models.signals import pre_save
 import datetime
+from decimal import Decimal
+from math import ceil
+from django.db.models import Sum
 
 
 USER_STATUS = Konstants(
@@ -338,6 +341,17 @@ class FanRating(models.Model):
 
     def __str__(self):
         return 'Fan Rating for Booking - %s' % self.starsona_id
+
+
+@receiver(post_save, sender=FanRating)
+def save_rating_count(sender, instance, **kwargs):
+    total_user = FanRating.objects.filter(celebrity_id=instance.celebrity_id)
+    fan_count = Decimal(total_user.count())
+    total_sum_rating = total_user.aggregate(Sum('fan_rate'))
+    avg_rating = round(total_sum_rating['fan_rate__sum'] / fan_count, 1)
+    round_off_avg = 0.5 * ceil(2.0 * float(avg_rating))
+    Celebrity.objects.filter(user_id=instance.celebrity_id).update(rating=round_off_avg)
+
 
 
 class CelebrityFollow(models.Model):
