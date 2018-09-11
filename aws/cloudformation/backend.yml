@@ -894,6 +894,10 @@ Resources:
           Action: [ "s3:GetObject" ]
           Principal: "*"
           Resource: !Join ['', ['arn:aws:s3:::', !Ref 'BucketName', '/images/profile/*']]
+        - Effect: Allow
+          Action: [ "s3:GetObject" ]
+          Principal: "*"
+          Resource: !Join ['', ['arn:aws:s3:::', !Ref 'BucketName', '/reactions/*']]
 
   S3BucketPolicy:
     Type: AWS::IAM::Policy
