@@ -374,7 +374,6 @@ class ReactionSerializer(serializers.ModelSerializer):
                     file_type=file.get('file_type'),
                     reaction_file=file.get('reaction_file'),
                 )
-                return True
             except Exception:
-                return False
-        return False
+                pass
+        return True
