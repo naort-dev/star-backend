@@ -15,6 +15,14 @@ TRANSACTION_STATUS = Konstants(
 )
 
 
+TIP_STATUS = Konstants(
+    K(pending=1, label='Pending'),
+    K(captured=2, label='Tip credited'),
+    K(tip_payed_out=3, label='Tip payed out'),
+    K(failed=4, label='Failed'),
+)
+
+
 PAYOUT_STATUS = Konstants(
     K(pending=1, label='Pending'),
     K(transferred=2, label='Transferred'),
@@ -83,3 +91,20 @@ class PaymentPayout(models.Model):
 
     def __str__(self):
         return str(self.pk)
+
+
+class TipPayment(models.Model):
+    booking = models.ForeignKey(Stargramrequest, related_name='tip_payment', blank=False, null=False)
+    fan = models.ForeignKey(StargramzUser, related_name='tip_fan')
+    celebrity = models.ForeignKey(StargramzUser, related_name='tip_celebrity')
+    amount = models.DecimalField('amount', max_digits=7, decimal_places=2, blank=False, null=False)
+    created_date = models.DateTimeField('Created Date', auto_now_add=True)
+    modified_date = models.DateTimeField('Modified Date', auto_now=True)
+    transaction_status = models.IntegerField('Transaction Status', choices=TIP_STATUS.choices(),
+                                             default=TIP_STATUS.pending, db_index=True)
+    source_id = models.CharField(max_length=120, blank=False, null=False)
+    stripe_transaction_id = models.CharField(max_length=120)
+    comments = models.TextField('Comments', max_length=200, blank=True)
+
+    def __str__(self):
+        return 'Tip %d' % self.pk

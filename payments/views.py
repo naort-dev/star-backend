@@ -6,9 +6,10 @@ from rest_framework.permissions import IsAuthenticated
 from utilities.permissions import CustomPermission
 from users.models import StargramzUser, Celebrity
 from .serializer import EphemeralKeySerializer, ChargeSerializer, AttachDetachSourceSerializer, \
-    StarsonaTransactionSerializer
+    StarsonaTransactionSerializer, TipPaymentSerializer, BookingValidate
 import stripe
-from .models import StarsonaTransaction, LogEvent, TRANSACTION_STATUS, PAYOUT_STATUS, StripeAccount, PaymentPayout
+from .models import StarsonaTransaction, LogEvent, TRANSACTION_STATUS, PAYOUT_STATUS, StripeAccount, PaymentPayout,\
+    TipPayment, TIP_STATUS
 from stargramz.models import Stargramrequest, STATUS_TYPES
 from config.models import Config
 from django.db.models import Q
@@ -473,3 +474,90 @@ class CardsList(APIView, ResponseViewMixin):
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
+
+
+class TipPayments(APIView, ResponseViewMixin):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def post(self, request):
+        """
+            Create a Charge for a customer
+        """
+        try:
+            customer = StargramzUser.objects.get(username=request.user)
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', str(e))
+        request.data['fan'] = customer.id
+        serializer = BookingValidate(data=request.data)
+        if serializer.is_valid():
+            try:
+                booking, celebrity = Stargramrequest.objects.values_list('id', 'celebrity').get(Q(id=request.data['booking']) &
+                                                               Q(fan_id=customer.id))
+            except Stargramrequest.DoesNotExist:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE',
+                                              'Request does not exist for this user')
+            if not customer.stripe_customer_id:
+                return self.jp_error_response(
+                    'HTTP_400_BAD_REQUEST',
+                    'UNKNOWN_QUERY',
+                    'Ephemeral key has not been generated'
+                )
+            request.data['celebrity'] = celebrity
+            tips = TipPaymentSerializer(data=request.data)
+            print(tips.is_valid())
+            if tips.is_valid():
+                print(customer.stripe_customer_id)
+                print(API_KEY)
+                try:
+                    request_charge = stripe.Source.retrieve(request.data['source'], api_key=API_KEY)
+                except Exception as e:
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', str(e))
+                tip_transaction = TipPayment.objects.create(
+                    booking_id=booking,
+                    fan_id=customer.id,
+                    celebrity_id=celebrity,
+                    amount=tips.validated_data.get('amount'),
+                    transaction_status=TIP_STATUS.pending,
+                    source_id=tips.validated_data.get('source'),
+                )
+                if request_charge.type == 'three_d_secure':
+                    if request_charge.status == 'failed':
+                        tip_transaction.transaction_status = TIP_STATUS.failed
+                        tip_transaction.save()
+                        return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY',
+                                                      'Payment has Failed')
+                    if request_charge.status != 'chargeable':
+                        return self.jp_response(code_change=TRANSACTION_PROCESSING_STATUS,
+                                                data={"charge_status": "Payment is under processing"})
+
+                try:
+                    charge = stripe.Charge.create(
+                        amount=int(tips.validated_data.get('amount')*100),
+                        currency='usd',
+                        customer=customer.stripe_customer_id,
+                        description="Tip for the Starsona request " + str(booking),
+                        metadata={"request_id": booking},
+                        api_key=API_KEY,
+                        source=tips.validated_data.get('source'),
+                        capture=True,
+                    )
+                    tip_transaction.stripe_transaction_id = charge.id
+                    tip_transaction.transaction_status = TIP_STATUS.captured
+                    tip_transaction.save()
+                    return self.jp_response(data={"tip_status": "Tip payment was successful"})
+                except Exception as e:
+                    tip_transaction.transaction_status = TIP_STATUS.failed
+                    tip_transaction.comments = str(e)
+                    tip_transaction.save()
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', str(e))
+
+
+            else:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', tips.errors)
+        else:
+            return self.jp_error_response(
+                'HTTP_400_BAD_REQUEST',
+                'UNKNOWN_QUERY',
+                self.error_msg_string(serializer.errors)
+            )
