@@ -1,7 +1,7 @@
 # Register your models here.
 from django.utils.translation import ugettext_lazy as _
 from django.contrib import admin
-from .models import LogEvent, StarsonaTransaction, StripeAccount, PaymentPayout
+from .models import LogEvent, StarsonaTransaction, StripeAccount, PaymentPayout, TipPayment
 from utilities.admin_utils import ReadOnlyModelAdmin
 
 
@@ -49,7 +49,24 @@ class PayoutAdmin(ReadOnlyModelAdmin):
                        'modified_date', 'referral_payout')
 
 
+class TipPaymentAdmin(ReadOnlyModelAdmin):
+    list_display = ('id', 'booking_id', 'fan', 'celebrity', 'transaction_status')
+
+    fieldsets = (
+        (_('Starsona Details'), {'fields': ('booking', 'fan', 'celebrity')}),
+        (_('Transaction Details'),
+         {'fields': ('transaction_status', 'source_id', 'stripe_transaction_id', 'amount', 'comments')}
+        ),
+    )
+    search_fields = ('id', 'fan__username', 'celebrity__username',)
+    list_display_links = ('id',)
+    list_filter = ('transaction_status',)
+    readonly_fields = ('created_date', 'fan', 'celebrity', 'modified_date', 'source_id',
+                       'stripe_transaction_id', 'booking', 'amount', 'comments')
+
+
 admin.site.register(StarsonaTransaction, TransactionAdmin)
 admin.site.register(LogEvent, LogEventAdmin)
 admin.site.register(StripeAccount, LogStripeAccountAdmin)
 admin.site.register(PaymentPayout, PayoutAdmin)
+admin.site.register(TipPayment, TipPaymentAdmin)

@@ -985,7 +985,8 @@ class BookingFeedbackView(APIView, ResponseViewMixin):
         except Stargramrequest.DoesNotExist as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
 
-        request.data['user'] = request.data['fan'] = user.id
+        request.data['user'] = user.id
+        request.data['fan'] = user.id
         request.data['starsona'] = booking
         request.data['celebrity'] = celebrity
         rating = CelebrityRatingSerializer(data=request.data)
@@ -998,10 +999,11 @@ class BookingFeedbackView(APIView, ResponseViewMixin):
                 'comments': rating.validated_data.get('comments', ''),
                 'reason': rating.validated_data.get('reason', ''),
             }
-            FanRating.objects.update_or_create(
+            rating_record, created = FanRating.objects.update_or_create(
                 fan_id=user.id, celebrity_id=celebrity, starsona_id=booking,
                 defaults=fields)
-            return self.jp_response('HTTP_200_OK', data={"reactions": "Added the reaction details"})
+            data = CelebrityRatingSerializer(rating_record).data
+            return self.jp_response('HTTP_200_OK', data={"feedback": data})
         else:
             errors = reaction.errors if reaction.errors else rating.errors
             return self.jp_error_response(

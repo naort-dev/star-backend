@@ -5,7 +5,7 @@ from django.contrib import admin
 from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profession, \
     UserRoleMapping, Celebrity, CelebrityProfession, SettingsNotifications, FanRating, Campaign, Referral, VanityUrl
 from role.models import Role
-from payments.models import PaymentPayout
+from payments.models import PaymentPayout, TipPayment
 from utilities.konstants import ROLES
 from utilities.utils import get_profile_images, get_profile_video, get_featured_image, get_user_role_details
 from django.db.models import Q
@@ -141,6 +141,20 @@ class RatingInline(ReadOnlyTabularInline):
 
         return False
 
+
+class TipPaymentAdmin(ReadOnlyTabularInline):
+    model = TipPayment
+    fields = ('id', 'amount', 'booking', 'fan', 'created_date')
+    readonly_fields = ('id', 'amount', 'booking', 'fan', 'created_date')
+    extra = 0
+    min_num = 0
+    verbose_name_plural = 'Tip Details'
+    fk_name = 'celebrity'
+    can_delete = False
+
+    def has_add_permission(self, request):
+
+        return False
 
 class ProfessionInline(ReadOnlyStackedInline):
     model = CelebrityProfession
@@ -306,7 +320,7 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
                        'stripe_customer_id', 'featured_image', 'stripe_user_id')
     list_per_page = 10
     inlines = [RoleInline, VanityUrlInline, CelebrityInline, ProfessionInline, NotificationSettingInline, PayoutsTabular,
-               RatingInline, ReferralTabular]
+               RatingInline, ReferralTabular, TipPaymentAdmin]
     ordering = ['-id', ]
 
     class Media:
@@ -385,7 +399,8 @@ class ProfessionAdmin(ReadOnlyModelAdmin):
 
 
 class RatingAdmin(ReadOnlyModelAdmin):
-    list_display = ('id', 'fan_rate', 'celebrity', 'fan')
+    list_display = ('id', 'fan_rate', 'starsona', 'celebrity')
+    search_fields = ('celebrity__username', 'starsona__id')
     list_per_page = 10
     ordering = ('id',)
     ordering = ['id', ]
