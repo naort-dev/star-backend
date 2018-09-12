@@ -1,6 +1,8 @@
 from rest_framework import serializers
-from .models import StarsonaTransaction
+from .models import StarsonaTransaction, TipPayment
 from stargramz.serializer import TransactionStargramzSerializer
+from hashids import Hashids
+hashids = Hashids(min_length=8)
 
 
 class EphemeralKeySerializer(serializers.Serializer):
@@ -30,3 +32,18 @@ class StarsonaTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = StarsonaTransaction
         fields = ('id', 'starsona', 'created_date', 'amount')
+
+
+class BookingValidate(serializers.ModelSerializer):
+    class Meta:
+        model = TipPayment
+        fields = ('booking',)
+
+
+class TipPaymentSerializer(serializers.ModelSerializer):
+    source = serializers.CharField(required=True, allow_blank=False, allow_null=False)
+    amount = serializers.DecimalField(required=True, max_digits=7, decimal_places=2)
+
+    class Meta:
+        model = TipPayment
+        fields = ('booking', 'amount', 'source', 'celebrity', 'fan')
