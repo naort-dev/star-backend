@@ -52,7 +52,9 @@ class CelebrityManagement(APIView, ResponseViewMixin):
                 roles_mapping = UserRoleMapping.objects.get(user=user)
                 if roles_mapping.role.code == ROLES.fan:
                     celebrity.has_fan_account = True
-                    celebrity.save()
+                # Celebrity approval by default
+                celebrity.admin_approval = True
+                celebrity.save()
                 roles_mapping.is_complete = True
                 roles_mapping.role_id = role_id
                 roles_mapping.save()
