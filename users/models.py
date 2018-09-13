@@ -9,7 +9,7 @@ from utilities.konstants import Konstants, K, ROLES, NOTIFICATION_TYPES as devic
 from .utils import generate_referral_unique_code, generate_vanity_url
 from django.core.validators import MaxValueValidator, MinValueValidator
 from .constants import *
-from stargramz.models import Stargramrequest
+from stargramz.models import Stargramrequest, StargramVideo
 from .tasks import alert_fans_celebrity_available, alert_admin_celebrity_updates
 from django.apps import apps
 from django.db.models.signals import pre_save
@@ -350,8 +350,10 @@ def save_rating_count(sender, instance, **kwargs):
     total_sum_rating = total_user.aggregate(Sum('fan_rate'))
     avg_rating = round(total_sum_rating['fan_rate__sum'] / fan_count, 1)
     round_off_avg = 0.5 * ceil(2.0 * float(avg_rating))
+    # Updating the celebrity avg comment counts
     Celebrity.objects.filter(user_id=instance.celebrity_id).update(rating=round_off_avg)
-
+    # Updating video read status at the time of submitting rating
+    StargramVideo.objects.filter(stragramz_request_id=instance.starsona).update(read_status=True)
 
 
 class CelebrityFollow(models.Model):
