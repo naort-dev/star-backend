@@ -1011,3 +1011,30 @@ class BookingFeedbackView(APIView, ResponseViewMixin):
                 'INVALID_LOGIN',
                 self.error_msg_string(errors)
             )
+
+
+class RequesterWatchedVideo(APIView, ResponseViewMixin):
+    """
+        Video viewed by requested user
+    """
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission)
+
+    def get(self, request, pk):
+        try:
+            video_id = hashids.decode(pk)[0]
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
+
+        try:
+            user = StargramzUser.objects.get(username=request.user)
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
+
+        try:
+            video = StargramVideo.objects.get(id=video_id, stragramz_request__fan=user.id, read_status=False)
+            video.read_status = True
+            video.save()
+            return self.jp_response('HTTP_200_OK', data={"video_read": 'Updated the video'})
+        except StargramVideo.DoesNotExist as e:
+            return self.jp_response('HTTP_200_OK', data={"video_read": str(e)})
