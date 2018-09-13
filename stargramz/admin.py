@@ -184,7 +184,7 @@ class StargramVideosAdmin(ReadOnlyModelAdmin):
         (_('Video info'), {'fields': ('duration', 'created_date',)}),
     )
     readonly_fields = ('created_date', 'video_thumbnail', 'video_link', 'status')
-    search_fields = ('featured', 'stragramz_request', 'video')
+    search_fields = ('stragramz_request__booking_title', 'video')
 
     def video_duration(self, obj):
         if obj.duration:
