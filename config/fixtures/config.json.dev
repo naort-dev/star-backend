@@ -238,5 +238,25 @@
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }
+  },
+  {
+    "model": "config.config",
+    "pk": 25,
+    "fields": {
+      "key": "tip_amounts",
+      "value": "5,10,20",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 26,
+    "fields": {
+      "key": "tip_fixed_or_percentage",
+      "value": "fixed",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
   }
 ]
