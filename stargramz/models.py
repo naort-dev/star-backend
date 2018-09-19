@@ -275,3 +275,13 @@ class Reaction(models.Model):
 
     def __str__(self):
         return 'Reaction - %s' % str(self.pk)
+
+
+class BookingAdminAdd(Stargramrequest):
+    """
+        Proxy Class of Stargramrequest Model for Admin Adding
+    """
+    class Meta:
+        verbose_name = 'Bookings Admin Adding'
+        verbose_name_plural = 'Bookings Admin Adding'
+        proxy = True

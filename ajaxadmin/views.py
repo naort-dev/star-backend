@@ -18,6 +18,7 @@ from datetime import datetime
 import urllib.request
 from PIL import Image
 from job.tasks import *
+from stargramz.models import StargramVideo
 
 
 class StargramzView(APIView, ResponseViewMixin):
@@ -370,3 +371,28 @@ def run_process(request):
             generate_thumbnail.delay()
 
     return HttpResponse("Welcome")
+
+
+def process_booking(request):
+    """
+    Complete the booking request process
+    :param request:
+    :return:
+    """
+    if not request.user.is_superuser:
+        return HttpResponse('Not an admin user.')
+    role = get_user_role_details(request.user)
+    if 'role_code' in role and role['role_code'] == 'R1006':
+        return HttpResponse('Not authorised.')
+    booking_id = request.GET.get('booking')
+    if booking_id:
+        try:
+            video_ids = StargramVideo.objects.values_list('id', flat=True)\
+                .filter(stragramz_request_id=booking_id, thumbnail__isnull=True)
+            for video_id in video_ids:
+                generate_video_thumbnail.delay(id=video_id)
+            return HttpResponse("Added video for processing")
+        except Exception as e:
+            return HttpResponse(str(e))
+    else:
+        return HttpResponse("No booking Id")
