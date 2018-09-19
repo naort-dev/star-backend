@@ -119,12 +119,10 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def get_images(self, obj):
         exclude_ids = []
-        request = self.context.get('request')
-        if request and StrictVersion('3.0') < StrictVersion(request.META['HTTP_VERSION']):
-            if obj.avatar_photo_id:
-                exclude_ids.append(obj.avatar_photo_id)
-            if obj.featured_photo_id:
-                exclude_ids.append(obj.featured_photo_id)
+        if obj.avatar_photo_id:
+            exclude_ids.append(obj.avatar_photo_id)
+        if obj.featured_photo_id:
+            exclude_ids.append(obj.featured_photo_id)
         query = ProfileImage.objects.filter(user=obj.id).order_by('-created_date').exclude(id__in=exclude_ids)
         serializer = ProfilePictureSerializer(query, many=True)
         return serializer.data

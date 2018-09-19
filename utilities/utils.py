@@ -3,6 +3,7 @@ from django.template import loader
 from django.conf import settings
 from users.models import UserRoleMapping
 from utilities.konstants import ROLES
+from utilities.mixins import ResponseViewMixin
 import string
 import random
 import requests
@@ -433,3 +434,17 @@ def generate_branch_io_url(mob_url='', title='', desc='', image_url='', desktop_
         return return_data['url']
     except Exception:
         return desktop_url
+
+
+def encode_pk(pk):
+    try:
+        return hashids.encode(pk)
+    except Exception as e:
+        return ResponseViewMixin.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
+
+
+def decode_pk(pk):
+    try:
+        return hashids.decode(pk)[0]
+    except Exception as e:
+        return ResponseViewMixin.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))

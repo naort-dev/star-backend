@@ -1,7 +1,7 @@
 from django.utils.translation import ugettext_lazy as _
 from django.contrib import admin
 from .models import Occasion, Stargramrequest, StargramVideo, OccasionRelationship, ReportAbuse, OrderRelationship,\
-    Comment, Reaction
+    Comment, Reaction, BookingAdminAdd
 from payments.models import StarsonaTransaction
 from config.models import Config
 from django.utils.safestring import mark_safe
@@ -80,6 +80,55 @@ class StargramVideosInline(ReadOnlyStackedInline):
                              % get_pre_signed_get_url(instance.video, config.value))
         else:
             return mark_safe('<span>No Video available.</span>')
+
+
+class StargramVideosAdminInline(ReadOnlyStackedInline):
+    model = StargramVideo
+    fields = ('stragramz_request', 'video_thumbnail', 'video_link', 'video', 'status',
+              'duration', 'created_date')
+    readonly_fields = ('created_date', 'video_link', 'video_thumbnail')
+    min_num = 1
+    max_num = 3
+    extra = 0
+    verbose_name_plural = 'Video Details'
+    can_delete = True
+
+    def video_thumbnail(self, instance):
+        """
+            Embed the video thumbnail image
+        """
+        config = Config.objects.get(key='stargram_videos')
+
+        if instance.thumbnail:
+            return mark_safe('<img src="%s" class="img-thumbnail" width="200" height="200"/>'
+                             % get_pre_signed_get_url(instance.thumbnail, config.value))
+        else:
+            return mark_safe('<span>No Video image available.</span>')
+
+    def video_link(self, instance):
+        """
+            Embed the video from S3
+        """
+        config = Config.objects.get(key='stargram_videos')
+
+        if instance.video:
+            return mark_safe('<video width="320" height="240" controls><source src="%s" type="video/mp4">'
+                             'Your browser does not support the video tag.</video>'
+                             % get_pre_signed_get_url(instance.video, config.value))
+        else:
+            return mark_safe('<span>No Video available.</span>')
+
+
+class TransactionsAdminInline(ReadOnlyStackedInline):
+    model = StarsonaTransaction
+    fields = ('starsona', 'fan', 'celebrity', 'transaction_status', 'source_id',
+              'stripe_transaction_id', 'stripe_refund_id', 'amount', 'comments')
+
+    min_num = 1
+    max_num = 1
+    extra = 0
+    verbose_name_plural = 'Transaction Details'
+    can_delete = True
 
 
 class OrderRelationshipInline(ReadOnlyTabularInline):
@@ -254,6 +303,68 @@ class ReactionsAdmin(ReadOnlyModelAdmin):
             return mark_safe('<span>No File available.</span>')
 
 
+class BookingsAddOnlyAdmin(ReadOnlyModelAdmin):
+
+    list_display = ('id', 'fan', 'celebrity', 'occasion', 'request_status',)
+    list_filter = ('request_status', 'request_type')
+    fieldsets = (
+        (_('Complete Booking'), {'fields': ('complete_booking',)}),
+        (_('Basic info'), {'fields': ('booking_title', 'fan', 'celebrity', 'occasion', 'request_data', 'request_type')}),
+        (_('Audios'), {'fields': ('booking_from_audio', 'booking_to_audio',)}),
+        (_('Info'), {'fields': ('share_check', 'request_status', 'public_request', 'priorty',)}),
+        (_('Cancellation reason'), {'fields': ('comment',)}),
+        (_('Dates'), {'fields': ('created_date', 'modified_date')}),
+    )
+    readonly_fields = ('due_date', 'request_data', 'booking_from_audio', 'complete_booking',
+                       'booking_to_audio', 'created_date', 'modified_date',)
+    inlines = [StargramVideosAdminInline, TransactionsAdminInline]
+
+    class Media:
+        js = (
+            '//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js',  # jquery
+            '/media/js/admin-booking.js',
+        )
+
+    def make_complete(self, request, queryset):
+        queryset.update(request_status=6)
+    make_complete.short_description = "Mark selected Bookings as Completed"
+
+    def booking_from_audio(self, instance):
+
+        return get_audio(instance.from_audio_file)
+
+    def booking_to_audio(self, instance):
+
+        return get_audio(instance.to_audio_file)
+
+    def request_data(self, instance):
+        data = json.loads(instance.request_details)
+        string = ''
+        for attribute, value in sorted(data.items()):
+            try:
+                for attributes, values in value.items():
+                    string += "<tr><td>%s - %s</td><td>%s</td></tr>" % (
+                        attribute.capitalize(),
+                        attributes.capitalize(),
+                        str(values)
+                    )
+            except Exception:
+                if value:
+                    string += "<tr><td>%s</td><td>%s</td></tr>" % (attribute.capitalize(), str(value))
+
+        return mark_safe("<table width='500px'>%s</table>" % string)
+
+    def complete_booking(self, instance):
+
+        if not instance.pk or instance.request_status == 6:
+            return mark_safe("<p></p>")
+        else:
+            return mark_safe("<ul class='object-tools'>"
+                             "<li><a href='#' booking_id='%d' class='historylink' id='BookingId'>Complete video booking</a></li>"
+                             "</ul>" % instance.pk)
+
+
+admin.site.register(BookingAdminAdd, BookingsAddOnlyAdmin)
 admin.site.register(Reaction, ReactionsAdmin)
 admin.site.register(Comment, CommentsAdmin)
 admin.site.register(ReportAbuse, AbuseAdmin)
