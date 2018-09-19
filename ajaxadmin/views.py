@@ -388,7 +388,7 @@ def process_booking(request):
     if booking_id:
         try:
             video_ids = StargramVideo.objects.values_list('id', flat=True)\
-                .filter(stragramz_request_id=booking_id, thumbnail__isnull=True)
+                .filter(stragramz_request_id=booking_id)
             for video_id in video_ids:
                 generate_video_thumbnail.delay(id=video_id)
             return HttpResponse("Added video for processing")

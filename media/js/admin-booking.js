@@ -35,7 +35,7 @@ $('#BookingId').click(function(){
         processData : false,
         success: function(returnval) {
             alert(returnval);
-            window.location('/admin');
+            window.location ='/admin';
          }
     });
 });
