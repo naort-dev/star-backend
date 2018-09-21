@@ -2,7 +2,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import admin
-from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profession, \
+from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profession, CelebrityAvailableAlert,\
     UserRoleMapping, Celebrity, CelebrityProfession, SettingsNotifications, FanRating, Campaign, Referral, VanityUrl
 from role.models import Role
 from payments.models import PaymentPayout, TipPayment
@@ -421,6 +421,18 @@ class CampaignAdmin(ReadOnlyModelAdmin):
         return fieldsets
 
 
+class CelebrityAvailabilityAlertAdmin(ReadOnlyModelAdmin):
+    list_display = ('id', 'celebrity', 'fan', 'notification_send', 'created_date')
+
+    list_per_page = 10
+
+    class Media:
+        js = (
+            '//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js',  # jquery
+            '/media/js/alert_fan.js',
+        )
+
+
 admin.site.register(Profession, ProfessionAdmin)
 admin.site.register(StargramzUser, StargramzUserAdmin)
 admin.site.register(AdminUser, AdminUsersAdmin)
@@ -428,3 +440,4 @@ admin.site.register(FanUser, FanUsersAdmin)
 admin.site.register(CelebrityUser, CelebrityUsersAdmin)
 admin.site.register(FanRating, RatingAdmin)
 admin.site.register(Campaign, CampaignAdmin)
+admin.site.register(CelebrityAvailableAlert, CelebrityAvailabilityAlertAdmin)
