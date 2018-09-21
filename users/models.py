@@ -415,6 +415,7 @@ class CelebrityAvailableAlert(models.Model):
     fan = models.ForeignKey('StargramzUser', related_name='alert_fan')
     notification_send = models.BooleanField('Notification Send', default=False)
     created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
 
 
 class Campaign(models.Model):
