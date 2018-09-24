@@ -2,8 +2,9 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import admin
-from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profession, CelebrityAvailableAlert,\
-    UserRoleMapping, Celebrity, CelebrityProfession, SettingsNotifications, FanRating, Campaign, Referral, VanityUrl
+from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profession, GroupAccountUser, GroupAccount,\
+    UserRoleMapping, Celebrity, CelebrityProfession, SettingsNotifications, FanRating, Campaign, Referral, VanityUrl, \
+    CelebrityAvailableAlert
 from role.models import Role
 from payments.models import PaymentPayout, TipPayment
 from utilities.konstants import ROLES
@@ -433,11 +434,57 @@ class CelebrityAvailabilityAlertAdmin(ReadOnlyModelAdmin):
         )
 
 
+class GroupAccountInline(ReadOnlyStackedInline):
+    model = GroupAccount
+    readonly_fields = ('follow_count',)
+    fieldsets = (
+        (_('Group info'), {'fields': ('group_type', 'description', 'tags', 'website', 'phone',)}),
+        (_('Address'), {'fields': ('address', 'address_2', 'city', 'state', 'zip', 'country',)}),
+        (_('Important'), {'fields': ('admin_approval', 'follow_count',)}),
+    )
+    max_num = 1
+    verbose_name_plural = 'Group Account Details'
+    can_delete = False
+
+
+class GroupAccountUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
+    add_form = UserCreationForm
+    list_display = ('id', 'first_name', 'last_name', 'username', 'order')
+    list_filter = ('celebrity_user__admin_approval', 'stargramz_user__is_complete')
+
+    fieldsets = (
+        (None, {'fields': ('email', 'username', 'password')}),
+        (_('Personal info'), {'fields': ('first_name', 'last_name', 'nick_name', 'phone', 'date_of_birth',
+                                         'show_nick_name', 'order')}),
+        (_('Referral Details'), {'fields': ('referral_active', 'referral_code', 'referral_campaign',
+                                            'has_requested_referral')}),
+        (_('Important dates'), {'fields': ('last_login', 'created_date', 'modified_date',)}),
+    )
+    search_fields = ('first_name', 'last_name', 'nick_name', 'email',)
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'password1', 'password2',)
+        }),
+    )
+    ordering = ('email',)
+    readonly_fields = ('created_date', 'modified_date',)
+    list_per_page = 10
+    inlines = [GroupAccountInline, VanityUrlInline, RoleInline]
+    ordering = ['-id', ]
+
+    def get_queryset(self, request):
+        role_id = Role.objects.get(code=ROLES.group_account).id
+        return self.model.objects.filter(Q(stargramz_user__role_id=role_id) |
+                                         Q(group_account__isnull=False))
+
+
 admin.site.register(Profession, ProfessionAdmin)
 admin.site.register(StargramzUser, StargramzUserAdmin)
 admin.site.register(AdminUser, AdminUsersAdmin)
 admin.site.register(FanUser, FanUsersAdmin)
 admin.site.register(CelebrityUser, CelebrityUsersAdmin)
+admin.site.register(GroupAccountUser, GroupAccountUsersAdmin)
 admin.site.register(FanRating, RatingAdmin)
 admin.site.register(Campaign, CampaignAdmin)
 admin.site.register(CelebrityAvailableAlert, CelebrityAvailabilityAlertAdmin)

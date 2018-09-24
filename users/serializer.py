@@ -10,7 +10,7 @@ from config.models import Config
 from config.constants import *
 from .models import StargramzUser, SIGN_UP_SOURCE_CHOICES, Celebrity, Profession, UserRoleMapping, ProfileImage, \
     CelebrityAbuse, CelebrityProfession, CelebrityFollow, DeviceTokens, SettingsNotifications, FanRating, Referral,\
-    VanityUrl
+    VanityUrl, GroupAccount
 from .impersonators import IMPERSONATOR
 from role.models import Role
 from datetime import datetime, timedelta
@@ -781,3 +781,22 @@ class AWSPreSignedURLSerializer(serializers.Serializer):
 
     class Meta:
         fields = ('key', 'file_name')
+
+
+class GroupAccountSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model = GroupAccount
+        fields = '__all__'
+
+
+
+class GroupAccountDataSerializer(serializers.ModelSerializer):
+
+    id = serializers.IntegerField(read_only=True)
+    account_name = serializers.CharField(read_only=True, source='get_short_name')
+
+    class Meta:
+        model = StargramzUser
+        fields = ['account_name', 'id']
