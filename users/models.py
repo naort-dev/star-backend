@@ -17,6 +17,7 @@ import datetime
 from decimal import Decimal
 from math import ceil
 from django.db.models import Sum
+from users.country import COUNTRIES
 
 
 USER_STATUS = Konstants(
@@ -53,6 +54,10 @@ NOTIFICATION_TYPES = Konstants(
     K(fan_email_starsona_videos=7, label='Fan Email Starsona Videos'),
 )
 
+GROUP_ACC_TYPES = Konstants(
+    K(charity=1, label='Charity'),
+    K(brand=2, label='Brand'),
+)
 
 class StargramzUserManager(BaseUserManager):
     use_in_migrations = True
@@ -463,3 +468,44 @@ def execute_after_save(sender, instance, created, *args, **kwargs):
         except Exception:
             count = count+1
             execute_after_save(sender, instance, created, count=count)
+
+
+class GroupAccount(models.Model):
+    user = models.OneToOneField('StargramzUser', related_name='group_account', blank=False)
+    contact_first_name = models.CharField('Contact first name', max_length=260, blank=True, null=True)
+    contact_last_name = models.CharField('Contact last name', max_length=260, blank=True, null=True)
+    follow_count = models.IntegerField('Followers', default=0, blank=True)
+    group_type = models.IntegerField('Group Type', choices=GROUP_ACC_TYPES.choices(), db_index=True, default=0)
+    description = models.TextField('Description', blank=True)
+    tags = models.CharField('Tags', max_length=260, blank=True, null=True)
+    website = models.CharField('Website', max_length=260, blank=True, null=True)
+    phone = models.CharField('Phone Number', null=True, blank=True, max_length=15)
+    address = models.CharField('Address', max_length=260, blank=True, null=True)
+    address_2 = models.CharField('Address 2', max_length=260, blank=True, null=True)
+    city = models.CharField('City', max_length=200, blank=True, null=True)
+    state = models.CharField('State', max_length=200, blank=True, null=True)
+    zip = models.IntegerField('Zip', blank=True, null=True)
+    country = models.IntegerField('Country', choices=COUNTRIES.choices(), db_index=True, default=-1)
+    admin_approval = models.BooleanField('Admin Approved', default=False)
+    created_date = models.DateTimeField('Created date', auto_now_add=True)
+    modified_date = models.DateTimeField('Modified date', auto_now=True)
+
+    def __str__(self):
+        return self.user.get_short_name()
+
+
+class GroupAccountUser(StargramzUser):
+    """
+        Proxy Class of Users Model for Admin Users
+    """
+    class Meta:
+        verbose_name_plural = 'Brand/Charity'
+        proxy = True
+
+
+class CelebrityGroupAccount(models.Model):
+    user = models.ForeignKey('StargramzUser', related_name='celebrity_account', blank=False)
+    account = models.ForeignKey('StargramzUser', related_name='account_user', blank=False)
+    approved = models.BooleanField('Admin Approved', default=False)
+    order = models.IntegerField('list order', blank=True, null=True)
+    created_date = models.DateTimeField(auto_now=True)

@@ -782,3 +782,37 @@ class GetAWSSignedUrl(APIView, ResponseViewMixin):
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', 'Invalid extension')
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', serializer.errors)
+
+
+class GroupAccountsView(APIView, ResponseViewMixin):
+    """
+        Methods to handle Group accounts of Charity and Brands
+    """
+    def post(self, request):
+        self.authentication_classes = (TokenAuthentication,)
+        self.permission_classes = (IsAuthenticated, CustomPermission,)
+
+        try:
+            user = StargramzUser.objects.get(username=request.user, stargramz_user__role__code=ROLES.group_account)
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', data=str(e))
+
+        request.data['user'] = user.id
+        serializer = GroupAccountSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return self.jp_response(s_code='HTTP_200_OK', data='Successfully created group account')
+        return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', data=serializer.errors)
+
+    def get(self, request):
+        self.permission_classes = (CustomPermission,)
+
+        try:
+            user = StargramzUser.objects.filter(group_account__admin_approval=True)
+            serializer = GroupAccountDataSerializer(user, many=True)
+            return self.jp_response(s_code='HTTP_200_OK', data={'group_accounts': serializer.data})
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
+
+
