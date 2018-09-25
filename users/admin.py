@@ -4,7 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib import admin
 from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profession, GroupAccountUser, GroupAccount,\
     UserRoleMapping, Celebrity, CelebrityProfession, SettingsNotifications, FanRating, Campaign, Referral, VanityUrl, \
-    CelebrityAvailableAlert
+    CelebrityAvailableAlert, GroupType
 from role.models import Role
 from payments.models import PaymentPayout, TipPayment
 from utilities.konstants import ROLES
@@ -479,6 +479,12 @@ class GroupAccountUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
                                          Q(group_account__isnull=False))
 
 
+class GroupTypeAdmin(ReadOnlyModelAdmin):
+    model = GroupType
+    list_display = ('id', 'group_name', 'order', 'created_date', 'order')
+
+
+admin.site.register(GroupType, GroupTypeAdmin)
 admin.site.register(Profession, ProfessionAdmin)
 admin.site.register(StargramzUser, StargramzUserAdmin)
 admin.site.register(AdminUser, AdminUsersAdmin)

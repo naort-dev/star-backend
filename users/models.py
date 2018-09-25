@@ -54,10 +54,7 @@ NOTIFICATION_TYPES = Konstants(
     K(fan_email_starsona_videos=7, label='Fan Email Starsona Videos'),
 )
 
-GROUP_ACC_TYPES = Konstants(
-    K(charity=1, label='Charity'),
-    K(brand=2, label='Brand'),
-)
+
 
 class StargramzUserManager(BaseUserManager):
     use_in_migrations = True
@@ -470,12 +467,22 @@ def execute_after_save(sender, instance, created, *args, **kwargs):
             execute_after_save(sender, instance, created, count=count)
 
 
+class GroupType(models.Model):
+    group_name = models.CharField('Group name', max_length=260, blank=True, null=True)
+    order = models.IntegerField('list order', blank=True, null=True)
+    created_date = models.DateTimeField('Created date', auto_now_add=True)
+    modified_date = models.DateTimeField('Modified date', auto_now=True)
+
+    def __str__(self):
+        return self.group_name
+
+
 class GroupAccount(models.Model):
     user = models.OneToOneField('StargramzUser', related_name='group_account', blank=False)
     contact_first_name = models.CharField('Contact first name', max_length=260, blank=True, null=True)
     contact_last_name = models.CharField('Contact last name', max_length=260, blank=True, null=True)
     follow_count = models.IntegerField('Followers', default=0, blank=True)
-    group_type = models.IntegerField('Group Type', choices=GROUP_ACC_TYPES.choices(), db_index=True, default=0)
+    group_type = models.ForeignKey(GroupType, related_name='group_account_type', blank=False)
     description = models.TextField('Description', blank=True)
     tags = models.CharField('Tags', max_length=260, blank=True, null=True)
     website = models.CharField('Website', max_length=260, blank=True, null=True)
@@ -507,5 +514,7 @@ class CelebrityGroupAccount(models.Model):
     user = models.ForeignKey('StargramzUser', related_name='celebrity_account', blank=False)
     account = models.ForeignKey('StargramzUser', related_name='account_user', blank=False)
     approved = models.BooleanField('Admin Approved', default=False)
+    celebrity_invite = models.BooleanField('Celebrity Invitation', default=False)
     order = models.IntegerField('list order', blank=True, null=True)
-    created_date = models.DateTimeField(auto_now=True)
+    created_date = models.DateTimeField('Created date', auto_now_add=True)
+    modified_date = models.DateTimeField('Modified date', auto_now=True)
