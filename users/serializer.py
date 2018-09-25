@@ -783,13 +783,26 @@ class AWSPreSignedURLSerializer(serializers.Serializer):
         fields = ('key', 'file_name')
 
 
-class GroupAccountSerializer(serializers.ModelSerializer):
+class GroupAccountSerializer(CustomModelSerializer):
 
     class Meta:
 
         model = GroupAccount
         fields = '__all__'
 
+    def create(self, validated_data):
+        user_id = validated_data.get('user')
+        celebrity = GroupAccount.objects.update_or_create(user=user_id, defaults=validated_data)
+        return celebrity
+
+    def update(self, instance, validated_data):
+        field_list = ['contact_first_name', 'contact_last_name', 'group_type', 'description', 'tags', 'website',
+                      'phone', 'address', 'address_2', 'city', 'state', 'zip', 'country']
+        for list_item in field_list:
+            if list_item in validated_data:
+                setattr(instance, list_item, validated_data.get(list_item))
+        instance.save()
+        return instance
 
 
 class GroupAccountDataSerializer(serializers.ModelSerializer):

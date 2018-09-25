@@ -797,12 +797,20 @@ class GroupAccountsView(APIView, ResponseViewMixin):
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', data=str(e))
 
+        group_account_fields = ['contact_first_name', 'contact_last_name', 'group_type', 'description', 'tags',
+                                'website', 'phone', 'address', 'address_2', 'city', 'state', 'zip', 'country']
+
         request.data['user'] = user.id
-        serializer = GroupAccountSerializer(data=request.data)
+        try:
+            instance = GroupAccount.objects.get(user=user)
+            serializer = GroupAccountSerializer(data=request.data, instance=instance, fields=group_account_fields)
+        except Exception:
+            group_account_fields.append('user')
+            serializer = GroupAccountSerializer(data=request.data, instance=None, fields=group_account_fields)
 
         if serializer.is_valid():
             serializer.save()
-            return self.jp_response(s_code='HTTP_200_OK', data='Successfully created group account')
+            return self.jp_response(s_code='HTTP_200_OK', data={'group_account': 'Created the account'})
         return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', data=serializer.errors)
 
     def get(self, request):
