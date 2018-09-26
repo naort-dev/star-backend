@@ -4,7 +4,7 @@ from users.authenticate_views import UserRegister, UserLogin, EmailValidate, Soc
     ResetPassword, Professions, ProfileImages, UserDetails, UserLogout, RemoveProfileImage, ChangePassword, \
     DeviceToken, NotificationSettings, ContactSupport, RoleUpdate, UpdateNotificationBadge, AlertFan, \
     ValidateSocialSignup, FilterProfessions, UpdateBookingCount, GetAWSSignedUrl, GetAWSSignedPostUrl, \
-    GroupAccountsView
+    GroupAccountsView, GroupTypesView
 from .fan_views import CelebrityList, ApproveFan, CelebrityRate, CelebrityProfileFollow, CelebrityFanAbuse, \
     CelebritySuggestionList, FanFavouriteStars
 from .celebrity_views import CelebrityManagement, NotifyAdmin, ReferralRequest, ReferralList, ReferralValidate
@@ -44,6 +44,7 @@ urlpatterns = [
     url(r'^signed_url/$', GetAWSSignedPostUrl.as_view(), name='signed-aws-post-url'),
     url(r'^get_signed_url/$', GetAWSSignedUrl.as_view(), name='signed-aws-get-url'),
     url(r'^group_account/$', GroupAccountsView.as_view(), name='group-account'),
+    url(r'^group_types/$', GroupTypesView.as_view(), name='group-types'),
 ]
 
 router = DefaultRouter()

@@ -295,7 +295,6 @@ class Celebrity(models.Model):
 
             pending_total = int(self.weekly_limits) - int(total_requests)
             self.remaining_limit = pending_total if pending_total > 0 else 0
-
         if self.availability and self.remaining_limit > 0 and (self.__original_remaining_limit != self.remaining_limit):
             alert_fans_celebrity_available.delay(self.user_id)
         if self.__original_admin_approval != self.admin_approval and self.admin_approval:
@@ -470,6 +469,7 @@ def execute_after_save(sender, instance, created, *args, **kwargs):
 class GroupType(models.Model):
     group_name = models.CharField('Group name', max_length=260, blank=True, null=True)
     order = models.IntegerField('list order', blank=True, null=True)
+    active = models.BooleanField('Active', default=True)
     created_date = models.DateTimeField('Created date', auto_now_add=True)
     modified_date = models.DateTimeField('Modified date', auto_now=True)
 

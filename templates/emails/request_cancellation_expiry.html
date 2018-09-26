@@ -1,9 +1,10 @@
 {% include "emails/header.html" %}
-<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Hi,</p>
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Hi {{ fan_name }},</p>
 
 <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">
-We're so sorry, but {{ celebrity_name }} was unable to fulfill your booking request due to unforeseen circumstances. You, of course, were not charged for this request. You're welcome to make another request on the chance that will be available to fulfill your request.
+We're so sorry, but {{ celebrity_name }} was unable to fulfill your booking request due to unforeseen circumstances. You, of course, were not charged for this request. You're welcome to make another request on the chance that {{ celebrity_name }} will be available to fulfill your request.
 </p>
+<p>We also have many other Stars available who are actively doing videos; feel free to check them out and give them a try.</p>
     <p style="text-align:center">
     &nbsp;<a href="{{ app_url }}" class="button-app">Make new request</a>
 </p>

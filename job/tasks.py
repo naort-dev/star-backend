@@ -809,7 +809,10 @@ def send_email_notification(request_id):
         email = details['email_%d' % request.request_status]
         template = details['template_%d' % request.request_status]
         sender_email = Config.objects.get(key='sender_email').value
-        data = json.loads(request.request_details)
+        try:
+            data = json.loads(request.request_details)
+        except Exception:
+            data = ''
         date = ''
         if 'date' in data:
             try:

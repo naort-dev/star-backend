@@ -15,9 +15,10 @@ def change_remaining_limit():
     from .models import Celebrity
     print('Remaining Limit updated to weekly Limit')
     celebrities = Celebrity.objects.all()
-    celebrities.update(remaining_limit=F('weekly_limits'))
     for celebrity in celebrities:
+        celebrity.remaining_limit = celebrity.weekly_limits
         celebrity.save()
+    print('Updated remaining limit updated to weekly limit')
     return True
 
 

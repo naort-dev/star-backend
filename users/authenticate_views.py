@@ -3,7 +3,7 @@ from rest_framework.generics import GenericAPIView
 from utilities.mixins import ResponseViewMixin
 from users.serializer import *
 from users.models import StargramzUser, Profession, CelebrityFollow, CelebrityView, DeviceTokens, \
-    CelebrityAvailableAlert
+    CelebrityAvailableAlert, GroupType
 from utilities.utils import SendMail, get_user_role_details, ROLES, check_user_role, change_fcm_device_status, \
     check_celebrity_profile_exist, generate_branch_io_url, get_pre_signed_post_url
 from django.template.loader import get_template
@@ -824,3 +824,13 @@ class GroupAccountsView(APIView, ResponseViewMixin):
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
 
 
+class GroupTypesView(APIView, ResponseViewMixin):
+
+    def get(self, request):
+        self.permission_classes = (CustomPermission,)
+        try:
+            group_types = GroupType.objects.filter(active=True).order_by('order')
+            serializer = GroupTypeSerializer(group_types, many=True)
+            return self.jp_response(s_code='HTTP_200_OK', data={'group_types': serializer.data})
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
