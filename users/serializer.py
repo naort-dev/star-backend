@@ -273,7 +273,7 @@ class SocialSignupSerializer(serializers.ModelSerializer):
         last_name = validated_data.get('last_name', '')
         sign_up_source = validated_data.get('sign_up_source')
         profile_photo = validated_data.get('profile_photo')
-        nick_name = validated_data.get('nick_name')
+        nick_name = validated_data.get('nick_name', None)
         fb_id = validated_data.get('fb_id')
         gp_id = validated_data.get('gp_id')
         in_id = validated_data.get('in_id')
@@ -296,6 +296,7 @@ class SocialSignupSerializer(serializers.ModelSerializer):
             user.sign_up_source = sign_up_source
             if nick_name:
                 user.nick_name = nick_name
+                user.show_nick_name = True
             user.save()
         except StargramzUser.DoesNotExist:
             try:
