@@ -10,7 +10,7 @@ from config.models import Config
 from config.constants import *
 from .models import StargramzUser, SIGN_UP_SOURCE_CHOICES, Celebrity, Profession, UserRoleMapping, ProfileImage, \
     CelebrityAbuse, CelebrityProfession, CelebrityFollow, DeviceTokens, SettingsNotifications, FanRating, Referral,\
-    VanityUrl, GroupAccount
+    VanityUrl, GroupAccount, GroupType
 from .impersonators import IMPERSONATOR
 from role.models import Role
 from datetime import datetime, timedelta
@@ -814,3 +814,10 @@ class GroupAccountDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = StargramzUser
         fields = ['account_name', 'id']
+
+
+class GroupTypeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = GroupType
+        fields = ['group_name', 'id']

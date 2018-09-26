@@ -49,10 +49,10 @@ def cancel_starsona_celebrity_no_response():
         Q(created_date__gt=timezone.now() - datetime.timedelta(days=REQUEST_CANCEL_DAYS+1)))
     for request in requests:
         print(request.id)
-        request.request_status = STATUS_TYPES.cancelled
-        request.comment = REQUEST_CANCEL_COMMENT % request.celebrity.get_short_name()
-        request.save()
-        request.refresh_from_db()
+        Stargramrequest.objects.filter(pk=request.id).update(
+            request_status=STATUS_TYPES.cancelled,
+            comment=REQUEST_CANCEL_COMMENT % request.celebrity.get_short_name()
+        )
         create_request_refund.delay()
         data = {'id': request.id, 'type': NOTIFICATION_TYPES.fan_myvideos_completed_details,
                 'role': ROLES.fan}
