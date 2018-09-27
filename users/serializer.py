@@ -785,19 +785,17 @@ class AWSPreSignedURLSerializer(serializers.Serializer):
 
 
 class GroupAccountSerializer(CustomModelSerializer):
-
     class Meta:
-
         model = GroupAccount
         fields = '__all__'
 
     def create(self, validated_data):
         user_id = validated_data.get('user')
-        group_account = GroupAccount.objects.update_or_create(user=user_id, defaults=validated_data)
+        group_account, created_date = GroupAccount.objects.update_or_create(user=user_id, defaults=validated_data)
         roles_mapping = UserRoleMapping.objects.get(user=user_id)
         roles_mapping.is_complete = True
         roles_mapping.save()
-        welcome_email.delay(user_id)
+        welcome_email.delay(group_account.user_id)
         return group_account
 
     def update(self, instance, validated_data):

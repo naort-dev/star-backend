@@ -5,6 +5,7 @@ from rest_framework.viewsets import GenericViewSet
 from utilities.permissions import CustomPermission
 from utilities.mixins import ResponseViewMixin
 from utilities.pagination import CustomOffsetPagination
+from utilities.utils import ROLES
 from users.models import StargramzUser, GroupAccount, GroupType
 from users.serializer import GroupListSerializer, GroupAccountSerializer, GroupAccountDataSerializer, \
     GroupTypeSerializer
@@ -30,7 +31,7 @@ class GroupAccountsView(APIView, ResponseViewMixin):
         try:
             instance = GroupAccount.objects.get(user=user)
             serializer = GroupAccountSerializer(data=request.data, instance=instance, fields=group_account_fields)
-        except Exception:
+        except GroupAccount.DoesNotExist:
             group_account_fields.append('user')
             serializer = GroupAccountSerializer(data=request.data, instance=None, fields=group_account_fields)
 
@@ -47,7 +48,7 @@ class GroupAccountsView(APIView, ResponseViewMixin):
             serializer = GroupAccountDataSerializer(user, many=True)
             return self.jp_response(s_code='HTTP_200_OK', data={'group_accounts': serializer.data})
         except Exception as e:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
 
 
 class GroupTypesView(APIView, ResponseViewMixin):
