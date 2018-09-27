@@ -27,7 +27,7 @@
     {
         "model": "stargramz.occasionrelationship",
         "pk": 6,
-        "fields": {"title": "Aunty", "status": true}
+        "fields": {"title": "Aunt", "status": true}
     },
     {
         "model": "stargramz.occasionrelationship",
@@ -57,12 +57,12 @@
     {
         "model": "stargramz.occasionrelationship",
         "pk": 12,
-        "fields": {"title": "Girl Friend", "status": true}
+        "fields": {"title": "Girlfriend", "status": true}
     },
     {
         "model": "stargramz.occasionrelationship",
         "pk": 13,
-        "fields": {"title": "Boy Friend", "status": true}
+        "fields": {"title": "Boyfriend", "status": true}
     },
     {
         "model": "stargramz.occasionrelationship",
@@ -77,12 +77,12 @@
     {
         "model": "stargramz.occasionrelationship",
         "pk": 16,
-        "fields": {"title": "Ex-Boyfriend", "status": true}
+        "fields": {"title": "Ex-boyfriend", "status": true}
     },
     {
         "model": "stargramz.occasionrelationship",
         "pk": 17,
-        "fields": {"title": "Ex-Girl friend", "status": true}
+        "fields": {"title": "Ex-girlfriend", "status": true}
     },
     {
         "model": "stargramz.occasionrelationship",
