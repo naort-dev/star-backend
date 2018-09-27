@@ -169,7 +169,7 @@
             <!-- ./box-body -->
             <div class="box-footer">
               <div class="row">
-                <div class="col-sm-3 col-xs-6">
+                <div class="col-sm-2 col-xs-6">
                   <div class="description-block border-right">
                     <h5 class="description-header" id="total-revenue"></h5>
                     <span class="description-text">REVENUE</span>
@@ -177,7 +177,7 @@
                   <!-- /.description-block -->
                 </div>
                 <!-- /.col -->
-                <div class="col-sm-3 col-xs-6">
+                <div class="col-sm-2 col-xs-6">
                   <div class="description-block border-right">
                     <h5 class="description-header" id="paid-out"></h5>
                     <span class="description-text">PAID OUT</span>
@@ -185,7 +185,7 @@
                   <!-- /.description-block -->
                 </div>
                 <!-- /.col -->
-                <div class="col-sm-3 col-xs-6">
+                <div class="col-sm-2 col-xs-6">
                   <div class="description-block border-right">
                     <h5 class="description-header" id="refunded"></h5>
                     <span class="description-text">REFUNDED</span>
@@ -193,10 +193,24 @@
                   <!-- /.description-block -->
                 </div>
                 <!-- /.col -->
-                <div class="col-sm-3 col-xs-6">
+                <div class="col-sm-2 col-xs-6">
                   <div class="description-block">
                     <h5 class="description-header" id="profit"></h5>
                     <span class="description-text">PROFIT</span>
+                  </div>
+                  <!-- /.description-block -->
+                </div>
+                <div class="col-sm-2 col-xs-6">
+                  <div class="description-block">
+                    <h5 class="description-header" id="full_payout"></h5>
+                    <span class="description-text">Total Paid</span>
+                  </div>
+                  <!-- /.description-block -->
+                </div>
+                <div class="col-sm-2 col-xs-6">
+                  <div class="description-block">
+                    <h5 class="description-header" id="full_amount"></h5>
+                    <span class="description-text">Total Amount</span>
                   </div>
                   <!-- /.description-block -->
                 </div>
@@ -345,6 +359,9 @@ $(document).ready(function(){
           $('#completed').html('<b>'+details.report.month_completed_request+'</b>/'+details.report.month_request);
           $('#cancelled').html('<b>'+details.report.month_cancelled_request+'</b>/'+details.report.month_request);
           $('#incomplete').html('<b>'+details.report.month_incomplete_requests+'</b>/'+details.report.month_request);
+
+          $('#full_payout').html('$'+details.report.full_payout);
+          $('#full_amount').html('$'+details.report.full_amount);
 
 
           pending = details.report.month_pending_request/details.report.month_request * 100;

@@ -3,8 +3,8 @@ from rest_framework.routers import DefaultRouter
 from users.authenticate_views import UserRegister, UserLogin, EmailValidate, SocialSignup, ForgotPassword, \
     ResetPassword, Professions, ProfileImages, UserDetails, UserLogout, RemoveProfileImage, ChangePassword, \
     DeviceToken, NotificationSettings, ContactSupport, RoleUpdate, UpdateNotificationBadge, AlertFan, \
-    ValidateSocialSignup, FilterProfessions, UpdateBookingCount, GetAWSSignedUrl, GetAWSSignedPostUrl, \
-    GroupAccountsView, GroupTypesView
+    ValidateSocialSignup, FilterProfessions, UpdateBookingCount, GetAWSSignedUrl, GetAWSSignedPostUrl
+from users.group_views import GroupAccountList, GroupAccountsView, GroupTypesView
 from .fan_views import CelebrityList, ApproveFan, CelebrityRate, CelebrityProfileFollow, CelebrityFanAbuse, \
     CelebritySuggestionList, FanFavouriteStars
 from .celebrity_views import CelebrityManagement, NotifyAdmin, ReferralRequest, ReferralList, ReferralValidate
@@ -53,5 +53,6 @@ router.register(r'fan/celebrity_list', CelebrityList, base_name='celebrity_list'
 router.register(r'fan/favourite_stars', FanFavouriteStars, base_name='Fan Favourite Stars')
 router.register(r'referral_list', ReferralList, base_name='Referral List')
 router.register(r'filtered_professions', FilterProfessions, base_name='filtered-profession')
+router.register(r'group_list', GroupAccountList, base_name='group-account-list')
 
 urlpatterns = router.urls + urlpatterns

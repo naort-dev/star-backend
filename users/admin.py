@@ -459,6 +459,8 @@ class GroupAccountUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
         (_('Referral Details'), {'fields': ('referral_active', 'referral_code', 'referral_campaign',
                                             'has_requested_referral')}),
         (_('Important dates'), {'fields': ('last_login', 'created_date', 'modified_date',)}),
+        (_('Images'), {'fields': ('profile_images',)}),
+        (_('Featured Image'), {'fields': ('featured_image',)}),
     )
     search_fields = ('first_name', 'last_name', 'nick_name', 'email',)
     add_fieldsets = (
@@ -468,7 +470,7 @@ class GroupAccountUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
         }),
     )
     ordering = ('email',)
-    readonly_fields = ('created_date', 'modified_date',)
+    readonly_fields = ('created_date', 'modified_date', 'profile_images', 'featured_image')
     list_per_page = 10
     inlines = [GroupAccountInline, VanityUrlInline, RoleInline]
     ordering = ['-id', ]
@@ -477,6 +479,22 @@ class GroupAccountUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
         role_id = Role.objects.get(code=ROLES.group_account).id
         return self.model.objects.filter(Q(stargramz_user__role_id=role_id) |
                                          Q(group_account__isnull=False))
+
+    def profile_images(self, instance):
+        """
+            List all the images of the user
+        """
+        return get_profile_images(self, instance.id, 5, avatar_id=instance.avatar_photo_id)
+
+        profile_images.short_description = "Profile Images"
+
+    def featured_image(self, instance):
+        """
+            List all the images of the user
+        """
+        return get_featured_image(self, instance.id, instance.featured_photo_id)
+
+        featured_image.short_description = "Featured Images"
 
 
 class GroupTypeAdmin(ReadOnlyModelAdmin):
