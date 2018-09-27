@@ -5,7 +5,7 @@ from users.serializer import *
 from users.models import StargramzUser, Profession, CelebrityFollow, CelebrityView, DeviceTokens, \
     CelebrityAvailableAlert, GroupType
 from utilities.utils import SendMail, get_user_role_details, ROLES, check_user_role, change_fcm_device_status, \
-    check_celebrity_profile_exist, generate_branch_io_url, get_pre_signed_post_url
+    check_celebrity_profile_exist, generate_branch_io_url, get_pre_signed_post_url, check_group_account_profile_exist
 from django.template.loader import get_template
 import uuid
 from users.constants import EMAIL_HOST_USER
@@ -420,7 +420,9 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'User Does not Exist')
 
         celebrity = check_celebrity_profile_exist(user)
-        if not celebrity and user_logged_in != user.id:
+        group_check, group_acc = check_group_account_profile_exist(user)
+
+        if (not celebrity and not group_check) and user_logged_in != user.id:
             return self.jp_error_response('HTTP_403_FORBIDDEN', 'INVALID_USER', 'Not an authorized user.')
 
         data = RegisterSerializer(user, context={'request': request}).data
@@ -440,6 +442,13 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
             data['share_url'] = '%s%s' % (web_url, str(vanity_url))
         data['celebrity'] = celebrity
         data['unseen_bookings'] = 0
+        data['group_account'] = group_check
+
+        if group_acc:
+            # Group Accounts details
+            group_fields = ['contact_first_name', 'contact_last_name', 'group_type', 'description', 'tags', 'website',
+                            'phone', 'address', 'address_2', 'city', 'state', 'zip', 'country']
+            data['group_details'] = GroupAccountSerializer(group_acc, fields=group_fields).data
 
         if user_logged_in and user_logged_in == user.id:
             (token, created) = Token.objects.get_or_create(user=user)
@@ -782,55 +791,3 @@ class GetAWSSignedUrl(APIView, ResponseViewMixin):
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', 'Invalid extension')
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', serializer.errors)
-
-
-class GroupAccountsView(APIView, ResponseViewMixin):
-    """
-        Methods to handle Group accounts of Charity and Brands
-    """
-    def post(self, request):
-        self.authentication_classes = (TokenAuthentication,)
-        self.permission_classes = (IsAuthenticated, CustomPermission,)
-
-        try:
-            user = StargramzUser.objects.get(username=request.user, stargramz_user__role__code=ROLES.group_account)
-        except Exception as e:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', data=str(e))
-
-        group_account_fields = ['contact_first_name', 'contact_last_name', 'group_type', 'description', 'tags',
-                                'website', 'phone', 'address', 'address_2', 'city', 'state', 'zip', 'country']
-
-        request.data['user'] = user.id
-        try:
-            instance = GroupAccount.objects.get(user=user)
-            serializer = GroupAccountSerializer(data=request.data, instance=instance, fields=group_account_fields)
-        except Exception:
-            group_account_fields.append('user')
-            serializer = GroupAccountSerializer(data=request.data, instance=None, fields=group_account_fields)
-
-        if serializer.is_valid():
-            serializer.save()
-            return self.jp_response(s_code='HTTP_200_OK', data={'group_account': 'Created the account'})
-        return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', data=serializer.errors)
-
-    def get(self, request):
-        self.permission_classes = (CustomPermission,)
-
-        try:
-            user = StargramzUser.objects.filter(group_account__admin_approval=True)
-            serializer = GroupAccountDataSerializer(user, many=True)
-            return self.jp_response(s_code='HTTP_200_OK', data={'group_accounts': serializer.data})
-        except Exception as e:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
-
-
-class GroupTypesView(APIView, ResponseViewMixin):
-
-    def get(self, request):
-        self.permission_classes = (CustomPermission,)
-        try:
-            group_types = GroupType.objects.filter(active=True).order_by('order')
-            serializer = GroupTypeSerializer(group_types, many=True)
-            return self.jp_response(s_code='HTTP_200_OK', data={'group_types': serializer.data})
-        except Exception as e:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))

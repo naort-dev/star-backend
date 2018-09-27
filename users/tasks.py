@@ -131,10 +131,19 @@ def welcome_email(user_id):
     except model.DoesNotExist:
         pass
 
+    template_box = {
+        'R1001': 'welcome_fan',
+        'R1002': 'welcome_celebrity',
+        'R1003': 'welcome_fan',
+        'R1004': 'welcome_group',
+        'R1005': 'welcome_fan',
+        'R1006': 'welcome_fan'
+    }
+
     role = get_user_role_details(user)
     if role['is_complete']:
         subject = 'Welcome to Starsona!'
-        template = 'welcome_fan' if role['role_code'] == 'R1001' else 'welcome_celebrity'
+        template = template_box[role['role_code']]
         email = user.email
         ctx = {'auto_generation': True}
 

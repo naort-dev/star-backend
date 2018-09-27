@@ -88,6 +88,14 @@ class WidgetView(APIView, ResponseViewMixin):
                 amount=Sum('request_transaction__transaction_payout__starsona_company_charges')
             )
 
+            full_payout = gramz.filter(request_transaction__transaction_payout__status=2).aggregate(
+                amount=Sum('request_transaction__transaction_payout__fund_payed_out')
+            )
+
+            full_amount = gramz.filter(request_transaction__transaction_status=3).aggregate(
+                amount=Sum('request_transaction__amount')
+            )
+
             rows = []
             with connection.cursor() as cursor:
                 cursor.execute("select date_trunc('month', created_date) AS month,"
@@ -113,6 +121,8 @@ class WidgetView(APIView, ResponseViewMixin):
                     'celebrity_approved': celebrity_approved,
                     'completed_request': completed_request,
                     'report': {
+                        'full_payout': full_payout.get('amount') if full_payout.get('amount') else 0,
+                        'full_amount': full_amount.get('amount') if full_amount.get('amount') else 0,
                         'month_request': month_request,
                         'month_incomplete_requests': month_incomplete_request,
                         'month_completed_request': month_completed_request,

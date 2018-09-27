@@ -793,8 +793,12 @@ class GroupAccountSerializer(CustomModelSerializer):
 
     def create(self, validated_data):
         user_id = validated_data.get('user')
-        celebrity = GroupAccount.objects.update_or_create(user=user_id, defaults=validated_data)
-        return celebrity
+        group_account = GroupAccount.objects.update_or_create(user=user_id, defaults=validated_data)
+        roles_mapping = UserRoleMapping.objects.get(user=user_id)
+        roles_mapping.is_complete = True
+        roles_mapping.save()
+        welcome_email.delay(user_id)
+        return group_account
 
     def update(self, instance, validated_data):
         field_list = ['contact_first_name', 'contact_last_name', 'group_type', 'description', 'tags', 'website',
@@ -821,3 +825,31 @@ class GroupTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = GroupType
         fields = ['group_name', 'id']
+
+
+class GroupListSerializer(serializers.ModelSerializer):
+    group_follow = serializers.SerializerMethodField(read_only=True, required=False)
+    avatar_photo = ProfilePictureSerializer(read_only=True)
+    featured_photo = ProfilePictureSerializer(read_only=True)
+    user_id = serializers.SerializerMethodField(read_only=True)
+
+    def get_user_id(self, obj):
+        try:
+            return VanityUrl.objects.values_list('name', flat=True).get(user=obj.id)
+        except Exception:
+            return ''
+
+    def get_group_follow(self, obj):
+            try:
+                if self.context['request'].user:
+                    user = StargramzUser.objects.get(username=self.context['request'].user)
+                    CelebrityFollow.objects.get(fan=user, celebrity_id=obj.id)
+                    return True
+                else:
+                    return False
+            except Exception:
+                return False
+
+    class Meta:
+        model = StargramzUser
+        fields = ('group_follow', 'avatar_photo', 'get_short_name', 'featured_photo', 'user_id')

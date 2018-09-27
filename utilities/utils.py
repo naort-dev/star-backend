@@ -20,7 +20,7 @@ from main.settings.common import MEDIA_ROOT
 from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 from config.models import Config
-from users.models import ProfileImage, Celebrity, SettingsNotifications
+from users.models import ProfileImage, Celebrity, SettingsNotifications, GroupAccount
 import datetime
 import re
 from tempfile import gettempdir
@@ -376,6 +376,15 @@ def check_celebrity_profile_exist(user):
     except Celebrity.DoesNotExist:
         return False
     return True
+
+
+def check_group_account_profile_exist(user):
+    try:
+        result = GroupAccount.objects.get(Q(user=user) | Q(user_id=user))
+        return True, result
+    except GroupAccount.DoesNotExist:
+        return False, None
+
 
 
 def sent_email(to_email, subject, template, ctx):
