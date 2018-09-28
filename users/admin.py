@@ -74,6 +74,14 @@ class ReferralTabular(ReadOnlyTabularInline):
         return False
 
 
+class ReferralInline(ReadOnlyStackedInline):
+    model = Referral
+    fields = ('referrer',)
+    verbose_name_plural = 'Referred by'
+    fk_name = 'referee'
+    max_num = 1
+
+
 class VanityUrlInline(ReadOnlyStackedInline):
     model = VanityUrl
     fields = ('name',)
@@ -204,7 +212,7 @@ class StargramzUserAdmin(UserAdmin, ReadOnlyModelAdmin):
     ordering = ('email', )
     readonly_fields = ('created_date', 'modified_date', )
     list_per_page = 10
-    inlines = [RoleInline, ]
+    inlines = [RoleInline, ReferralInline, VanityUrlInline]
     ordering = ['-id', ]
 
 
@@ -271,7 +279,7 @@ class FanUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     ordering = ('email',)
     readonly_fields = ('created_date', 'modified_date', 'profile_images', 'stripe_customer_id', 'stripe_user_id')
     list_per_page = 10
-    inlines = [RoleInline, NotificationSettingInline]
+    inlines = [RoleInline, ReferralInline, VanityUrlInline, NotificationSettingInline]
     ordering = ['-id', ]
 
     def get_queryset(self, request):
@@ -320,7 +328,7 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     readonly_fields = ('created_date', 'modified_date', 'profile_images', 'profile_video',
                        'stripe_customer_id', 'featured_image', 'stripe_user_id')
     list_per_page = 10
-    inlines = [RoleInline, VanityUrlInline, CelebrityInline, ProfessionInline, NotificationSettingInline, PayoutsTabular,
+    inlines = [RoleInline, ReferralInline, VanityUrlInline, CelebrityInline, ProfessionInline, NotificationSettingInline, PayoutsTabular,
                RatingInline, ReferralTabular, TipPaymentAdmin]
     ordering = ['-id', ]
 
@@ -426,7 +434,6 @@ class CelebrityAvailabilityAlertAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'celebrity', 'fan', 'notification_send', 'created_date')
 
     list_per_page = 10
-
     class Media:
         js = (
             '//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js',  # jquery
@@ -472,7 +479,7 @@ class GroupAccountUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     ordering = ('email',)
     readonly_fields = ('created_date', 'modified_date', 'profile_images', 'featured_image')
     list_per_page = 10
-    inlines = [GroupAccountInline, VanityUrlInline, RoleInline]
+    inlines = [GroupAccountInline, ReferralInline, VanityUrlInline, RoleInline]
     ordering = ['-id', ]
 
     def get_queryset(self, request):
@@ -502,6 +509,23 @@ class GroupTypeAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'group_name', 'order', 'created_date', 'order')
 
 
+class ReferralAdmin(ReadOnlyModelAdmin):
+    model = Referral
+    list_display = ('id', 'referee_name', 'referrer_name', 'created_date', 'source')
+    fieldsets = (
+        (_('Referral Details'), {'fields': ('referee', 'referee_name', 'referrer', 'referrer_name', 'source')}),
+        (_('Important dates'), {'fields': ('created_date',)}),
+    )
+
+    readonly_fields = ('created_date', 'referrer_name', 'referee_name')
+
+    def referee_name(self, obj):
+        return obj.referee.get_short_name()
+
+    def referrer_name(self, obj):
+        return obj.referrer.get_short_name()
+
+
 admin.site.register(GroupType, GroupTypeAdmin)
 admin.site.register(Profession, ProfessionAdmin)
 admin.site.register(StargramzUser, StargramzUserAdmin)
@@ -511,4 +535,5 @@ admin.site.register(CelebrityUser, CelebrityUsersAdmin)
 admin.site.register(GroupAccountUser, GroupAccountUsersAdmin)
 admin.site.register(FanRating, RatingAdmin)
 admin.site.register(Campaign, CampaignAdmin)
+admin.site.register(Referral, ReferralAdmin)
 admin.site.register(CelebrityAvailableAlert, CelebrityAvailabilityAlertAdmin)

@@ -395,14 +395,19 @@ def process_booking(request):
     if 'role_code' in role and role['role_code'] == 'R1006':
         return HttpResponse('Not authorised.')
     booking_id = request.GET.get('booking')
-    if booking_id:
-        try:
-            video_ids = StargramVideo.objects.values_list('id', flat=True)\
-                .filter(stragramz_request_id=booking_id)
-            for video_id in video_ids:
-                generate_video_thumbnail.delay(id=video_id)
-            return HttpResponse("Added video for processing")
-        except Exception as e:
-            return HttpResponse(str(e))
-    else:
-        return HttpResponse("No booking Id")
+
+    try:
+        booking_details = Stargramrequest.objects.get(id=booking_id)
+        if booking_details.request_type == 3:
+            combine_video_clips.delay(booking_id)
+            return HttpResponse("Added video for processing.")
+        else:
+            try:
+                video_ids = StargramVideo.objects.values_list('id', flat=True).filter(stragramz_request_id=booking_id)
+                for video_id in video_ids:
+                    generate_video_thumbnail.delay(id=video_id)
+                return HttpResponse("Added video for processing.")
+            except Exception as e:
+                return HttpResponse(str(e))
+    except Exception as e:
+        return HttpResponse("No booking Id found %s" % str(e))

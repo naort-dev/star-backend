@@ -442,6 +442,9 @@ class Referral(models.Model):
     source = models.CharField('Source', max_length=100)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
 
+    def __str__(self):
+        return 'Referral ID %d' % self.pk
+
 
 class VanityUrl(models.Model):
     name = models.CharField('Name', unique=True, max_length=100)
