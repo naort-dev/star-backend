@@ -20,7 +20,7 @@ from main.settings.common import MEDIA_ROOT
 from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 from config.models import Config
-from users.models import ProfileImage, Celebrity, SettingsNotifications, GroupAccount
+from users.models import ProfileImage, Celebrity, SettingsNotifications, GroupAccount, StargramzUser
 import datetime
 import re
 from tempfile import gettempdir
@@ -457,3 +457,16 @@ def decode_pk(pk):
         return hashids.decode(pk)[0]
     except Exception as e:
         return ResponseViewMixin.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
+
+
+def get_user_id(slug_name):
+    """
+    Get the user id from vanity url name
+    :param slug_name:
+    :return: user id
+    """
+    try:
+        user_id = StargramzUser.objects.get(vanity_urls__name=slug_name)
+        return user_id
+    except Exception as e:
+        raise str(e)
