@@ -10,14 +10,15 @@ from config.models import Config
 from config.constants import *
 from .models import StargramzUser, SIGN_UP_SOURCE_CHOICES, Celebrity, Profession, UserRoleMapping, ProfileImage, \
     CelebrityAbuse, CelebrityProfession, CelebrityFollow, DeviceTokens, SettingsNotifications, FanRating, Referral,\
-    VanityUrl, GroupAccount, GroupType
+    VanityUrl, GroupAccount, GroupType, CelebrityGroupAccount
 from .impersonators import IMPERSONATOR
 from role.models import Role
 from datetime import datetime, timedelta
 from django.utils import timezone
 from .constants import LINK_EXPIRY_DAY, ROLE_ERROR_CODE, EMAIL_ERROR_CODE, NEW_OLD_SAME_ERROR_CODE, \
     OLD_PASSWORD_ERROR_CODE, PROFILE_PHOTO_REMOVED, MAX_RATING_VALUE, MIN_RATING_VALUE, FIRST_NAME_ERROR_CODE
-from utilities.utils import CustomModelSerializer, get_pre_signed_get_url, datetime_range, get_s3_public_url
+from utilities.utils import CustomModelSerializer, get_pre_signed_get_url, datetime_range, get_s3_public_url,\
+    get_user_id
 from django.core.validators import MaxValueValidator, MinValueValidator
 import re
 from utilities.permissions import CustomValidationError, error_function
@@ -851,3 +852,20 @@ class GroupListSerializer(serializers.ModelSerializer):
     class Meta:
         model = StargramzUser
         fields = ('group_follow', 'avatar_photo', 'get_short_name', 'featured_photo', 'user_id')
+
+
+class JoinGroupSerializer(serializers.ModelSerializer):
+
+    account = serializers.CharField(required=True)
+
+    class Meta:
+        model = CelebrityGroupAccount
+        fields = ('account', 'user',)
+
+    def validate(self, data):
+        accounts_name = data.get('account')
+        try:
+            data['account'] = get_user_id(accounts_name)
+        except Exception:
+            raise serializers.ValidationError({"error": "Invalid Group account"})
+        return data

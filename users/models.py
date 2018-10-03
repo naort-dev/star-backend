@@ -521,3 +521,9 @@ class CelebrityGroupAccount(models.Model):
     order = models.IntegerField('list order', blank=True, null=True)
     created_date = models.DateTimeField('Created date', auto_now_add=True)
     modified_date = models.DateTimeField('Modified date', auto_now=True)
+
+    class Meta:
+        unique_together = (("user", "account"),)
+
+    def __str__(self):
+        return self.user.get_short_name()
