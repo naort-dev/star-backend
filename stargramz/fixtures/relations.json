@@ -1,92 +1,186 @@
 [
-    {
-        "model": "stargramz.occasionrelationship",
-        "pk": 1,
-        "fields": {"title": "Father", "status": true}
-    },
-    {
-        "model": "stargramz.occasionrelationship",
-        "pk": 2,
-        "fields": {"title": "Mother", "status": true}
-    },
-    {
-        "model": "stargramz.occasionrelationship",
-        "pk": 3,
-        "fields": {"title": "Sister", "status": true}
-    },
-    {
-        "model": "stargramz.occasionrelationship",
-        "pk": 4,
-        "fields": {"title": "Brother", "status": true}
-    },
-    {
-        "model": "stargramz.occasionrelationship",
-        "pk": 5,
-        "fields": {"title": "Uncle", "status": true}
-    },
-    {
-        "model": "stargramz.occasionrelationship",
-        "pk": 6,
-        "fields": {"title": "Aunt", "status": true}
-    },
-    {
-        "model": "stargramz.occasionrelationship",
-        "pk": 7,
-        "fields": {"title": "Grandmother", "status": true}
-    },
-    {
-        "model": "stargramz.occasionrelationship",
-        "pk": 8,
-        "fields": {"title": "Grandfather", "status": true}
-    },
-    {
-        "model": "stargramz.occasionrelationship",
-        "pk": 9,
-        "fields": {"title": "Wife", "status": true}
-    },
-    {
-        "model": "stargramz.occasionrelationship",
-        "pk": 10,
-        "fields": {"title": "Son", "status": true}
-    },
-    {
-        "model": "stargramz.occasionrelationship",
-        "pk": 11,
-        "fields": {"title": "Daughter", "status": true}
-    },
-    {
-        "model": "stargramz.occasionrelationship",
-        "pk": 12,
-        "fields": {"title": "Girlfriend", "status": true}
-    },
-    {
-        "model": "stargramz.occasionrelationship",
-        "pk": 13,
-        "fields": {"title": "Boyfriend", "status": true}
-    },
-    {
-        "model": "stargramz.occasionrelationship",
-        "pk": 14,
-        "fields": {"title": "Fiancee", "status": true}
-    },
-    {
-        "model": "stargramz.occasionrelationship",
-        "pk": 15,
-        "fields": {"title": "Lover", "status": true}
-    },
-    {
-        "model": "stargramz.occasionrelationship",
-        "pk": 16,
-        "fields": {"title": "Ex-boyfriend", "status": true}
-    },
-    {
-        "model": "stargramz.occasionrelationship",
-        "pk": 17,
-        "fields": {"title": "Ex-girlfriend", "status": true}
-    },
-    {
-        "model": "stargramz.occasionrelationship",
-        "pk": 18,
-        "fields": {"title": "Friend", "status": false}
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 1,
+    "fields": {
+      "title": "Father",
+      "status": true
     }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 2,
+    "fields": {
+      "title": "Mother",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 3,
+    "fields": {
+      "title": "Sister",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 4,
+    "fields": {
+      "title": "Brother",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 5,
+    "fields": {
+      "title": "Uncle",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 6,
+    "fields": {
+      "title": "Aunt",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 7,
+    "fields": {
+      "title": "Grandmother",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 8,
+    "fields": {
+      "title": "Grandfather",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 9,
+    "fields": {
+      "title": "Wife",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 10,
+    "fields": {
+      "title": "Son",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 11,
+    "fields": {
+      "title": "Daughter",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 12,
+    "fields": {
+      "title": "Girlfriend",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 13,
+    "fields": {
+      "title": "Boyfriend",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 14,
+    "fields": {
+      "title": "Fiancee",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 15,
+    "fields": {
+      "title": "Lover",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 16,
+    "fields": {
+      "title": "Ex-boyfriend",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 17,
+    "fields": {
+      "title": "Ex-girlfriend",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 18,
+    "fields": {
+      "title": "Friend",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 19,
+    "fields": {
+      "title": "Coworker",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 39,
+    "fields": {
+      "title": "Husband",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 40,
+    "fields": {
+      "title": "Cousin",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 70,
+    "fields": {
+      "title": "Niece",
+      "status": true
+    }
+  },
+  {
+    "model": "stargramz.occasionrelationship",
+    "pk": 71,
+    "fields": {
+      "title": "Nephew",
+      "status": true
+    }
+  }
 ]
