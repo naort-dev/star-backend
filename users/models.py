@@ -281,16 +281,10 @@ class Celebrity(models.Model):
             """
                 Update the remaining limits based on weekly limits and total request in a week
             """
-            from utilities.utils import datetime_range
-
-            today = datetime.date.today()
-            week_start_day = today - datetime.timedelta(days=today.weekday())
-            dates = datetime_range(week_start_day, today)
             # Get the total bookings of the celebrity
             total_requests = Stargramrequest.objects.filter(
-                created_date__range=[dates['from_datetime'], dates['to_datetime']],
                 celebrity_id=self.user_id,
-                request_status__in=[1, 2, 3, 4, 6]
+                request_status__in=[1, 2, 3]
                 ).count()
 
             pending_total = int(self.weekly_limits) - int(total_requests)
