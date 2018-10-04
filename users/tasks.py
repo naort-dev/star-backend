@@ -10,18 +10,6 @@ from django.utils.safestring import mark_safe
 from django.apps import apps
 
 
-@app.task(name='update_remaining_limit')
-def change_remaining_limit():
-    from .models import Celebrity
-    print('Remaining Limit updated to weekly Limit')
-    celebrities = Celebrity.objects.all()
-    for celebrity in celebrities:
-        celebrity.remaining_limit = celebrity.weekly_limits
-        celebrity.save()
-    print('Updated remaining limit updated to weekly limit')
-    return True
-
-
 @app.task
 def alert_fans_celebrity_available(celebrity_id):
     from notification.tasks import send_notification

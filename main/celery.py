@@ -25,40 +25,36 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 
 app.conf.beat_schedule = {
     'schedule-1': {
-        'task': 'update_remaining_limit',
-        'schedule': crontab(minute=0, hour=0, day_of_week='monday', nowfun=get_now_fun),
-    },
-    'schedule-2': {
         'task': 'notification_request_remainder',
         'schedule': crontab(minute=0, hour=0, nowfun=get_now_fun),
         'args': (5, 6),
     },
-    'schedule-3': {
+    'schedule-2': {
         'task': 'notification_request_remainder',
         'schedule': crontab(minute=0, hour=0, nowfun=get_now_fun),
         'args': (6, 7),
     },
-    'schedule-4': {
+    'schedule-3': {
         'task': 'cancel_notification_no_response',
         'schedule': crontab(minute=0, hour=0, nowfun=get_now_fun),
     },
-    'schedule-5': {
+    'schedule-4': {
         'task': 'remove_unused_fcm_tokens',
         'schedule': crontab(minute=0, hour=0, day_of_week='monday', nowfun=get_now_fun),
     },
-    'schedule-6': {
+    'schedule-5': {
         'task': 'notify_admin_video_approvals',
         'schedule': crontab(minute=0, hour=0, nowfun=get_now_fun),
     },
-    'schedule-7': {
+    'schedule-6': {
         'task': 'create_monthly_payouts',
         'schedule': crontab(minute=0, hour=0, day_of_month=1, nowfun=get_now_fun),
     },
-    'schedule-8': {
+    'schedule-7': {
         'task': 'resend_failed_payouts',
         'schedule': crontab(minute=0, hour=0, day_of_month=6, nowfun=get_now_fun),
     },
-    'schedule-9': {
+    'schedule-8': {
         'task': 'resend_failed_payouts',
         'schedule': crontab(minute=1, hour=0, day_of_month=1, nowfun=get_now_fun),
     },

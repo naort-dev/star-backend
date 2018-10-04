@@ -182,14 +182,9 @@ class Stargramrequest(models.Model):
 
 @receiver(post_save, sender=Stargramrequest)
 def update_remaining_limits(sender, instance, **kwargs):
-    from utilities.utils import datetime_range
-    today = datetime.date.today()
-    week_start_day = today - datetime.timedelta(days=today.weekday())
-    dates = datetime_range(week_start_day, today)
     model = apps.get_model('users', 'Celebrity')
-    total_requests = Stargramrequest.objects.filter(created_date__range=[dates['from_datetime'], dates['to_datetime']],
-                                                    celebrity_id=instance.celebrity_id,
-                                                    request_status__in=[1, 2, 3, 4, 6]
+    total_requests = Stargramrequest.objects.filter(celebrity_id=instance.celebrity_id,
+                                                    request_status__in=[1, 2, 3]
                                                     ).count()
     try:
         celebrity = model.objects.get(user_id=instance.celebrity_id)
