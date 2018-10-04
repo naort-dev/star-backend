@@ -367,7 +367,6 @@ class EarningsList(GenericViewSet, ResponseViewMixin):
         celebrity_request_status_filter = {
             'celebrity_id': user.id,
             'starsona__request_status': STATUS_TYPES.completed,
-            'transaction_payout__referral_payout': False
         }
         # Filter all completed transactions captured
         completed_custom_filter = {'transaction_status': TRANSACTION_STATUS.captured}
@@ -376,13 +375,19 @@ class EarningsList(GenericViewSet, ResponseViewMixin):
                                                                  PAYOUT_STATUS.check_transferred],
                               'transaction_payout__referral_payout': False
                               }
+        pending_custom_filter = {
+            'transaction_payout__status__in': [
+                PAYOUT_STATUS.transferred,
+                PAYOUT_STATUS.check_transferred
+            ]
+        }
         query_set = StarsonaTransaction.objects.filter(**celebrity_request_status_filter)
 
         filter_by_status = request.GET.get("status")
 
         paid_starsonas = query_set.filter(**paid_custom_filter).order_by('-created_date')
         completed_starsonas = query_set.filter(**completed_custom_filter).order_by('-created_date')
-        pending_starsonas = completed_starsonas.exclude(**paid_custom_filter)
+        pending_starsonas = completed_starsonas.exclude(**pending_custom_filter)
 
         paid_starsonas_amount = paid_starsonas.aggregate(Sum('amount'))
         completed_stasonas_amount = completed_starsonas.aggregate(Sum('amount'))
