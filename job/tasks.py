@@ -701,7 +701,7 @@ def valid_dict(user_dict, user, amount, message):
         user_dict[user.username]['pay_count'] = user_dict[user.username]['pay_count']+1
     else:
         user_dict[user.username] = {
-            'name': '%s %s' % (user.first_name, user.last_name),
+            'name': user.get_short_name(),
             'amount': amount,
             'pay_count': 1,
             'id': user.pk,
@@ -822,8 +822,8 @@ def send_email_notification(request_id):
 
         ctx = {
             'base_url': BASE_URL,
-            'celebrity_name': "%s %s" % (celebrity.first_name, celebrity.last_name),
-            'fan_name': "%s %s" % (fan.first_name, fan.last_name),
+            'celebrity_name': celebrity.get_short_name(),
+            'fan_name': fan.get_short_name(),
             'occasion': occasion,
             'id': hashids.encode(request.id),
             'important_info': data['important_info'] if 'important_info' in data else '',

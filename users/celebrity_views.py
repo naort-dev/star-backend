@@ -141,7 +141,7 @@ class NotifyAdmin(APIView, ResponseViewMixin):
         config_email = Config.objects.get(key='sender_email').value
 
         ctx = {
-            'celebrity_name': user.first_name+" "+user.last_name,
+            'celebrity_name': user.get_short_name(),
             'base_url': BASE_URL,
         }
 
