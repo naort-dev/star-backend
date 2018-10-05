@@ -586,7 +586,7 @@ class ContactSupport(APIView, ResponseViewMixin):
             subject = 'Starsona Contact Support'
             ctx = {
                 'baseurl': BASE_URL,
-                'username': user.first_name + ' ' + user.last_name,
+                'username': user.get_short_name(),
                 'email': user.username,
                 'comments': serializer.validated_data.get('comments'),
             }
