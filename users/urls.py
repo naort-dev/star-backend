@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from users.authenticate_views import UserRegister, UserLogin, EmailValidate, SocialSignup, ForgotPassword, \
     ResetPassword, Professions, ProfileImages, UserDetails, UserLogout, RemoveProfileImage, ChangePassword, \
     DeviceToken, NotificationSettings, ContactSupport, RoleUpdate, UpdateNotificationBadge, AlertFan, \
-    ValidateSocialSignup, FilterProfessions, UpdateBookingCount, GetAWSSignedUrl, GetAWSSignedPostUrl
+    ValidateSocialSignup, FilterProfessions, UpdateBookingCount, GetAWSSignedUrl, GetAWSSignedPostUrl, SocialMediaUrls
 from users.group_views import GroupAccountList, GroupAccountsView, GroupTypesView, JoinGroupView
 from .fan_views import CelebrityList, ApproveFan, CelebrityRate, CelebrityProfileFollow, CelebrityFanAbuse, \
     CelebritySuggestionList, FanFavouriteStars
@@ -46,6 +46,7 @@ urlpatterns = [
     url(r'^group_account/$', GroupAccountsView.as_view(), name='group-account'),
     url(r'^group_types/$', GroupTypesView.as_view(), name='group-types'),
     url(r'^join_group/$', JoinGroupView.as_view(), name='join-group'),
+    url(r'^social_links/$', SocialMediaUrls.as_view(), name='social-links'),
 ]
 
 router = DefaultRouter()

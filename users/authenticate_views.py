@@ -3,7 +3,7 @@ from rest_framework.generics import GenericAPIView
 from utilities.mixins import ResponseViewMixin
 from users.serializer import *
 from users.models import StargramzUser, Profession, CelebrityFollow, CelebrityView, DeviceTokens, \
-    CelebrityAvailableAlert, GroupType
+    CelebrityAvailableAlert, GroupType, SocialMediaLinks
 from utilities.utils import SendMail, get_user_role_details, ROLES, check_user_role, change_fcm_device_status, \
     check_celebrity_profile_exist, generate_branch_io_url, get_pre_signed_post_url, check_group_account_profile_exist
 from django.template.loader import get_template
@@ -443,6 +443,13 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
         data['celebrity'] = celebrity
         data['unseen_bookings'] = 0
         data['group_account'] = group_check
+        social_links = []
+        try:
+            links = SocialMediaLinks.objects.filter(user=user)
+            social_links = SocialMediaLinkSerializer(links, many=True).data
+        except Exception as e:
+            pass
+        data['social_links'] = social_links
 
         if group_acc:
             # Group Accounts details
@@ -789,5 +796,30 @@ class GetAWSSignedUrl(APIView, ResponseViewMixin):
                 return self.jp_response(s_code='HTTP_200_OK', data=url)
             else:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', 'Invalid extension')
+        else:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', serializer.errors)
+
+
+class SocialMediaUrls(APIView, ResponseViewMixin):
+    """
+    Create or update social media urls
+    """
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def post(self, request):
+        try:
+            user = StargramzUser.objects.get(username=request.user)
+        except Exception:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'User Does not Exist')
+        serializer = SocialMediaSerializer(data=request.data)
+        if serializer.is_valid():
+            for key, links in serializer.validated_data.items():
+                SocialMediaLinks.objects.update_or_create(
+                    user=user,
+                    social_link_key=key,
+                    defaults={'social_link_value': links}
+                )
+            return self.jp_response(s_code='HTTP_200_OK', data=serializer.validated_data)
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', serializer.errors)

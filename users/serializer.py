@@ -10,7 +10,7 @@ from config.models import Config
 from config.constants import *
 from .models import StargramzUser, SIGN_UP_SOURCE_CHOICES, Celebrity, Profession, UserRoleMapping, ProfileImage, \
     CelebrityAbuse, CelebrityProfession, CelebrityFollow, DeviceTokens, SettingsNotifications, FanRating, Referral,\
-    VanityUrl, GroupAccount, GroupType, CelebrityGroupAccount
+    VanityUrl, GroupAccount, GroupType, CelebrityGroupAccount, SocialMediaLinks
 from .impersonators import IMPERSONATOR
 from role.models import Role
 from datetime import datetime, timedelta
@@ -19,7 +19,6 @@ from .constants import LINK_EXPIRY_DAY, ROLE_ERROR_CODE, EMAIL_ERROR_CODE, NEW_O
     OLD_PASSWORD_ERROR_CODE, PROFILE_PHOTO_REMOVED, MAX_RATING_VALUE, MIN_RATING_VALUE, FIRST_NAME_ERROR_CODE
 from utilities.utils import CustomModelSerializer, get_pre_signed_get_url, datetime_range, get_s3_public_url,\
     get_user_id
-from django.core.validators import MaxValueValidator, MinValueValidator
 import re
 from utilities.permissions import CustomValidationError, error_function
 from rest_framework import status
@@ -29,7 +28,6 @@ from utilities.constants import BASE_URL
 from .tasks import welcome_email
 from payments.models import PaymentPayout
 from hashids import Hashids
-from distutils.version import StrictVersion
 hashids = Hashids(min_length=8)
 
 
@@ -869,3 +867,21 @@ class JoinGroupSerializer(serializers.ModelSerializer):
         except Exception:
             raise serializers.ValidationError({"error": "Invalid Group account"})
         return data
+
+
+class SocialMediaSerializer(serializers.Serializer):
+
+    facebook_url = serializers.URLField(required=False, allow_blank=True)
+    twitter_url = serializers.URLField(required=False, allow_blank=True)
+    youtube_url = serializers.URLField(required=False, allow_blank=True)
+    instagram_url = serializers.URLField(required=False, allow_blank=True)
+
+    class Meta:
+        fields = ('facebook_url', 'twitter_url', 'youtube_url', 'instagram_url')
+
+
+class SocialMediaLinkSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SocialMediaLinks
+        fields = ('social_link_key', 'social_link_value')
