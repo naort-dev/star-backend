@@ -47,8 +47,9 @@ class CelebrityList(GenericViewSet, ResponseViewMixin):
     def list(self, request):
 
         #role_id = Role.objects.get(code=ROLES.celebrity).id
+        # Q(celebrity_user__admin_approval=True) | Q(group_account__admin_approval=True)
         search_query = query_set = StargramzUser.objects.filter(
-            Q(celebrity_user__admin_approval=True) | Q(group_account__admin_approval=True)
+            celebrity_user__admin_approval=True
         ).select_related('avatar_photo')\
             .prefetch_related('celebrity_user', 'celebrity_account', 'images', 'celebrity_profession__profession')
         # if request.user:
