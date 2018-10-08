@@ -521,3 +521,14 @@ class CelebrityGroupAccount(models.Model):
 
     def __str__(self):
         return self.user.get_short_name()
+
+
+class SocialMediaLinks(models.Model):
+    user = models.ForeignKey('StargramzUser', related_name='user_social_links', blank=False)
+    social_link_key = models.CharField('Social media name', blank=False, max_length=255)
+    social_link_value = models.CharField('Social media URL', blank=True, max_length=255)
+    created_date = models.DateTimeField('Created date', auto_now_add=True)
+    modified_date = models.DateTimeField('Modified date', auto_now=True)
+
+    def __str__(self):
+        return self.user.get_short_name()
