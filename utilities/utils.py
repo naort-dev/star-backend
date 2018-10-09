@@ -20,7 +20,8 @@ from main.settings.common import MEDIA_ROOT
 from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 from config.models import Config
-from users.models import ProfileImage, Celebrity, SettingsNotifications, GroupAccount, StargramzUser
+from users.models import ProfileImage, Celebrity, SettingsNotifications, GroupAccount, StargramzUser, \
+    CelebrityGroupAccount
 import datetime
 import re
 from tempfile import gettempdir
@@ -385,6 +386,19 @@ def check_group_account_profile_exist(user):
     except GroupAccount.DoesNotExist:
         return False, None
 
+
+def is_following_group_account(user, account):
+    """
+    Check wheather the celebrity following the group account
+    :param user:
+    :param account:
+    :return: Boolean
+    """
+    try:
+        CelebrityGroupAccount.objects.get(user_id=user, account=account)
+        return True
+    except CelebrityGroupAccount.DoesNotExist:
+        return False
 
 
 def sent_email(to_email, subject, template, ctx):
