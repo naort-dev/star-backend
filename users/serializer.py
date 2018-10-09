@@ -784,6 +784,9 @@ class AWSPreSignedURLSerializer(serializers.Serializer):
 
 
 class GroupAccountSerializer(CustomModelSerializer):
+
+    grouptype = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = GroupAccount
         fields = '__all__'
@@ -805,6 +808,9 @@ class GroupAccountSerializer(CustomModelSerializer):
                 setattr(instance, list_item, validated_data.get(list_item))
         instance.save()
         return instance
+
+    def get_grouptype(self, obj):
+        return obj.get_grouptype()
 
 
 class GroupAccountDataSerializer(serializers.ModelSerializer):

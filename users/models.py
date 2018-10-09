@@ -497,6 +497,9 @@ class GroupAccount(models.Model):
     def __str__(self):
         return self.user.get_short_name()
 
+    def get_grouptype(self):
+        return str(self.group_type)
+
 
 class GroupAccountUser(StargramzUser):
     """

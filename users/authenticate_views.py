@@ -5,7 +5,8 @@ from users.serializer import *
 from users.models import StargramzUser, Profession, CelebrityFollow, CelebrityView, DeviceTokens, \
     CelebrityAvailableAlert, GroupType, SocialMediaLinks
 from utilities.utils import SendMail, get_user_role_details, ROLES, check_user_role, change_fcm_device_status, \
-    check_celebrity_profile_exist, generate_branch_io_url, get_pre_signed_post_url, check_group_account_profile_exist
+    check_celebrity_profile_exist, generate_branch_io_url, get_pre_signed_post_url, check_group_account_profile_exist,\
+    is_following_group_account
 from django.template.loader import get_template
 import uuid
 from users.constants import EMAIL_HOST_USER
@@ -435,6 +436,7 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
         response_data = dict(user=data)
         data['is_follow'] = True if user_followed else False
         data['authentication_token'] = None
+        data['group_account_follow'] = False if not user_logged_in else is_following_group_account(user_logged_in, user)
         # Remove the condition on next version release, fix for v4.4
         if StrictVersion(request.META['HTTP_VERSION']) < '4.4':
             data['share_url'] = '%sapplinks/profile/%s/' % (BASE_URL, str(vanity_url))
@@ -453,7 +455,7 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
 
         if group_acc:
             # Group Accounts details
-            group_fields = ['contact_first_name', 'contact_last_name', 'group_type', 'description', 'tags', 'website',
+            group_fields = ['contact_first_name', 'contact_last_name', 'grouptype', 'description', 'tags', 'website',
                             'phone', 'address', 'address_2', 'city', 'state', 'zip', 'country']
             data['group_details'] = GroupAccountSerializer(group_acc, fields=group_fields).data
 
