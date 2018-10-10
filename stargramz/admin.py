@@ -28,15 +28,15 @@ class AbuseInline(ReadOnlyStackedInline):
 class TransactionsInline(ReadOnlyStackedInline):
     model = StarsonaTransaction
     fields = ('starsona', 'fan', 'celebrity', 'transaction_status', 'source_id',
-              'stripe_transaction_id', 'stripe_refund_id', 'amount', 'comments')
+              'stripe_transaction_id', 'stripe_refund_id', 'amount', 'comments', 'created_date', 'modified_date')
 
     min_num = 0
     max_num = 10
     extra = 0
     verbose_name_plural = 'Transaction Details'
     can_delete = True
-    readonly_fields = ('fan', 'celebrity', 'transaction_status', 'source_id',
-                       'stripe_transaction_id', 'stripe_refund_id', 'amount', 'comments')
+    readonly_fields = ('fan', 'celebrity', 'transaction_status', 'source_id', 'stripe_transaction_id',
+                       'stripe_refund_id', 'amount', 'comments', 'created_date', 'modified_date')
 
     def has_add_permission(self, request):
         return False

@@ -109,6 +109,7 @@ class JoinGroupView(APIView, ResponseViewMixin):
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', data=str(e))
 
             request.data['user'] = user.id
+            request.data['celebrity_invite'] = True
             validator = JoinGroupSerializer(data=request.data)
             if validator.is_valid():
                 validator.save()

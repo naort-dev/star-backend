@@ -388,6 +388,7 @@ def check_group_account_profile_exist(user):
 
 
 def is_following_group_account(user, account):
+    from users.serializer import CelebrityGroupAccountSerializer
     """
     Check wheather the celebrity following the group account
     :param user:
@@ -395,10 +396,10 @@ def is_following_group_account(user, account):
     :return: Boolean
     """
     try:
-        CelebrityGroupAccount.objects.get(user_id=user, account=account)
-        return True
+        group_approval = CelebrityGroupAccount.objects.get(user_id=user, account=account)
+        return True, CelebrityGroupAccountSerializer(group_approval).data
     except CelebrityGroupAccount.DoesNotExist:
-        return False
+        return False, {}
 
 
 def sent_email(to_email, subject, template, ctx):
