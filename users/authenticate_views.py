@@ -436,7 +436,9 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
         response_data = dict(user=data)
         data['is_follow'] = True if user_followed else False
         data['authentication_token'] = None
-        data['group_account_follow'] = False if not user_logged_in else is_following_group_account(user_logged_in, user)
+        following, details = is_following_group_account(user_logged_in, user)
+        data['group_account_follow'] = following
+        data['account_follow_details'] = details
         # Remove the condition on next version release, fix for v4.4
         if StrictVersion(request.META['HTTP_VERSION']) < '4.4':
             data['share_url'] = '%sapplinks/profile/%s/' % (BASE_URL, str(vanity_url))
@@ -508,9 +510,7 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
             user = StargramzUser.objects.get(username=request.user)
         except StargramzUser.DoesNotExist:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
-        if user.id != int(pk):
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', 'You cannot retrieve '
-                                                                                   'this Stargram request')
+
         serializer = UsersProfileSerializer(data=request.data['user_details'], instance=user)
         if serializer.is_valid():
             try:
@@ -518,7 +518,7 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
                     user = serializer.save()
                     if user:
                         data = RegisterSerializer(user).data
-                        (token, created) = Token.objects.get_or_create(user=pk)
+                        (token, created) = Token.objects.get_or_create(user=user.id)
                         data['authentication_token'] = token.key
                         (notifications, created) = SettingsNotifications.objects.get_or_create(user_id=user.id)
                         data['notification_settings'] = NotificationSettingsSerializer(notifications).data

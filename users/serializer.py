@@ -864,7 +864,7 @@ class JoinGroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CelebrityGroupAccount
-        fields = ('account', 'user',)
+        fields = ('account', 'user', 'celebrity_invite')
 
     def validate(self, data):
         accounts_name = data.get('account')
@@ -891,3 +891,10 @@ class SocialMediaLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = SocialMediaLinks
         fields = ('social_link_key', 'social_link_value')
+
+
+class CelebrityGroupAccountSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CelebrityGroupAccount
+        fields = ('approved', 'celebrity_invite')
