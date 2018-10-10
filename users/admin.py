@@ -4,7 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib import admin
 from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profession, GroupAccountUser, GroupAccount,\
     UserRoleMapping, Celebrity, CelebrityProfession, SettingsNotifications, FanRating, Campaign, Referral, VanityUrl, \
-    CelebrityAvailableAlert, GroupType
+    CelebrityAvailableAlert, GroupType, CelebrityGroupAccount
 from role.models import Role
 from payments.models import PaymentPayout, TipPayment
 from utilities.konstants import ROLES
@@ -454,6 +454,21 @@ class GroupAccountInline(ReadOnlyStackedInline):
     can_delete = False
 
 
+class CelebrityGroupAccountTabular(ReadOnlyTabularInline):
+    model = CelebrityGroupAccount
+    fields = ('user', 'account', 'approved', 'celebrity_invite', 'order', 'created_date', 'modified_date')
+    verbose_name_plural = 'Celebrity users'
+    can_delete = False
+    extra = 0
+    min_num = 0
+    fk_name = 'account'
+    readonly_fields = ('user', 'account', 'celebrity_invite', 'order', 'created_date', 'modified_date')
+
+    def has_add_permission(self, request):
+
+        return False
+
+
 class GroupAccountUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     add_form = UserCreationForm
     list_display = ('id', 'first_name', 'last_name', 'username', 'order')
@@ -479,7 +494,7 @@ class GroupAccountUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     ordering = ('email',)
     readonly_fields = ('created_date', 'modified_date', 'profile_images', 'featured_image')
     list_per_page = 10
-    inlines = [GroupAccountInline, ReferralInline, VanityUrlInline, RoleInline]
+    inlines = [GroupAccountInline, ReferralInline, VanityUrlInline, RoleInline, CelebrityGroupAccountTabular]
     ordering = ['-id', ]
 
     def get_queryset(self, request):
