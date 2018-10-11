@@ -197,7 +197,10 @@ class FanFavouriteStars(GenericViewSet, ResponseViewMixin):
 
     def list(self, request):
         user = StargramzUser.objects.get(username=request.user)
-        search_query = query_set = StargramzUser.objects.filter(celebrity_follow__fan_id=user.id)
+        search_query = query_set = StargramzUser.objects.filter(
+            celebrity_follow__fan_id=user.id,
+            celebrity_follow__is_group=False
+        )
         filter_by_name = request.GET.get('name')
         if filter_by_name:
             query_set = search_name(filter_by_name, search_query)

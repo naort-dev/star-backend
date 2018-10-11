@@ -361,6 +361,7 @@ def save_rating_count(sender, instance, **kwargs):
 class CelebrityFollow(models.Model):
     celebrity = models.ForeignKey('StargramzUser', related_name='celebrity_follow')
     fan = models.ForeignKey('StargramzUser', related_name='fan_user_follow')
+    is_group = models.BooleanField('Is Group account', default=False)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
 
 
