@@ -765,6 +765,7 @@ def send_email_notification(request_id):
         request = Stargramrequest.objects.get(id=request_id)
     except Exception as e:
         print(str(e))
+        return False
 
     try:
         celebrity = StargramzUser.objects.get(id=request.celebrity_id)

@@ -117,4 +117,4 @@ class JoinGroupView(APIView, ResponseViewMixin):
             else:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', data=validator.errors)
         except Exception as e:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Already requested.')
