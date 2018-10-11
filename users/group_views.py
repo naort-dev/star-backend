@@ -81,12 +81,12 @@ class GroupAccountList(GenericViewSet, ResponseViewMixin):
         account = request.GET.get('account')
         if account:
             user = get_user_id(account)
-            search_query = search_query.filter(celebrity_account__account=user)
+            search_query = search_query.filter(celebrity_account__account=user, celebrity_account__approved=True)
 
         celebrity = request.GET.get('celebrity')
         if celebrity:
             user = get_user_id(celebrity)
-            search_query = search_query.filter(account_user__user=user)
+            search_query = search_query.filter(account_user__user=user, account_user__approved=True)
 
         if not celebrity and not account:
             search_query = search_query.filter(group_account__admin_approval=True)
@@ -146,7 +146,7 @@ class GroupAccountProfileFollow(APIView, ResponseViewMixin):
             follow = True if request.data['follow'] else False
             if follow:
                 if not group_exist:
-                    CelebrityFollow.objects.create(celebrity=group_id, fan_id=fan_user.id)
+                    CelebrityFollow.objects.create(celebrity=group_id, fan_id=fan_user.id, is_group=True)
             elif group_exist:
                 group_exist.delete()
 
