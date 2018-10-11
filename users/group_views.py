@@ -6,9 +6,9 @@ from utilities.permissions import CustomPermission
 from utilities.mixins import ResponseViewMixin
 from utilities.pagination import CustomOffsetPagination
 from utilities.utils import ROLES, get_user_id
-from users.models import StargramzUser, GroupAccount, GroupType, CelebrityGroupAccount
+from users.models import StargramzUser, GroupAccount, GroupType, CelebrityGroupAccount, CelebrityFollow
 from users.serializer import GroupListSerializer, GroupAccountSerializer, GroupAccountDataSerializer, \
-    GroupTypeSerializer, JoinGroupSerializer
+    GroupTypeSerializer, JoinGroupSerializer, GroupFollowSerializer
 
 
 class GroupAccountsView(APIView, ResponseViewMixin):
@@ -118,3 +118,39 @@ class JoinGroupView(APIView, ResponseViewMixin):
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', data=validator.errors)
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Already requested.')
+
+
+class GroupAccountProfileFollow(APIView, ResponseViewMixin):
+
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def post(self, request):
+        """
+            To Follow a group account by Fan
+        """
+        try:
+            fan_user = StargramzUser.objects.get(username=request.user)
+        except StargramzUser.DoesNotExist:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
+
+        serializer = GroupFollowSerializer(data=request.data)
+        if serializer.is_valid():
+            group_id = serializer.validated_data.get('group')
+
+            try:
+                group_exist = CelebrityFollow.objects.get(celebrity=group_id, fan_id=fan_user.id)
+            except CelebrityFollow.DoesNotExist:
+                group_exist = None
+
+            follow = True if request.data['follow'] else False
+            if follow:
+                if not group_exist:
+                    CelebrityFollow.objects.create(celebrity=group_id, fan_id=fan_user.id)
+            elif group_exist:
+                group_exist.delete()
+
+            return self.jp_response(s_code='HTTP_200_OK', data={
+                'group_follow_response': {'group_user': request.data['group'], 'follow': follow, }})
+        else:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CREATE', serializer.errors)

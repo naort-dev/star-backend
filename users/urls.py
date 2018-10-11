@@ -4,7 +4,8 @@ from users.authenticate_views import UserRegister, UserLogin, EmailValidate, Soc
     ResetPassword, Professions, ProfileImages, UserDetails, UserLogout, RemoveProfileImage, ChangePassword, \
     DeviceToken, NotificationSettings, ContactSupport, RoleUpdate, UpdateNotificationBadge, AlertFan, \
     ValidateSocialSignup, FilterProfessions, UpdateBookingCount, GetAWSSignedUrl, GetAWSSignedPostUrl, SocialMediaUrls
-from users.group_views import GroupAccountList, GroupAccountsView, GroupTypesView, JoinGroupView
+from users.group_views import GroupAccountList, GroupAccountsView, GroupTypesView, JoinGroupView, \
+    GroupAccountProfileFollow
 from .fan_views import CelebrityList, ApproveFan, CelebrityRate, CelebrityProfileFollow, CelebrityFanAbuse, \
     CelebritySuggestionList, FanFavouriteStars
 from .celebrity_views import CelebrityManagement, NotifyAdmin, ReferralRequest, ReferralList, ReferralValidate
@@ -47,6 +48,8 @@ urlpatterns = [
     url(r'^group_types/$', GroupTypesView.as_view(), name='group-types'),
     url(r'^join_group/$', JoinGroupView.as_view(), name='join-group'),
     url(r'^social_links/$', SocialMediaUrls.as_view(), name='social-links'),
+    url(r'^fan/group_follow/$', GroupAccountProfileFollow.as_view(), name='group-follow'),
+
 ]
 
 router = DefaultRouter()

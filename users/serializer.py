@@ -898,3 +898,16 @@ class CelebrityGroupAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = CelebrityGroupAccount
         fields = ('approved', 'celebrity_invite')
+
+
+class GroupFollowSerializer(serializers.Serializer):
+    follow = serializers.BooleanField(required=True)
+    group = serializers.CharField(required=True)
+
+    def validate(self, data):
+        accounts_name = data.get('group')
+        try:
+            data['group'] = get_user_id(accounts_name)
+        except Exception:
+            raise serializers.ValidationError({"error": "Invalid Group account"})
+        return data

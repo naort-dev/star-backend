@@ -111,7 +111,7 @@ class WidgetView(APIView, ResponseViewMixin):
                 cursor.execute("select date_trunc('month', created_date) AS month,"
                                " sum(case when users_userrolemapping.role_id = 1 then 1 else 0 end) fans,"
                                " sum(case when users_userrolemapping.role_id = 2 then 1 else 0 end) celebrities,"
-                               " sum(case when users_userrolemapping.role_id = 3 then 1 else 0 end) groups"
+                               " sum(case when users_userrolemapping.role_id = 4 then 1 else 0 end) groups"
                                " from users_stargramzuser left join users_userrolemapping on"
                                " users_stargramzuser.id=users_userrolemapping.user_id"
                                " where created_date <= '%s'"
