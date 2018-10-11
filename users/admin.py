@@ -458,7 +458,6 @@ class CelebrityGroupAccountTabular(ReadOnlyTabularInline):
     model = CelebrityGroupAccount
     fields = ('user', 'account', 'approved', 'celebrity_invite', 'order', 'created_date', 'modified_date')
     verbose_name_plural = 'Celebrity users'
-    can_delete = False
     extra = 0
     min_num = 0
     fk_name = 'account'
