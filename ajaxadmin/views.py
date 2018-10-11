@@ -106,7 +106,23 @@ class WidgetView(APIView, ResponseViewMixin):
                 rows = cursor.fetchall()
                 rows[:] = [[datetime.date(row[0]).strftime('%B'), row[1], row[2]] for row in reversed(rows)]
 
-            rows = [['Month', 'Completed', 'Cancelled']] + rows
+                rows = [['Month', 'Completed', 'Cancelled']] + rows
+
+                cursor.execute("select date_trunc('month', created_date) AS month,"
+                               " sum(case when users_userrolemapping.role_id = 1 then 1 else 0 end) fans,"
+                               " sum(case when users_userrolemapping.role_id = 2 then 1 else 0 end) celebrities,"
+                               " sum(case when users_userrolemapping.role_id = 3 then 1 else 0 end) groups"
+                               " from users_stargramzuser left join users_userrolemapping on"
+                               " users_stargramzuser.id=users_userrolemapping.user_id"
+                               " where created_date <= '%s'"
+                               " and created_date >= '%s'"
+                               " group by 1 order by 1" % (dates, dates - timedelta(days=365)))
+                rows2 = cursor.fetchall()
+            rows2[:] = [[datetime.date(row[0]).strftime('%B')[0:3]+" "+str(datetime.date(row[0]).year)[2:4],
+                         row[1], row[2], row[3]] for row in rows2]
+
+            rows2 = [['Month', 'Fans', 'Celebrities', 'Groups']] + rows2
+
 
             return self.jp_response(
                 s_code='HTTP_200_OK',
@@ -132,7 +148,8 @@ class WidgetView(APIView, ResponseViewMixin):
                         'refunded_amount': refunded_amount.get('amount') if refunded_amount.get('amount') else 0,
                         'total_paid_out': paid_out.get('amount') if paid_out.get('amount') else 0,
                         'profit': profit.get('amount') if profit.get('amount') else 0,
-                        'graph': rows
+                        'graph': rows,
+                        'graph_user': rows2
                     }
                 }
             )

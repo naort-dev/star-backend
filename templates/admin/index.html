@@ -164,6 +164,13 @@
                 </div>
                 <!-- /.col -->
               </div>
+              <div class="row">
+                <div class="col-md-12">
+                  <!-- Users Chart Canvas -->
+                  <div id="chart_div2" style="height: 300px;"></div>
+                  <!-- /.chart-responsive -->
+                </div>
+              </div>
               <!-- /.row -->
             </div>
             <!-- ./box-body -->
@@ -388,6 +395,18 @@ $(document).ready(function(){
             };
 
             var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
+            chart.draw(data, options);
+          }
+          google.charts.setOnLoadCallback(drawChart2);
+          function drawChart2() {
+            var data = google.visualization.arrayToDataTable(details.report.graph_user);
+            var options = {
+              title: 'Users',
+              hAxis: {title: 'Month',  titleTextStyle: {color: '#333'}},
+              vAxis: {minValue: 0}
+            };
+
+            var chart = new google.visualization.ColumnChart(document.getElementById('chart_div2'));
             chart.draw(data, options);
           }
 
