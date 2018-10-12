@@ -45,8 +45,7 @@ def cancel_starsona_celebrity_no_response():
     print('Cancel request in %s Days' % REQUEST_CANCEL_DAYS)
     requests = Stargramrequest.objects.filter(
         Q(request_status__in=[2, 3]) &
-        Q(created_date__lt=timezone.now() - datetime.timedelta(days=REQUEST_CANCEL_DAYS)) &
-        Q(created_date__gt=timezone.now() - datetime.timedelta(days=REQUEST_CANCEL_DAYS+1)))
+        Q(created_date__lt=timezone.now() - datetime.timedelta(days=REQUEST_CANCEL_DAYS)))
     for request in requests:
         print(request.id)
         Stargramrequest.objects.filter(pk=request.id).update(
