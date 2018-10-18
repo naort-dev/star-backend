@@ -60,7 +60,7 @@ class StargramVideosInline(ReadOnlyStackedInline):
         """
             Embed the video thumbnail image
         """
-        config = Config.objects.get(key='stargram_videos')
+        config = Config.objects.get(key='stargram_video_thumb')
 
         if instance.thumbnail:
             return mark_safe('<img src="%s" class="img-thumbnail" width="200" height="200"/>'
@@ -97,7 +97,7 @@ class StargramVideosAdminInline(ReadOnlyStackedInline):
         """
             Embed the video thumbnail image
         """
-        config = Config.objects.get(key='stargram_videos')
+        config = Config.objects.get(key='stargram_video_thumb')
 
         if instance.thumbnail:
             return mark_safe('<img src="%s" class="img-thumbnail" width="200" height="200"/>'
@@ -245,7 +245,7 @@ class StargramVideosAdmin(ReadOnlyModelAdmin):
         """
             Embed the video thumbnail image
         """
-        config = Config.objects.get(key='stargram_videos')
+        config = Config.objects.get(key='stargram_video_thumb')
 
         if instance.thumbnail:
             return mark_safe('<img src="%s" class="img-thumbnail" width="200" height="200"/>'
