@@ -190,6 +190,7 @@ def generate_video_thumbnail(**kwargs):
         query_set = query_set.filter(id=video_id)
     videos = query_set
     config = Config.objects.get(key='stargram_videos')
+    s3folder_video_thumb = Config.objects.get(key='stargram_video_thumb').value
     s3folder = config.value
     delete_water_mark_video = delete_logo = None
 
@@ -280,7 +281,7 @@ def generate_video_thumbnail(**kwargs):
 
                 try:
                     # Upload the thumbnail image to s3
-                    upload_image_s3(video_thumb, s3folder+video_thumbnail_name)
+                    upload_image_s3(video_thumb, s3folder_video_thumb+video_thumbnail_name)
                 except Exception as e:
                     print('Upload failed with reason %s', str(e))
 

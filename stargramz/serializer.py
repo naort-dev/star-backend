@@ -93,8 +93,8 @@ class StargramzVideoSerializer(CustomModelSerializer):
 
     def get_s3_thumbnail_url(self, obj):
         if obj.thumbnail is not None:
-            config = STARGRAM_VIDEOS
-            return get_pre_signed_get_url(obj.thumbnail, config)
+            config = STARGRAM_VIDEO_THUMB
+            return get_s3_public_url(obj.thumbnail, config)
 
     def get_question_answer_videos(self, obj):
         if obj.stragramz_request.request_type == 3:
@@ -107,9 +107,9 @@ class StargramzVideoSerializer(CustomModelSerializer):
                 config = STARGRAM_VIDEOS
                 return {
                     'question': get_pre_signed_get_url(question[0], config),
-                    'question_thumb': get_pre_signed_get_url(question[3], config),
+                    'question_thumb': get_s3_public_url(question[3], STARGRAM_VIDEO_THUMB),
                     'answer': get_pre_signed_get_url(answer[0], config),
-                    'answer_thumb': get_pre_signed_get_url(answer[3], config),
+                    'answer_thumb': get_s3_public_url(answer[3], STARGRAM_VIDEO_THUMB),
                     'question_width': question[2],
                     'question_height': question[1],
                     'answer_width': answer[2],
