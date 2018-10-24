@@ -852,7 +852,7 @@ def send_email_notification(request_id):
         app_urls = {
             2: 'request/?request_id=%s&role=R1002' % hashids.encode(request.id),
             5: 'home/',
-            6: 'video/?video_id=%s' % hashids.encode(video_id) if video_id else None
+            6: video_url  # 'video/?video_id=%s' % hashids.encode(video_id) if video_id else None
         }
 
         ctx['app_url'] = generate_branch_io_url(
