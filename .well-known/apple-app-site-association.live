@@ -4,7 +4,7 @@
         "details": [
             {
                 "appID": "2RAH5ZZCTZ.com.starsona.app",
-                "paths": ["/applinks/*", "/video/*"]
+                "paths": ["/applinks/*"]
             }
         ]
     },
