@@ -72,7 +72,7 @@ class GroupAccountList(GenericViewSet, ResponseViewMixin):
     def list(self, request):
         search_query = StargramzUser.objects.all() \
             .select_related('avatar_photo') \
-            .prefetch_related('images')
+            .prefetch_related('images', 'celebrity_profession__profession')
 
         group_type = request.GET.get('type')
         if group_type:

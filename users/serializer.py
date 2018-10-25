@@ -524,6 +524,14 @@ class ProfessionTitleSerializer(serializers.ModelSerializer):
         fields = ['title']
 
 
+class ProfessionSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(read_only=True, source="profession.title")
+
+    class Meta:
+        model = CelebrityProfession
+        fields = ['title',]
+
+
 class ProfileImageListSerializer(serializers.Serializer):
     user_id = serializers.IntegerField(required=False)
     photo = serializers.CharField(required=True)
@@ -835,6 +843,8 @@ class GroupListSerializer(serializers.ModelSerializer):
     avatar_photo = ProfilePictureSerializer(read_only=True)
     featured_photo = ProfilePictureSerializer(read_only=True)
     user_id = serializers.SerializerMethodField(read_only=True)
+    celebrity_profession = ProfessionSerializer(read_only=True, many=True)
+
 
     def get_user_id(self, obj):
         try:
@@ -855,7 +865,7 @@ class GroupListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StargramzUser
-        fields = ('group_follow', 'avatar_photo', 'get_short_name', 'featured_photo', 'user_id')
+        fields = ('group_follow', 'avatar_photo', 'get_short_name', 'featured_photo', 'user_id', 'celebrity_profession')
 
 
 class JoinGroupSerializer(serializers.ModelSerializer):
