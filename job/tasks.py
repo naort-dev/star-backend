@@ -855,7 +855,7 @@ def send_email_notification(request_id):
             6: video_url  # 'video/?video_id=%s' % hashids.encode(video_id) if video_id else None
         }
 
-        ctx['app_url'] = generate_branch_io_url(
+        ctx['app_url'] = video_url if request.request_status == 6 else generate_branch_io_url(
             title=subject,
             desc=subject,
             mob_url=app_urls[request.request_status],
