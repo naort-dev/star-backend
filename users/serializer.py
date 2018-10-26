@@ -856,7 +856,7 @@ class GroupListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StargramzUser
-        fields = ('group_follow', 'avatar_photo', 'get_short_name', 'featured_photo', 'user_id', 'celebrity_profession')
+        fields = ('group_follow', 'avatar_photo', 'get_short_name', 'first_name', 'featured_photo', 'user_id', 'celebrity_profession')
 
 
 class JoinGroupSerializer(serializers.ModelSerializer):
