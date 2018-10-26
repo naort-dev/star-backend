@@ -529,6 +529,8 @@ class CelebrityGroupAccount(models.Model):
 
     class Meta:
         unique_together = (("user", "account"),)
+        verbose_name = 'Join Group'
+        verbose_name_plural = 'Join Groups'
 
     def __str__(self):
         return self.user.get_short_name()
