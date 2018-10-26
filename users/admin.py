@@ -518,6 +518,11 @@ class GroupAccountUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
         featured_image.short_description = "Featured Images"
 
 
+class JoinGroupAdmin(ReadOnlyModelAdmin):
+    list_display = ('user', 'account', 'approved', 'celebrity_invite', 'order', 'created_date', 'modified_date')
+    readonly_fields = ('order', 'created_date', 'modified_date')
+
+
 class GroupTypeAdmin(ReadOnlyModelAdmin):
     model = GroupType
     list_display = ('id', 'group_name', 'order', 'created_date', 'order')
@@ -550,4 +555,5 @@ admin.site.register(GroupAccountUser, GroupAccountUsersAdmin)
 admin.site.register(FanRating, RatingAdmin)
 admin.site.register(Campaign, CampaignAdmin)
 admin.site.register(Referral, ReferralAdmin)
+admin.site.register(CelebrityGroupAccount, JoinGroupAdmin)
 admin.site.register(CelebrityAvailableAlert, CelebrityAvailabilityAlertAdmin)
