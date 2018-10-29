@@ -66,9 +66,13 @@ class CelebrityList(GenericViewSet, ResponseViewMixin):
             query_set = search_name(filter_by_name, search_query)
         if filter_by_lower_rate and filter_by_upper_rate:
             try:
-                query_set = query_set.filter(celebrity_user__rate__gte=filter_by_lower_rate)
+                query_set = query_set.filter(
+                    Q(celebrity_user__rate__gte=filter_by_lower_rate) | Q(group_account__admin_approval=True)
+                )
                 if float(filter_by_upper_rate) < 500:
-                    query_set = query_set.filter(celebrity_user__rate__lte=filter_by_upper_rate)
+                    query_set = query_set.filter(
+                        Q(celebrity_user__rate__lte=filter_by_upper_rate) | Q(group_account__admin_approval=True)
+                    )
             except Exception as e:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
         if filter_by_profession:
@@ -91,7 +95,8 @@ class CelebrityList(GenericViewSet, ResponseViewMixin):
         if available:
             if available.lower() == 'true' or available == '1':
                 # query_set = query_set.filter(celebrity_user__remaining_limit__gt=0)
-                query_set = query_set.filter(celebrity_user__availability=True)
+                query_set = query_set.filter(
+                    Q(celebrity_user__availability=True) | Q(group_account__admin_approval=True))
 
         if sort and sort in SORT:
             sort_list = [k for k in SORT[sort].split(',')]
@@ -347,13 +352,14 @@ class CelebritySuggestionList(APIView, ResponseViewMixin):
         if float(max_rate) >= 500:
             max_rate = 100000
 
-        query_set = StargramzUser.objects.filter(celebrity_user__admin_approval=True,
-                                                 celebrity_user__rate__range=(min_rate, max_rate)
-                                                 )\
+        query_set = StargramzUser.objects.filter(
+            (Q(celebrity_user__admin_approval=True) & Q(celebrity_user__rate__range=(min_rate, max_rate)))
+            | Q(group_account__admin_approval=True)
+        )\
             .select_related('avatar_photo')\
             .prefetch_related('images', 'celebrity_profession__profession')
         if available:
-            query_set.filter(celebrity_user__availability=True)
+            query_set.filter(Q(celebrity_user__availability=True) | Q(group_account__admin_approval=True))
 
         filter_by_name = request.GET.get('s')
         if filter_by_name:
