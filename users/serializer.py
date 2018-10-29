@@ -616,6 +616,7 @@ class UserSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
     show_nick_name = serializers.BooleanField(read_only=True)
     user_id = serializers.SerializerMethodField(read_only=True)
+    group_type = serializers.CharField(read_only=True, source="group_account.group_type")
 
     def get_images(self, obj):
         if not obj.avatar_photo_id:
@@ -644,7 +645,8 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = StargramzUser
         fields = ('id', 'first_name', 'last_name', 'nick_name', 'celebrity_user', 'images', 'celebrity_profession',
-                  'celebrity_follow', 'avatar_photo', 'show_nick_name', 'get_short_name', 'featured_photo', 'user_id')
+                  'celebrity_follow', 'avatar_photo', 'show_nick_name', 'get_short_name', 'featured_photo', 'user_id',
+                  'group_type')
 
 
 class CelebrityRatingSerializer(serializers.ModelSerializer):
