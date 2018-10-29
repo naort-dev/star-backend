@@ -601,6 +601,19 @@ def user_dob_validate(data):
 
 
 class CelebritySerializer(serializers.RelatedField):
+
+    def get_attribute(self, instance):
+        try:
+            return instance.celebrity_user
+        except Exception:
+            celebrity = Celebrity()
+            celebrity.rate = 0.00
+            celebrity.rating = 0.00
+            celebrity.weekly_limits = 0
+            celebrity.follow_count = 0
+            celebrity.charity = ""
+            return celebrity
+
     def to_representation(self, value):
         return {'rate': str(int(value.rate)), 'rating': str(value.rating),
                 'weekily_limits': value.weekly_limits, 'follow_count': value.follow_count,
