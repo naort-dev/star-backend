@@ -620,6 +620,18 @@ class CelebritySerializer(serializers.RelatedField):
                 'charity': value.charity}
 
 
+class HasGroupAccountSerializer(serializers.BooleanField):
+
+    def get_attribute(self, instance):
+        try:
+            if instance.group_account:
+                return True
+            else:
+                return False
+        except Exception:
+            return False
+
+
 class UserSerializer(serializers.ModelSerializer):
     celebrity_user = CelebritySerializer(read_only=True)
     celebrity_follow = serializers.SerializerMethodField(read_only=True, required=False)
@@ -629,6 +641,7 @@ class UserSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
     show_nick_name = serializers.BooleanField(read_only=True)
     user_id = serializers.SerializerMethodField(read_only=True)
+    has_group_account = HasGroupAccountSerializer(read_only=True)
     group_type = serializers.CharField(read_only=True, source="group_account.group_type")
 
     def get_images(self, obj):
@@ -659,7 +672,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = StargramzUser
         fields = ('id', 'first_name', 'last_name', 'nick_name', 'celebrity_user', 'images', 'celebrity_profession',
                   'celebrity_follow', 'avatar_photo', 'show_nick_name', 'get_short_name', 'featured_photo', 'user_id',
-                  'group_type')
+                  'group_type', 'has_group_account')
 
 
 class CelebrityRatingSerializer(serializers.ModelSerializer):
@@ -698,6 +711,8 @@ class SuggestionSerializer(serializers.ModelSerializer):
     celebrity_profession = ProfessionTitleSerializer(read_only=True, many=True)
     avatar_photo = ProfilePictureSerializer(read_only=True)
     user_id = serializers.SerializerMethodField(read_only=True)
+    has_group_account = HasGroupAccountSerializer(read_only=True)
+    group_type = serializers.CharField(read_only=True, source="group_account.group_type")
 
     def get_user_id(self, obj):
         try:
@@ -708,7 +723,7 @@ class SuggestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = StargramzUser
         fields = ('id', 'first_name', 'last_name', 'nick_name', 'get_short_name', 'celebrity_profession',
-                  'avatar_photo', 'user_id')
+                  'avatar_photo', 'user_id', 'has_group_account', 'group_type')
 
 
 class DeviceTokenSerializer(serializers.ModelSerializer):
