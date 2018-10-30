@@ -56,7 +56,7 @@ class CelebrityList(GenericViewSet, ResponseViewMixin):
         # if request.user:
         # search_query = query_set = query_set.exclude(username=request.user)
         sort = request.GET.get('sort')
-        filter_by_name = request.GET.get('name')
+        filter_by_name = request.GET.get('name', None)
         filter_by_lower_rate = request.GET.get('lrate')
         filter_by_upper_rate = request.GET.get('urate')
         filter_by_profession = request.GET.get('profession')
@@ -97,6 +97,9 @@ class CelebrityList(GenericViewSet, ResponseViewMixin):
                 # query_set = query_set.filter(celebrity_user__remaining_limit__gt=0)
                 query_set = query_set.filter(
                     Q(celebrity_user__availability=True) | Q(group_account__admin_approval=True))
+
+        if not filter_by_name:
+            query_set = query_set.exclude(group_account__admin_approval=True)
 
         if sort and sort in SORT:
             sort_list = [k for k in SORT[sort].split(',')]
@@ -357,7 +360,7 @@ class CelebritySuggestionList(APIView, ResponseViewMixin):
             | Q(group_account__admin_approval=True)
         )\
             .select_related('avatar_photo')\
-            .prefetch_related('images', 'celebrity_profession__profession')
+            .prefetch_related('images', 'celebrity_profession__profession', 'group_account')
         if available:
             query_set.filter(Q(celebrity_user__availability=True) | Q(group_account__admin_approval=True))
 
