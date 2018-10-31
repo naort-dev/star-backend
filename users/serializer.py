@@ -866,6 +866,9 @@ class GroupListSerializer(serializers.ModelSerializer):
     featured_photo = ProfilePictureSerializer(read_only=True)
     user_id = serializers.SerializerMethodField(read_only=True)
     celebrity_profession = ProfessionTitleSerializer(read_only=True, many=True)
+    has_group_account = HasGroupAccountSerializer(read_only=True)
+    group_type = serializers.CharField(read_only=True, source="group_account.group_type")
+
 
     def get_user_id(self, obj):
         try:
@@ -886,7 +889,8 @@ class GroupListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StargramzUser
-        fields = ('group_follow', 'avatar_photo', 'get_short_name', 'first_name', 'featured_photo', 'user_id', 'celebrity_profession')
+        fields = ('group_follow', 'avatar_photo', 'get_short_name', 'first_name', 'featured_photo', 'user_id',
+                  'celebrity_profession', 'has_group_account', 'group_type')
 
 
 class JoinGroupSerializer(serializers.ModelSerializer):
