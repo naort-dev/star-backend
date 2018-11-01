@@ -115,14 +115,59 @@ class WidgetView(APIView, ResponseViewMixin):
                                " from users_stargramzuser left join users_userrolemapping on"
                                " users_stargramzuser.id=users_userrolemapping.user_id"
                                " where created_date <= '%s'"
-                               " and created_date >= '%s'"
-                               " group by 1 order by 1" % (dates, dates - timedelta(days=365)))
+                               " group by 1 order by 1 DESC LIMIT 6" % dates)
                 rows2 = cursor.fetchall()
-            rows2[:] = [[datetime.date(row[0]).strftime('%B')[0:3]+" "+str(datetime.date(row[0]).year)[2:4],
-                         row[1], row[2], row[3]] for row in rows2]
+                rows2[:] = [[datetime.date(row[0]).strftime('%B')[0:3]+" "+str(datetime.date(row[0]).year)[2:4],
+                         row[1], row[2], row[3]] for row in reversed(rows2)]
 
-            rows2 = [['Month', 'Fans', 'Celebrities', 'Groups']] + rows2
+                rows2 = [['Month', 'Fans', 'Celebrities', 'Groups']] + rows2
 
+                cursor.execute("select date_trunc('month', created_date) AS month,"
+                               " sum(case when transaction_status = 3 then amount else 0 end) successful_payment,"
+                               " sum(case when transaction_status = 5 then amount else 0 end) refunded_payments"
+                               " from payments_starsonatransaction where created_date <= '%s'"
+                               " group by 1 order by 1 DESC LIMIT 6" % dates)
+                rows3 = cursor.fetchall()
+
+                cursor.execute("select date_trunc('month', created_date) AS month,"
+                               " sum(case when transaction_status = 2 then amount when transaction_status = 3"
+                               " then amount else 0 end) tip_payment"
+                               " from payments_tippayment where created_date <= '%s'"
+                               " group by 1 order by 1 DESC LIMIT 6" % dates)
+                rows4 = cursor.fetchall()
+
+                output_rows = []
+                date = dates
+                month = date.month
+                x = 0
+                y = 0
+                for i in range(6):
+                    output_row = []
+                    if month < 1:
+                        month = 12
+                    if len(rows3) > x:
+                        if rows3[x][0].month == month:
+                            output_row = [rows3[x][0], rows3[x][1], rows3[x][2]]
+                            x += 1
+                        else:
+                            output_row = [date.replace(month=month), 0, 0]
+                    else:
+                         output_row = [date.replace(month=month), 0, 0]
+                    if len(rows4) > y:
+                        if rows4[y][0].month == month:
+                            output_row.append(rows4[y][1])
+                            y += 1
+                        else:
+                            output_row.append(0)
+                    else:
+                        output_row.append(0)
+                    output_rows.append(output_row)
+                    month -= 1
+
+                rows3[:] = [[datetime.date(row[0]).strftime('%B')[0:3] + " " + str(datetime.date(row[0]).year)[2:4],
+                             row[1], row[2], row[3]] for row in reversed(output_rows)]
+
+                rows3 = [['month', 'successful payment', 'refunded payment', 'tip payment']] + rows3
 
             return self.jp_response(
                 s_code='HTTP_200_OK',
@@ -149,7 +194,8 @@ class WidgetView(APIView, ResponseViewMixin):
                         'total_paid_out': paid_out.get('amount') if paid_out.get('amount') else 0,
                         'profit': profit.get('amount') if profit.get('amount') else 0,
                         'graph': rows,
-                        'graph_user': rows2
+                        'graph_user': rows2,
+                        'graph_payments': rows3,
                     }
                 }
             )
