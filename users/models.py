@@ -55,7 +55,6 @@ NOTIFICATION_TYPES = Konstants(
 )
 
 
-
 class StargramzUserManager(BaseUserManager):
     use_in_migrations = True
 

@@ -829,7 +829,7 @@ def play_video(request, id):
         data = {
             "id": id,
             "video": get_pre_signed_get_url(video.video, config.value, 31536000),
-            "image": get_pre_signed_get_url(video.thumbnail, config.value, 31536000),
+            "image": get_s3_public_url(video.thumbnail, STARGRAM_VIDEO_THUMB),
             "url": "%s%s" % (BASE_URL, id),
             "celebrity": video.stragramz_request.celebrity.get_short_name(),
             "base_url": BASE_URL,
