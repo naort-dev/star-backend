@@ -152,7 +152,7 @@ class StargramzSerializer(serializers.ModelSerializer):
     order_details = serializers.SerializerMethodField(read_only=True)
     remove_audios = serializers.CharField(required=False, write_only=True)
     booking_title = serializers.CharField(required=True)
-    #created_date = serializers.SerializerMethodField(read_only=True)
+    created_date = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Stargramrequest
@@ -175,11 +175,11 @@ class StargramzSerializer(serializers.ModelSerializer):
         stargramrequest.save()
         return stargramrequest
 
-    # def get_created_date(self, obj):
-    #     """
-    #         Return the last modified date
-    #     """
-    #     return obj.modified_date
+    def get_created_date(self, obj):
+        """
+            Return the last modified date
+        """
+        return obj.modified_date if obj.request_status in [5, 6] else obj.created_date
 
     def get_avatar_photo(self, obj):
         try:
