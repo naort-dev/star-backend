@@ -165,9 +165,14 @@
                 <!-- /.col -->
               </div>
               <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-6">
                   <!-- Users Chart Canvas -->
-                  <div id="chart_div2" style="height: 300px;"></div>
+                  <div id="chart_div2" style="height: 250px;width: 490px"></div>
+                  <!-- /.chart-responsive -->
+                </div>
+                <div class="col-md-6">
+                  <!-- Users Chart Canvas -->
+                  <div id="chart_div3" style="height: 250px;width: 490px;"></div>
                   <!-- /.chart-responsive -->
                 </div>
               </div>
@@ -407,6 +412,22 @@ $(document).ready(function(){
             };
 
             var chart = new google.visualization.ColumnChart(document.getElementById('chart_div2'));
+            chart.draw(data, options);
+          }
+          google.charts.setOnLoadCallback(drawChart3);
+          function drawChart3() {
+            var data = google.visualization.arrayToDataTable(details.report.graph_payments);
+            var formatter = new google.visualization.NumberFormat({pattern:'$#'});
+            formatter.format(data, 1);
+            formatter.format(data, 2);
+            formatter.format(data, 3);
+            var options = {
+              title: 'Payments',
+              hAxis: {title: 'Month',  titleTextStyle: {color: '#333'}},
+              vAxis: {minValue: 0, format: '$#'}
+            };
+
+            var chart = new google.visualization.ColumnChart(document.getElementById('chart_div3'));
             chart.draw(data, options);
           }
 
