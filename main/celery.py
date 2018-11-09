@@ -58,6 +58,10 @@ app.conf.beat_schedule = {
         'task': 'resend_failed_payouts',
         'schedule': crontab(minute=1, hour=0, day_of_month=1, nowfun=get_now_fun),
     },
+    'schedule-9': {
+        'task': 'reprocess_pending_video_approval',
+        'schedule': crontab(minute=1, hour='*/6'),
+    },
 }
 app.conf.timezone = 'UTC'
 app.conf.task_routes = {
