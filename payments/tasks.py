@@ -69,6 +69,12 @@ def create_request_refund():
                 print("Starsona Transaction " + str(starsona.stripe_transaction_id))
                 try:
                     starsona_charge = stripe.Charge.retrieve(starsona.stripe_transaction_id)
+                    if starsona_charge.refunded:
+                        try:
+                            refund_id = starsona_charge.refunds.data[0]['id']
+                        except Exception:
+                            refund_id = ''
+
                     if not starsona_charge['refunded']:
                         refund_charge = stripe.Refund.create(charge=starsona_charge.id).id
                         try:
@@ -80,6 +86,7 @@ def create_request_refund():
                         except stripe.error.StripeError as e:
                             print(str(e))
                     else:
+                        starsona.stripe_refund_id = refund_id
                         starsona.transaction_status = TRANSACTION_STATUS.refunded
                         starsona.save()
                 except stripe.error.StripeError as e:
