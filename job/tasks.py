@@ -1174,34 +1174,39 @@ def reprocess_pending_video_approval():
     Get all the list of bookings which are in video approval status
     :return: Boolean
     """
-    requests = Stargramrequest.objects.filter(
-        request_status=4,
-        request_video__created_date__lt=datetime.utcnow() - timedelta(hours=6)
-    )
+    try:
+        requests = Stargramrequest.objects.filter(
+            request_status=4,
+            request_video__created_date__lt=datetime.utcnow() - timedelta(hours=6)
+        )
 
-    s3folder = Config.objects.get(key='stargram_videos').value
-    sender_email = Config.objects.get(key='sender_email').value
-    for request in requests:
+        s3folder = Config.objects.get(key='stargram_videos').value
+        sender_email = Config.objects.get(key='sender_email').value
+        for request in requests:
+            # Processing all bookings in video approval status and not processed for 6hrs
+            booking_videos = StargramVideo.objects.filter(stragramz_request_id=request.id)
+            files = []
+            video_id = None
+            for video in booking_videos:
+                video_id = video.id
+                if check_file_exist_in_s3(s3folder + video.video) is not False:
+                    files.append(video.video)
 
-        booking_videos = StargramVideo.objects.filter(stragramz_request_id=request.id)
-        files = []
-        video_id = None
-        for video in booking_videos:
-            video_id = video.id
-            if check_file_exist_in_s3(s3folder + video.video) is not False:
-                files.append(video.video)
+            # Check bookings type and re-applying the video generation tasks
+            if request.request_type in [1, 2] and len(files) == 1:
+                # Generating the video watermark for the video
+                generate_video_thumbnail.delay(id=video_id)
+            elif request.request_type == 3 and len(files) == 2:
+                # Processing the Q&A video for merging videos
+                combine_video_clips.delay(request.id)
+            else:
+                # Sending email with the link of booking and canceling the booking
+                content = "Booking ID %d has been cancelled and amount has been refunded as video is not available in" \
+                          " S3 server %s/admin/stargramz/stargramrequest/%d/change" % (request.id, BASE_URL, request.id)
 
-        # Check bookings type and re-applying the video generation tasks
-        if request.request_type in [1, 2] and len(files) == 1:
-            generate_video_thumbnail.delay(id=video_id)
-        elif request.request_type == 3 and len(files) == 2:
-            combine_video_clips.delay(request.id)
-        else:
-            content = "Booking ID %d has been cancelled and amount has been refunded as video is not available in S3" \
-                      " server %s/admin/stargramz/stargramrequest/%d/change" % (request.id, BASE_URL, request.id)
-
-            SendMail('Auto canceling videos', content, sender_email=sender_email, to='akhilns@qburst.com')
-            request.request_status = STATUS_TYPES.cancelled
-            request.save()
-
+                SendMail('Auto canceling videos', content, sender_email=sender_email, to='akhilns@qburst.com')
+                request.request_status = STATUS_TYPES.cancelled
+                request.save()
+    except Exception as e:
+        print(str(e))
     return True
