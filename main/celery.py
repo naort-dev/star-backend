@@ -60,7 +60,7 @@ app.conf.beat_schedule = {
     },
     'schedule-9': {
         'task': 'reprocess_pending_video_approval',
-        'schedule': crontab(minute=1, hour='*/6'),
+        'schedule': crontab(minute=0, hour='*/3'),
     },
 }
 app.conf.timezone = 'UTC'

@@ -1168,7 +1168,7 @@ def convert_audio_file(audio_file, new_audio_file):
         return False
 
 
-@app.task
+@app.task(name='reprocess_pending_video_approval')
 def reprocess_pending_video_approval():
     """
     Get all the list of bookings which are in video approval status

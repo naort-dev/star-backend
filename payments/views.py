@@ -511,10 +511,7 @@ class TipPayments(APIView, ResponseViewMixin):
                 )
             request.data['celebrity'] = celebrity
             tips = TipPaymentSerializer(data=request.data)
-            print(tips.is_valid())
             if tips.is_valid():
-                print(customer.stripe_customer_id)
-                print(API_KEY)
                 try:
                     request_charge = stripe.Source.retrieve(request.data['source'], api_key=API_KEY)
                 except Exception as e:
