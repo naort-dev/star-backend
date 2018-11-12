@@ -60,8 +60,13 @@ app.conf.beat_schedule = {
     },
     'schedule-9': {
         'task': 'reprocess_pending_video_approval',
-        'schedule': crontab(minute=0, hour='*/3'),
+        'schedule': crontab(minute=0, hour='*/6'),
     },
+    'schedule-10': {
+        'task': 'cancel_booking_on_seven_days_completion',
+        'schedule': crontab(minute=0, hour=0),
+    },
+
 }
 app.conf.timezone = 'UTC'
 app.conf.task_routes = {

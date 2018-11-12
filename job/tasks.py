@@ -34,6 +34,8 @@ video_thumb_size = (400, 400)
 from celery import signals
 import boto3
 import sys
+from django.utils import timezone
+from stargramz.tasks import cancel_starsona_celebrity_no_response
 
 tasks_active = 0
 last_task_complete = time.time()
@@ -1177,7 +1179,7 @@ def reprocess_pending_video_approval():
     try:
         requests = Stargramrequest.objects.filter(
             request_status=4,
-            request_video__created_date__lt=datetime.utcnow() - timedelta(hours=6)
+            request_transaction__modified_date__lt=datetime.utcnow() - timedelta(hours=6)
         )
 
         s3folder = Config.objects.get(key='stargram_videos').value
@@ -1210,3 +1212,19 @@ def reprocess_pending_video_approval():
     except Exception as e:
         print(str(e))
     return True
+
+
+@app.task(name='cancel_booking_on_seven_days_completion')
+def cancel_booking_on_seven_days_completion():
+    print('Cancelling booking ontime with stripe.')
+    requests = Stargramrequest.objects.values_list('request_transaction__created_date', flat=True).filter(
+        request_status__in=[2, 3],
+        request_transaction__created_date__lt=datetime.utcnow() + timedelta(days=6)
+    )
+
+    for request in requests:
+        scheduled_time = request + timedelta(days=7)
+        if scheduled_time > timezone.now():
+            cancel_starsona_celebrity_no_response.apply_async(
+                eta=scheduled_time
+            )
