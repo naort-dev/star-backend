@@ -18,7 +18,7 @@ from django.utils import timezone
 from .constants import LINK_EXPIRY_DAY, ROLE_ERROR_CODE, EMAIL_ERROR_CODE, NEW_OLD_SAME_ERROR_CODE, \
     OLD_PASSWORD_ERROR_CODE, PROFILE_PHOTO_REMOVED, MAX_RATING_VALUE, MIN_RATING_VALUE, FIRST_NAME_ERROR_CODE
 from utilities.utils import CustomModelSerializer, get_pre_signed_get_url, datetime_range, get_s3_public_url,\
-    get_user_id
+    get_user_id, get_bucket_url
 import re
 from utilities.permissions import CustomValidationError, error_function
 from rest_framework import status
@@ -38,18 +38,22 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField('get_s3_image_url')
     thumbnail_url = serializers.SerializerMethodField('get_s3_thumbnail_url')
 
+    def __init__(self, *args, **kwargs):
+        self.bucket_url = get_bucket_url()
+        super().__init__(*args, **kwargs)
+
     class Meta:
         model = ProfileImage
         fields = ('id', 'image_url', 'thumbnail_url', 'photo', 'thumbnail')
 
     def get_s3_image_url(self, obj):
         config = PROFILE_IMAGES
-        return get_s3_public_url(obj.photo, config)
+        return '{}/{}'.format(self.bucket_url, config+obj.photo)
 
     def get_s3_thumbnail_url(self, obj):
         if obj.thumbnail is not None:
             config = PROFILE_IMAGES
-            return get_s3_public_url(obj.thumbnail, config)
+            return '{}/{}'.format(self.bucket_url, config+obj.thumbnail)
         else:
             return None
 
@@ -500,20 +504,36 @@ class CelebrityProfileSerializer(CustomModelSerializer):
 
 
 class CelebrityProfessionSerializer(serializers.ModelSerializer):
+
+    def __init__(self, *args, **kwargs):
+        mains = {}
+        professions = Profession.objects.filter(parent=None).values('title', 'id')
+        for profession in professions:
+            mains.update({profession['id']: profession['title']})
+        self.parent_professions = mains
+        super().__init__(*args, **kwargs)
+
     title = serializers.CharField(read_only=True, source="profession.title")
     id = serializers.IntegerField(read_only=True, source="profession.id")
     show_parent = serializers.SerializerMethodField(read_only=True)
-    parent = serializers.CharField(read_only=True, source="profession.parent.title")
+    parent = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = CelebrityProfession
         fields = ['id', 'title', 'show_parent', 'parent']
+
 
     def get_show_parent(self, obj):
         # Only Impersonators profession to display in front end
         if obj.profession.id in IMPERSONATOR:
             return True
         return False
+
+    def get_parent(self, obj):
+        try:
+            return self.parent_professions.get(obj.profession.parent_id)
+        except Exception:
+            return None
 
 
 class ProfessionTitleSerializer(serializers.ModelSerializer):
@@ -640,7 +660,7 @@ class UserSerializer(serializers.ModelSerializer):
     featured_photo = ProfilePictureSerializer(read_only=True)
     images = serializers.SerializerMethodField()
     show_nick_name = serializers.BooleanField(read_only=True)
-    user_id = serializers.SerializerMethodField(read_only=True)
+    user_id = serializers.CharField(read_only=True, source="vanity_urls.name")
     has_group_account = HasGroupAccountSerializer(read_only=True)
     group_type = serializers.CharField(read_only=True, source="group_account.group_type")
 
@@ -651,12 +671,6 @@ class UserSerializer(serializers.ModelSerializer):
             return serializer.data
         else:
             return [{}]
-
-    def get_user_id(self, obj):
-        try:
-            return VanityUrl.objects.values_list('name', flat=True).get(user=obj.id)
-        except Exception:
-            return ''
 
     def get_celebrity_follow(self, obj):
         if self.context['request'].user:
