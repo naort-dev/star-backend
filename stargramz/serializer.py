@@ -4,7 +4,7 @@ from .models import Occasion, Stargramrequest, StargramVideo, OccasionRelationsh
 from config.models import Config
 from config.constants import *
 import json
-from utilities.utils import CustomModelSerializer, get_pre_signed_get_url, get_s3_public_url
+from utilities.utils import CustomModelSerializer, get_pre_signed_get_url, get_s3_public_url, get_bucket_url
 from .constants import REQUEST_STATUS_CHOICES, REQUEST_EDIT_ALLOWED_TIME
 from utilities.constants import BASE_URL, SHORT_BASE_URL
 from payments.models import StarsonaTransaction
@@ -46,6 +46,11 @@ class OccasionSerializer(serializers.ModelSerializer):
 
 
 class StargramzVideoSerializer(CustomModelSerializer):
+
+    def __init__(self, *args, **kwargs):
+        self.bucket_url = get_bucket_url()
+        super().__init__(*args, **kwargs)
+
     first_name = serializers.CharField(read_only=True, source="stragramz_request.celebrity.first_name")
     last_name = serializers.CharField(read_only=True, source="stragramz_request.celebrity.last_name")
     full_name = serializers.CharField(read_only=True, source="stragramz_request.celebrity.get_short_name")
@@ -94,7 +99,7 @@ class StargramzVideoSerializer(CustomModelSerializer):
     def get_s3_thumbnail_url(self, obj):
         if obj.thumbnail is not None:
             config = STARGRAM_VIDEO_THUMB
-            return get_s3_public_url(obj.thumbnail, config)
+            return '{}/{}'.format(self.bucket_url, config + obj.thumbnail)
 
     def get_question_answer_videos(self, obj):
         if obj.stragramz_request.request_type == 3:
@@ -107,9 +112,9 @@ class StargramzVideoSerializer(CustomModelSerializer):
                 config = STARGRAM_VIDEOS
                 return {
                     'question': get_pre_signed_get_url(question[0], config),
-                    'question_thumb': get_s3_public_url(question[3], STARGRAM_VIDEO_THUMB),
+                    'question_thumb': '{}/{}'.format(self.bucket_url, STARGRAM_VIDEO_THUMB + question[3]),
                     'answer': get_pre_signed_get_url(answer[0], config),
-                    'answer_thumb': get_s3_public_url(answer[3], STARGRAM_VIDEO_THUMB),
+                    'answer_thumb': '{}/{}'.format(self.bucket_url, STARGRAM_VIDEO_THUMB + answer[3]),
                     'question_width': question[2],
                     'question_height': question[1],
                     'answer_width': answer[2],

@@ -144,6 +144,20 @@ def get_s3_public_url(filename, folder):
     return '{}/{}/{}'.format(s3.meta.endpoint_url, os.environ.get('AWS_STORAGE_BUCKET_NAME'), folder + filename)
 
 
+def get_bucket_url():
+    """
+    Get the S3 bucket URL
+    :return:
+    """
+    s3 = boto3.client(
+        's3',
+        aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+        aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY')
+    )
+
+    return '{}/{}'.format(s3.meta.endpoint_url, os.environ.get('AWS_STORAGE_BUCKET_NAME'))
+
+
 def upload_image_s3(path, filename):
     """
         Upload the file to s3 server

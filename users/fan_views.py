@@ -50,9 +50,9 @@ class CelebrityList(GenericViewSet, ResponseViewMixin):
 
         search_query = query_set = StargramzUser.objects.filter(
             Q(celebrity_user__admin_approval=True) | Q(group_account__admin_approval=True)
-        ).select_related('avatar_photo')\
+        ).select_related('avatar_photo', 'featured_photo')\
             .prefetch_related('celebrity_user', 'celebrity_account', 'images', 'celebrity_profession__profession',
-                              'group_account')
+                              'group_account', 'vanity_urls', 'images')
         # if request.user:
         # search_query = query_set = query_set.exclude(username=request.user)
         sort = request.GET.get('sort')

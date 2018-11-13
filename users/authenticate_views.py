@@ -428,7 +428,7 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
 
         data = RegisterSerializer(user, context={'request': request}).data
         try:
-            vanity_url = VanityUrl.objects.values_list('name', flat=True).get(user_id=user.id)
+            vanity_url = data['user_id']
         except Exception:
             vanity_url = ''
         web_url = Config.objects.get(key='web_url').value
