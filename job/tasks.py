@@ -35,7 +35,6 @@ from celery import signals
 import boto3
 import sys
 from django.utils import timezone
-from stargramz.tasks import cancel_starsona_celebrity_no_response
 
 tasks_active = 0
 last_task_complete = time.time()
@@ -1216,6 +1215,8 @@ def reprocess_pending_video_approval():
 
 @app.task(name='cancel_booking_on_seven_days_completion')
 def cancel_booking_on_seven_days_completion():
+    from stargramz.tasks import cancel_starsona_celebrity_no_response
+
     print('Cancelling booking ontime with stripe.')
     requests = Stargramrequest.objects.values_list('request_transaction__created_date', flat=True).filter(
         request_status__in=[2, 3],
