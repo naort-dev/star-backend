@@ -93,8 +93,7 @@ class StargramzVideoSerializer(CustomModelSerializer):
         return obj.status
 
     def get_s3_video_url(self, obj):
-        video_id = hashids.encode(obj.id)
-        return '{}private/video/{}/{}.mp4'.format(BASE_URL, video_id, video_id)
+        return '{}private/video/{}.mp4'.format(BASE_URL, hashids.encode(obj.id))
 
     def get_s3_thumbnail_url(self, obj):
         if obj.thumbnail is not None:
@@ -109,12 +108,10 @@ class StargramzVideoSerializer(CustomModelSerializer):
                    stragramz_request_id=obj.stragramz_request_id,
                    status__in=[4, 5]
                 ).values_list('video', 'height', 'width', 'thumbnail', 'id').order_by('status')
-                question_video = hashids.encode(question[4])
-                answer_video = hashids.encode(answer[4])
                 return {
-                    'question': '{}private/video/{}/{}.mp4'.format(BASE_URL, question_video, question_video),
+                    'question': '{}private/video/{}.mp4'.format(BASE_URL, hashids.encode(question[4])),
                     'question_thumb': '{}/{}'.format(self.bucket_url, STARGRAM_VIDEO_THUMB + question[3]),
-                    'answer': '{}private/video/{}/{}.mp4'.format(BASE_URL, answer_video, answer_video),
+                    'answer': '{}private/video/{}.mp4'.format(BASE_URL, hashids.encode(answer[4])),
                     'answer_thumb': '{}/{}'.format(self.bucket_url, STARGRAM_VIDEO_THUMB + answer[3]),
                     'question_width': question[2],
                     'question_height': question[1],

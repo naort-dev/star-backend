@@ -381,7 +381,9 @@ class EarningsList(GenericViewSet, ResponseViewMixin):
                 PAYOUT_STATUS.check_transferred
             ]
         }
-        query_set = StarsonaTransaction.objects.filter(**celebrity_request_status_filter)
+        query_set = StarsonaTransaction.objects.filter(**celebrity_request_status_filter)\
+            .prefetch_related('transaction_payout', 'starsona__fan', 'starsona__occasion',)\
+            .select_related('starsona',)
 
         filter_by_status = request.GET.get("status")
 
@@ -407,6 +409,8 @@ class EarningsList(GenericViewSet, ResponseViewMixin):
                 query_set = pending_starsonas
             elif filter_by_status == PAID_TRANSACTIONS:
                 query_set = paid_starsonas
+            elif filter_by_status == 'all':
+                query_set = pending_starsonas | paid_starsonas | completed_starsonas
         else:
             result = {}
             paid_stasonas_transactions = paid_starsonas[:5]
