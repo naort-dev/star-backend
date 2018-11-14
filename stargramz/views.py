@@ -1041,14 +1041,15 @@ class RequesterWatchedVideo(APIView, ResponseViewMixin):
             return self.jp_response('HTTP_200_OK', data={"video_read": str(e)})
 
 
-def get_bucket_private_url(request, id, string):
+def get_bucket_private_url(request, vname):
     """
     Create the s3 bucket url with valid
     :param request:
     :return:
     """
+    video = vname.replace(".mp4", "")
     try:
-        video_id = hashids.decode(id)[0]
+        video_id = hashids.decode(video)[0]
     except Exception:
         return page_not_found(request)
     try:
