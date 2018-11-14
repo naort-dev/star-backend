@@ -37,6 +37,7 @@ from hashids import Hashids
 from notification.tasks import send_notification
 from payments.tasks import create_request_refund
 from payments.constants import SECRET_KEY
+from django.http import HttpResponsePermanentRedirect
 import stripe
 hashids = Hashids(min_length=8)
 
@@ -1038,3 +1039,24 @@ class RequesterWatchedVideo(APIView, ResponseViewMixin):
             return self.jp_response('HTTP_200_OK', data={"video_read": 'Updated the video'})
         except StargramVideo.DoesNotExist as e:
             return self.jp_response('HTTP_200_OK', data={"video_read": str(e)})
+
+
+def get_bucket_private_url(request, id):
+    """
+    Create the s3 bucket url with valid
+    :param request:
+    :return:
+    """
+    try:
+        video_id = hashids.decode(id)[0]
+    except Exception:
+        page_not_found(request)
+    try:
+        filename = StargramVideo.objects.values_list('video', flat=True).get(id=video_id)
+    except Exception:
+        page_not_found(request)
+    try:
+        url = get_pre_signed_get_url(filename, STARGRAM_VIDEOS)
+    except Exception:
+        page_not_found(request)
+    return HttpResponsePermanentRedirect(url)

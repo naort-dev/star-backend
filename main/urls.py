@@ -19,7 +19,7 @@ from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
 from utilities import utils, constants
-from stargramz.views import play_video, profile_detail, request_detail, page_not_found
+from stargramz.views import play_video, profile_detail, request_detail, page_not_found, get_bucket_private_url
 from health.views import health
 
 urlpatterns = [
@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name="home/index.html")),
     url(r'^applinks/reset$', TemplateView.as_view(template_name="home/index.html")),
     url(r'^(?P<id>[0-9a-zA-Z]{5,8})/$', play_video, name="play-video"),
+    url(r'^private/video/(?P<id>[0-9a-zA-Z]{5,8})/$', get_bucket_private_url, name="get-bucket-url"),
     url(r'^video/(?P<id>[0-9a-zA-Z]{5,8})/$', play_video, name="play-video"),
     url(r'^applinks/profile/(?P<user_id>[-\w]+)/$', profile_detail, name="profile-details"),
     url(r'^applinks/request/(?P<role>[0-9a-zA-Z]{5})/(?P<request_id>[0-9a-zA-Z]{5,8})$', request_detail, name="request-details"),
