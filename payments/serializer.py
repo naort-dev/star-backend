@@ -36,7 +36,10 @@ class StarsonaTransactionSerializer(serializers.ModelSerializer):
 
     def get_payout_status(self, obj):
         try:
-            return PAYOUT_STATUS.get_label(PaymentPayout.objects.values_list('status', flat=True).get(transaction_id=obj.id))
+            return PAYOUT_STATUS.get_label(PaymentPayout.objects.values_list('status', flat=True).get(
+                transaction_id=obj.id,
+                celebrity_id=obj.celebrity_id
+            ))
         except Exception:
             return PAYOUT_STATUS.get_label(1)
 
