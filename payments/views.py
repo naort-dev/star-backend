@@ -385,6 +385,8 @@ class EarningsList(GenericViewSet, ResponseViewMixin):
             .prefetch_related('transaction_payout', 'starsona__fan', 'starsona__occasion',)\
             .select_related('starsona',)
 
+        all_results = query_set.order_by('-created_date')
+
         filter_by_status = request.GET.get("status")
 
         paid_starsonas = query_set.filter(**paid_custom_filter).order_by('-created_date')
@@ -410,7 +412,7 @@ class EarningsList(GenericViewSet, ResponseViewMixin):
             elif filter_by_status == PAID_TRANSACTIONS:
                 query_set = paid_starsonas
             elif filter_by_status == 'all':
-                query_set = pending_starsonas | paid_starsonas | completed_starsonas
+                query_set = all_results
         else:
             result = {}
             paid_stasonas_transactions = paid_starsonas[:5]
