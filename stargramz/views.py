@@ -37,7 +37,7 @@ from hashids import Hashids
 from notification.tasks import send_notification
 from payments.tasks import create_request_refund
 from payments.constants import SECRET_KEY
-from django.http import HttpResponsePermanentRedirect
+from django.http import HttpResponseRedirect
 import stripe
 hashids = Hashids(min_length=8)
 
@@ -1060,4 +1060,4 @@ def get_bucket_private_url(request, vname):
         url = get_pre_signed_get_url(filename, STARGRAM_VIDEOS)
     except Exception:
         return page_not_found(request)
-    return HttpResponsePermanentRedirect(url)
+    return HttpResponseRedirect(url)
