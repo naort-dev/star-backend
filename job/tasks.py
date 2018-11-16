@@ -1103,7 +1103,7 @@ def fix_corrupted_video(video_file, new_video_file):
     if os.path.exists(video_file) and os.path.getsize(video_file) > 10:
         sender_email = Config.objects.get(key='sender_email').value
         SendMail('Fixing Corrupted video', 'Fixing Corrupted video %s' % video_file, sender_email=sender_email, to='akhilns@qburst.com')
-        return os.system("ffmpeg -i %s -strict -2 -vcodec libx264 -acodec aac %s" % (video_file, new_video_file))
+        return os.system("ffmpeg -i %s -r 30000/1001 -strict -2 -vcodec libx264 -acodec aac %s" % (video_file, new_video_file))
     else:
         return False
 
