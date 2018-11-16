@@ -882,6 +882,12 @@ Resources:
       BucketName: !Ref 'BucketName'
       VersioningConfiguration:
         Status: Enabled
+      CorsConfiguration:
+        CorsRules:
+        - AllowedOrigins: [ "*" ]
+          AllowedMethods: [ "GET", "POST" ]
+          AllowedHeaders: [ "Authorization" ]
+          MaxAge: "3000"
     DeletionPolicy: Delete
   
   PublicProfileImages:
