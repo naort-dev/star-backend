@@ -90,6 +90,7 @@ def cancel_starsona_celebrity_no_response():
             SendMail(subject, html_content, sender_email=sender_email, to=request.fan.email)
         except Exception as e:
             print(str(e))
+    return True
 
 
 @app.task(name='notify_admin_video_approvals')
