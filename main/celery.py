@@ -62,10 +62,10 @@ app.conf.beat_schedule = {
     #     'task': 'reprocess_pending_video_approval',
     #     'schedule': crontab(minute=0, hour=0),
     # },
-    'schedule-10': {
-        'task': 'cancel_booking_on_seven_days_completion',
-        'schedule': crontab(minute=0, hour=0),
-    },
+#     'schedule-10': {
+#         'task': 'cancel_booking_on_seven_days_completion',
+#         'schedule': crontab(minute=0, hour=0),
+#     },
 
 }
 app.conf.timezone = 'UTC'
