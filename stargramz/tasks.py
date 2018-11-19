@@ -16,6 +16,7 @@ from utilities.utils import SendMail, generate_branch_io_url
 from django.template.loader import get_template
 from job.tasks import notify_email
 from hashids import Hashids
+import pytz
 hashids = Hashids(min_length=8)
 
 
@@ -109,3 +110,26 @@ def notify_admin_approvals():
         print('Notified admin on pending video approvals')
     else:
         print('No pending video approvals')
+
+
+@app.task(name='cancel_booking_on_seven_days_completion')
+def cancel_booking_on_seven_days_completion():
+    utc = pytz.UTC
+    print('Cancelling booking on time with stripe.')
+    requests = Stargramrequest.objects.values_list('request_transaction__created_date', flat=True).filter(
+        request_status__in=[2, 3],
+        request_transaction__created_date__lt=datetime.datetime.utcnow() - datetime.timedelta(days=6)
+    )
+
+    for request in requests:
+        scheduled_time = request + datetime.timedelta(days=7)
+        estimated = scheduled_time.replace(tzinfo=utc) - datetime.datetime.utcnow().replace(tzinfo=utc)
+        hours = estimated.seconds//3600
+        minutes = (estimated.seconds//60) - (hours * 60)
+        if scheduled_time > timezone.now() and estimated.days >= 0:
+            print("Cancel request in %d hours %d minutes" %(hours, minutes))
+            cancel_starsona_celebrity_no_response.apply_async(
+                eta=datetime.datetime.utcnow() + datetime.timedelta(days=estimated.days, hours=hours, minutes=minutes)
+            )
+    print("Completed %d booking cancel process" % len(requests))
+    return True
