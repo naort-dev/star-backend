@@ -7,7 +7,6 @@ from payments.models import StarsonaTransaction, PaymentPayout, TRANSACTION_STAT
 import stripe
 from payments.constants import SECRET_KEY
 from main.celery import app
-import boto3
 from botocore.exceptions import ClientError
 import os
 from PIL import Image, ExifTags, ImageOps
@@ -34,7 +33,6 @@ video_thumb_size = (400, 400)
 from celery import signals
 import boto3
 import sys
-from django.utils import timezone
 
 tasks_active = 0
 last_task_complete = time.time()
@@ -1210,24 +1208,4 @@ def reprocess_pending_video_approval():
                 request.save()
     except Exception as e:
         print(str(e))
-    return True
-
-
-@app.task(name='cancel_booking_on_seven_days_completion')
-def cancel_booking_on_seven_days_completion():
-    from stargramz.tasks import cancel_starsona_celebrity_no_response
-
-    print('Cancelling booking on time with stripe.')
-    requests = Stargramrequest.objects.values_list('request_transaction__created_date', flat=True).filter(
-        request_status__in=[2, 3],
-        request_transaction__created_date__lt=datetime.utcnow() - timedelta(days=6)
-    )
-
-    for request in requests:
-        scheduled_time = request + timedelta(days=7)
-        if scheduled_time > timezone.now():
-            cancel_starsona_celebrity_no_response.apply_async(
-                eta=scheduled_time
-            )
-    print("Completed %d booking cancel process" % len(requests))
     return True
