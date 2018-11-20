@@ -69,8 +69,7 @@ class RoleDetailSerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(validators=[UniqueValidator(queryset=StargramzUser.objects.all(),
-                                                               message="The email has already been registered.")])
+    email = serializers.EmailField(required=True, allow_blank=False)
     password = serializers.CharField(required=True, allow_blank=False, write_only=True)
     authentication_token = serializers.CharField(read_only=True)
     first_name = serializers.CharField(required=True, allow_blank=False)
@@ -94,6 +93,12 @@ class RegisterSerializer(serializers.ModelSerializer):
                   'role', 'avatar_photo', 'show_nick_name', 'completed_fan_unseen_count', 'referral_code', 'promo_code',
                   'user_id', 'has_requested_referral', 'stripe_user_id', 'check_payments')
         depth = 1
+
+    def validate_email(self, value):
+        email = value.lower()
+        if StargramzUser.objects.filter(email=email).exists():
+            raise serializers.ValidationError("The email has already been registered.")
+        return email
 
     def validate(self, data):
         errors = dict()
@@ -214,6 +219,9 @@ class LoginSerializer(serializers.ModelSerializer):
                   'status', 'sign_up_source', 'images', 'profile_photo', 'avatar_photo', 'show_nick_name',
                   'completed_fan_unseen_count')
 
+    def validate_username(self, value):
+        return value.lower()
+
     def validate(self, data):
         user = authenticate(username=data.get('username'), password=data['password'])
         if user is not None:
@@ -232,11 +240,17 @@ class LoginSerializer(serializers.ModelSerializer):
 
 
 class EmailSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(validators=[UniqueValidator(queryset=StargramzUser.objects.all())])
+    email = serializers.EmailField(required=True)
 
     class Meta:
         model = StargramzUser
         fields = ['email']
+
+    def validate_email(self, value):
+        email = value.lower()
+        if StargramzUser.objects.filter(email=email).exists():
+            raise serializers.ValidationError("The email has already been registered.")
+        return email
 
 
 class SocialSignupSerializer(serializers.ModelSerializer):
@@ -256,6 +270,9 @@ class SocialSignupSerializer(serializers.ModelSerializer):
         fields = ('first_name', 'last_name', 'id', 'email', 'username', 'date_of_birth', 'authentication_token',
                   'sign_up_source', 'role_details', 'profile_photo', 'nick_name', 'fb_id', 'gp_id', 'in_id', 'role',
                   'avatar_photo', 'show_nick_name', 'completed_fan_unseen_count', 'referral_code')
+
+    def validate_username(self, value):
+        return value.lower()
 
     def validate(self, data):
         errors = dict()
