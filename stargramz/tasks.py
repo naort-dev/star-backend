@@ -9,7 +9,8 @@ from notification.tasks import send_notification
 from utilities.konstants import NOTIFICATION_TYPES, ROLES
 from .constants import NOTIFICATION_REQUEST_FIVE_DAY_BODY, NOTIFICATION_REQUEST_FIVE_DAY_TITLE, \
     NOTIFICATION_REQUEST_SEVEN_DAY_TITLE, NOTIFICATION_REQUEST_SEVEN_DAY_BODY, REQUEST_CANCEL_DAYS, \
-    REQUEST_CANCEL_COMMENT, NOTIICATION_AUTOMATIC_CANCEL_TITLE, NOTIICATION_AUTOMATIC_CANCEL_BODY
+    REQUEST_CANCEL_COMMENT, NOTIICATION_AUTOMATIC_CANCEL_TITLE, NOTIICATION_AUTOMATIC_CANCEL_BODY,\
+    NOTIFICATION_REQUEST_LIMIT_BODY, NOTIFICATION_REQUEST_LIMIT_TITLE
 from payments.tasks import create_request_refund
 from config.models import Config
 from utilities.utils import SendMail, generate_branch_io_url
@@ -133,3 +134,15 @@ def cancel_booking_on_seven_days_completion():
             )
     print("Completed %d booking cancel process" % len(requests))
     return True
+
+
+def request_limit_notification(celebrity):
+    """
+        Notify the celebrity when the stargramz request reaches the celebrity weekly limits
+    """
+    data = {'type': NOTIFICATION_TYPES.request_limit_reached,
+            'role': ROLES.celebrity}
+    send_notification.delay(celebrity.user.id,
+                            NOTIFICATION_REQUEST_LIMIT_TITLE,
+                            NOTIFICATION_REQUEST_LIMIT_BODY,
+                            data)

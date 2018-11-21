@@ -77,4 +77,5 @@ NOTIFICATION_TYPES = Konstants(
     K(fan_celebrity_cancelled_details=3, label='Fan-Celebrity Cancelled Request Details'),
     K(alert_fan_celebrity_available=4, label='Alert Fan when celebrity is available'),
     K(alert_celebrity_approval=5, label='Notify Celebrity when celebrity account is approved'),
+    K(request_limit_reached=6, label='Notify Celebrity when request limit has reached'),
 )

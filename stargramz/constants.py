@@ -31,3 +31,7 @@ NOTIICATION_AUTOMATIC_CANCEL_BODY = 'A video request has expired.'
 
 # Notification for Admin video approval
 SUBJECT_ADMIN_VIDEO_APPROVAL = 'New Video For Admin Approval'
+
+# Notification for celebrity when request limit has reached
+NOTIFICATION_REQUEST_LIMIT_TITLE = 'Starsona'
+NOTIFICATION_REQUEST_LIMIT_BODY = 'Starsona request limit has been reached'
