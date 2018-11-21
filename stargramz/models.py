@@ -182,6 +182,7 @@ class Stargramrequest(models.Model):
 
 @receiver(post_save, sender=Stargramrequest)
 def update_remaining_limits(sender, instance, **kwargs):
+    from stargramz.tasks import request_limit_notification
     model = apps.get_model('users', 'Celebrity')
     total_requests = Stargramrequest.objects.filter(celebrity_id=instance.celebrity_id,
                                                     request_status__in=[1, 2, 3]
@@ -189,6 +190,8 @@ def update_remaining_limits(sender, instance, **kwargs):
     try:
         celebrity = model.objects.get(user_id=instance.celebrity_id)
         pending_total = int(celebrity.weekly_limits) - int(total_requests)
+        if pending_total < 1:
+            request_limit_notification(celebrity)
         celebrity.remaining_limit = pending_total if pending_total > 0 else 0
         celebrity.save()
     except Exception as e:
