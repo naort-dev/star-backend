@@ -5,7 +5,7 @@ from users.authenticate_views import UserRegister, UserLogin, EmailValidate, Soc
     DeviceToken, NotificationSettings, ContactSupport, RoleUpdate, UpdateNotificationBadge, AlertFan, \
     ValidateSocialSignup, FilterProfessions, UpdateBookingCount, GetAWSSignedUrl, GetAWSSignedPostUrl, SocialMediaUrls
 from users.group_views import GroupAccountList, GroupAccountsView, GroupTypesView, JoinGroupView, \
-    GroupAccountProfileFollow
+    GroupAccountProfileFollow, GetMembersList
 from .fan_views import CelebrityList, ApproveFan, CelebrityRate, CelebrityProfileFollow, CelebrityFanAbuse, \
     CelebritySuggestionList, FanFavouriteStars
 from .celebrity_views import CelebrityManagement, NotifyAdmin, ReferralRequest, ReferralList, ReferralValidate
@@ -59,5 +59,6 @@ router.register(r'fan/favourite_stars', FanFavouriteStars, base_name='Fan Favour
 router.register(r'referral_list', ReferralList, base_name='Referral List')
 router.register(r'filtered_professions', FilterProfessions, base_name='filtered-profession')
 router.register(r'group_list', GroupAccountList, base_name='group-account-list')
+router.register(r'get_members', GetMembersList, base_name='members-list'),
 
 urlpatterns = router.urls + urlpatterns

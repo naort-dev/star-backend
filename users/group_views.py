@@ -8,7 +8,7 @@ from utilities.pagination import CustomOffsetPagination
 from utilities.utils import ROLES, get_user_id
 from users.models import StargramzUser, GroupAccount, GroupType, CelebrityGroupAccount, CelebrityFollow
 from users.serializer import GroupListSerializer, GroupAccountSerializer, GroupAccountDataSerializer, \
-    GroupTypeSerializer, JoinGroupSerializer, GroupFollowSerializer
+    GroupTypeSerializer, JoinGroupSerializer, GroupFollowSerializer, MemberListSerializer
 
 
 class GroupAccountsView(APIView, ResponseViewMixin):
@@ -154,3 +154,27 @@ class GroupAccountProfileFollow(APIView, ResponseViewMixin):
                 'group_follow_response': {'group_user': request.data['group'], 'follow': follow, }})
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CREATE', serializer.errors)
+
+
+class GetMembersList(GenericViewSet, ResponseViewMixin):
+
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+    pagination_class = CustomOffsetPagination
+    serializer_class = MemberListSerializer
+
+    def list(self, request):
+
+        try:
+            StargramzUser.objects.get(username=request.user)
+        except StargramzUser.DoesNotExist:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
+
+        search_query = StargramzUser.objects.select_related('avatar_photo', 'featured_photo') \
+            .prefetch_related('images', 'celebrity_profession__profession', 'celebrity_account', 'vanity_urls')\
+            .filter(celebrity_user__admin_approval=True)
+
+        page = self.paginate_queryset(search_query.distinct())
+        serializer = self.get_serializer(page, many=True)
+
+        return self.jp_response(s_code='HTTP_200_OK', data={'group_follow_members': {'group_user': serializer.data}})

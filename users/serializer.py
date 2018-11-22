@@ -977,3 +977,21 @@ class GroupFollowSerializer(serializers.Serializer):
         except Exception:
             raise serializers.ValidationError({"error": "Invalid Group account"})
         return data
+
+
+class MemberListSerializer(serializers.ModelSerializer):
+    celebrity_account = CelebrityGroupAccountSerializer(read_only=True)
+    avatar_photo = ProfilePictureSerializer(read_only=True)
+    featured_photo = ProfilePictureSerializer(read_only=True)
+    user_id = serializers.CharField(read_only=True, source="vanity_urls.name")
+    celebrity_profession = ProfessionTitleSerializer(read_only=True, many=True)
+    has_group_account = HasGroupAccountSerializer(read_only=True)
+    group_type = serializers.CharField(read_only=True, source="group_account.group_type")
+
+
+    class Meta:
+        model = StargramzUser
+        fields = ('celebrity_account', 'avatar_photo', 'get_short_name', 'first_name', 'featured_photo', 'user_id',
+                  'celebrity_profession', 'has_group_account', 'group_type')
+
+

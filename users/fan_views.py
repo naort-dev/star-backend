@@ -62,6 +62,7 @@ class CelebrityList(GenericViewSet, ResponseViewMixin):
         filter_by_profession = request.GET.get('profession')
         exclude_celebrity = request.GET.get('exclude_celebrity')
         available = request.GET.get('available')
+        group_type = request.GET.get('group_type', None)
         if filter_by_name:
             query_set = search_name(filter_by_name, search_query)
         if filter_by_lower_rate and filter_by_upper_rate:
@@ -98,7 +99,9 @@ class CelebrityList(GenericViewSet, ResponseViewMixin):
                 query_set = query_set.filter(
                     Q(celebrity_user__availability=True) | Q(group_account__admin_approval=True))
 
-        if not filter_by_name:
+        if group_type:
+            query_set = query_set.filter(group_account__admin_approval=True, group_account__group_type=group_type)
+        elif not filter_by_name:
             query_set = query_set.exclude(group_account__admin_approval=True)
 
         if sort and sort in SORT:
