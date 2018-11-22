@@ -471,7 +471,7 @@ class CelebrityGroupAccountTabular(ReadOnlyTabularInline):
 class GroupAccountUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     add_form = UserCreationForm
     list_display = ('id', 'first_name', 'last_name', 'username', 'order')
-    list_filter = ('celebrity_user__admin_approval', 'stargramz_user__is_complete')
+    list_filter = ('group_account__admin_approval',)
 
     fieldsets = (
         (None, {'fields': ('email', 'username', 'password')}),

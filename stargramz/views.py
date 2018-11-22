@@ -89,6 +89,14 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
             celebrity = Celebrity.objects.get(user_id=request.data['celebrity'])
         except Celebrity.DoesNotExist:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Not an celebrity user')
+
+        if celebrity.remaining_limit == 0:
+            return self.jp_error_response(
+                'HTTP_400_BAD_REQUEST',
+                'INVALID_SIGNUP',
+                'Celebrities booking limit has reached.'
+            )
+
         request.data['booking_title'] = self.generate_title(request.data, celebrity, occasions)
         request.POST._mutable = mutable
         serializer = StargramzSerializer(data=request.data)
