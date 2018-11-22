@@ -17,6 +17,7 @@ from utilities.utils import SendMail, generate_branch_io_url
 from django.template.loader import get_template
 from job.tasks import notify_email
 from hashids import Hashids
+from utilities.constants import BASE_URL
 import pytz
 hashids = Hashids(min_length=8)
 
@@ -146,3 +147,15 @@ def request_limit_notification(celebrity):
                             NOTIFICATION_REQUEST_LIMIT_TITLE,
                             NOTIFICATION_REQUEST_LIMIT_BODY,
                             data)
+    base_url = Config.objects.get(key='base_url').value
+    ctx = {'celebrity_name': celebrity.user.get_short_name(),
+           'app_url': generate_branch_io_url(
+                title="Starsona request limit reached",
+                desc="The number of Starsona requests has reached its limits.",
+                mob_url='settings',
+                desktop_url='%ssettings' % BASE_URL,
+                image_url='%smedia/web-images/starsona_logo.png' % base_url,
+            )}
+    sender_email = Config.objects.get(key='sender_email').value
+    celebrity_email = celebrity.user.email
+    notify_email(sender_email, celebrity_email, 'Request limit reached', 'celebrity_request_limit', ctx)
