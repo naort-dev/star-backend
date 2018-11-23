@@ -25,6 +25,7 @@ from health.views import health
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', TemplateView.as_view(template_name="home/index.html")),
+    url(r'^applinks/set_weekly_limit', TemplateView.as_view(template_name="home/index.html")),
     url(r'^applinks/reset$', TemplateView.as_view(template_name="home/index.html")),
     url(r'^(?P<id>[0-9a-zA-Z]{5,8})/$', play_video, name="play-video"),
     url(r'^private/video/(?P<vname>.+)$', get_bucket_private_url, name="get-bucket-url"),
