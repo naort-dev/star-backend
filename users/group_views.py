@@ -171,8 +171,15 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
 
         search_query = StargramzUser.objects.select_related('avatar_photo', 'featured_photo') \
-            .prefetch_related('images', 'celebrity_profession__profession', 'celebrity_account', 'vanity_urls')\
-            .filter(celebrity_user__admin_approval=True).exclude(celebrity_account__account=request.user)
+            .prefetch_related('images', 'celebrity_profession__profession', 'celebrity_account', 'vanity_urls')
+
+        filter_condition = {'celebrity_user__admin_approval': True}
+        option = request.GET.get('member', None)
+        if option:
+            filter_condition['celebrity_account__account'] = request.user
+            search_query = search_query.filter(**filter_condition)
+        else:
+            search_query = search_query.filter(**filter_condition).exclude(celebrity_account__account=request.user)
 
         page = self.paginate_queryset(search_query.distinct())
         serializer = self.get_serializer(page, many=True)
