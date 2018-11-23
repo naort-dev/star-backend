@@ -172,7 +172,7 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
 
         search_query = StargramzUser.objects.select_related('avatar_photo', 'featured_photo') \
             .prefetch_related('images', 'celebrity_profession__profession', 'celebrity_account', 'vanity_urls')\
-            .filter(celebrity_user__admin_approval=True)
+            .filter(celebrity_user__admin_approval=True).exclude(celebrity_account__account=request.user)
 
         page = self.paginate_queryset(search_query.distinct())
         serializer = self.get_serializer(page, many=True)

@@ -980,7 +980,6 @@ class GroupFollowSerializer(serializers.Serializer):
 
 
 class MemberListSerializer(serializers.ModelSerializer):
-    celebrity_account = CelebrityGroupAccountSerializer(read_only=True)
     avatar_photo = ProfilePictureSerializer(read_only=True)
     featured_photo = ProfilePictureSerializer(read_only=True)
     user_id = serializers.CharField(read_only=True, source="vanity_urls.name")
@@ -991,7 +990,6 @@ class MemberListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StargramzUser
-        fields = ('celebrity_account', 'avatar_photo', 'get_short_name', 'first_name', 'featured_photo', 'user_id',
+        fields = ('avatar_photo', 'get_short_name', 'first_name', 'featured_photo', 'user_id',
                   'celebrity_profession', 'has_group_account', 'group_type')
-
 
