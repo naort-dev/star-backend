@@ -130,7 +130,10 @@ def cancel_booking_on_seven_days_completion():
         if scheduled_time > timezone.now() and estimated.days >= 0:
             print("Cancel request in %d hours %d minutes" %(hours, minutes))
             cancel_starsona_celebrity_no_response.apply_async(
-                eta=datetime.datetime.utcnow() + datetime.timedelta(days=estimated.days, hours=hours, minutes=minutes)
+                eta=datetime.datetime.utcnow() + datetime.timedelta(
+                    hours=hours,
+                    minutes=minutes
+                )
             )
     print("Completed %d booking cancel process" % len(requests))
     return True
@@ -147,12 +150,14 @@ def request_limit_notification(celebrity):
                             NOTIFICATION_REQUEST_LIMIT_BODY,
                             data)
     base_url = Config.objects.get(key='base_url').value
+    web_url = Config.objects.get(key='web_url').value
     ctx = {'celebrity_name': celebrity.user.get_short_name(),
            'app_url': generate_branch_io_url(
                 title="Starsona request limit reached",
                 desc="The number of Starsona requests has reached its limits.",
-                mob_url='settings',
-                desktop_url='%ssettings' % base_url,
+                canonical_url='%sapplinks/set_weekly_limit' % base_url,
+                mob_url='set_weekly_limit',
+                desktop_url='%ssettings' % web_url,
                 image_url='%smedia/web-images/starsona_logo.png' % base_url,
             )}
     sender_email = Config.objects.get(key='sender_email').value
