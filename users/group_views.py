@@ -175,8 +175,13 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
 
         filter_condition = {'celebrity_user__admin_approval': True}
         option = request.GET.get('member', None)
+        status = request.GET.get('status', None)
         if option:
             filter_condition['celebrity_account__account'] = request.user
+            if status and status == 'true':
+                filter_condition.update(celebrity_account__approved=True)
+            elif status and status == 'false':
+                filter_condition.update(celebrity_account__approved=False)
             search_query = search_query.filter(**filter_condition)
         else:
             search_query = search_query.filter(**filter_condition).exclude(celebrity_account__account=request.user)
