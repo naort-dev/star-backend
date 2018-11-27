@@ -5,7 +5,7 @@ from rest_framework.viewsets import GenericViewSet
 from utilities.permissions import CustomPermission
 from utilities.mixins import ResponseViewMixin
 from utilities.pagination import CustomOffsetPagination
-from utilities.utils import ROLES, get_user_id
+from utilities.utils import ROLES, get_user_id, decode_pk
 from users.models import StargramzUser, GroupAccount, GroupType, CelebrityGroupAccount, CelebrityFollow
 from users.serializer import GroupListSerializer, GroupAccountSerializer, GroupAccountDataSerializer, \
     GroupTypeSerializer, JoinGroupSerializer, GroupFollowSerializer, MemberListSerializer
@@ -190,3 +190,16 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
         serializer = self.get_serializer(page, many=True)
 
         return self.jp_response(s_code='HTTP_200_OK', data={'group_follow_members': {'group_user': serializer.data}})
+
+    def delete(self, request):
+
+        member_id = request.data.get('id', None)
+        if member_id:
+            try:
+                member_id = decode_pk(member_id)
+                CelebrityGroupAccount.objects.get(id=member_id, account=request.user).delete()
+            except Exception:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_USER', 'Group member not found')
+            return self.jp_response(s_code='HTTP_200_OK',
+                                    data="successfully deleted")
+        return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_USER', 'Group member id is wrong')

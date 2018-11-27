@@ -995,6 +995,9 @@ class MemberListSerializer(serializers.ModelSerializer):
                   'celebrity_profession', 'has_group_account', 'group_type')
 
     def get_celebrity_account(self, obj):
-        celebrity_account = CelebrityGroupAccount.objects.values('approved', 'celebrity_invite')\
+        celebrity_account = CelebrityGroupAccount.objects.values('id', 'approved', 'celebrity_invite')\
             .filter(user=obj, account=self.context.get('request').user)
+        if celebrity_account:
+            celebrity_account[0].update(id=hashids.encode(celebrity_account[0].get('id')))
         return celebrity_account
+
