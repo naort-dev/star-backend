@@ -940,6 +940,33 @@ class JoinGroupSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"error": "Invalid Group account"})
         return data
 
+    def create(self, validated_data):
+        celebrity_account, created = CelebrityGroupAccount.objects.update_or_create(user=validated_data['user']
+                                                                                    , defaults=validated_data)
+        return celebrity_account
+
+
+class JoinGroupCelebritySerializer(serializers.ModelSerializer):
+
+    user = serializers.CharField(required=True)
+
+    class Meta:
+        model = CelebrityGroupAccount
+        fields = ('account', 'user', 'approved')
+
+    def validate(self, data):
+        celebrity_name = data.get('user')
+        try:
+            data['user'] = get_user_id(celebrity_name)
+        except Exception:
+            raise serializers.ValidationError({"error": "Invalid Group account"})
+        return data
+
+    def create(self, validated_data):
+        celebrity_account, created = CelebrityGroupAccount.objects.update_or_create(user=validated_data['user']
+                                                                                    , defaults=validated_data)
+        return celebrity_account
+
 
 class SocialMediaSerializer(serializers.Serializer):
 

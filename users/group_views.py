@@ -8,7 +8,7 @@ from utilities.pagination import CustomOffsetPagination
 from utilities.utils import ROLES, get_user_id, decode_pk
 from users.models import StargramzUser, GroupAccount, GroupType, CelebrityGroupAccount, CelebrityFollow
 from users.serializer import GroupListSerializer, GroupAccountSerializer, GroupAccountDataSerializer, \
-    GroupTypeSerializer, JoinGroupSerializer, GroupFollowSerializer, MemberListSerializer
+    GroupTypeSerializer, JoinGroupSerializer, GroupFollowSerializer, MemberListSerializer, JoinGroupCelebritySerializer
 
 
 class GroupAccountsView(APIView, ResponseViewMixin):
@@ -107,15 +107,27 @@ class JoinGroupView(APIView, ResponseViewMixin):
                 user = StargramzUser.objects.get(username=request.user)
             except Exception as e:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', data=str(e))
-
-            request.data['user'] = user.id
-            request.data['celebrity_invite'] = True
-            validator = JoinGroupSerializer(data=request.data)
-            if validator.is_valid():
-                validator.save()
-                return self.jp_response(s_code='HTTP_200_OK', data="successfully joined the group")
-            else:
-                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', data=validator.errors)
+            account = request.data.get('account', None)
+            celebrity = request.data.get('celebrity', None)
+            if account:
+                request.data['user'] = user.id
+                request.data['celebrity_invite'] = True
+                validator = JoinGroupSerializer(data=request.data)
+                if validator.is_valid():
+                    validator.save()
+                    return self.jp_response(s_code='HTTP_200_OK', data="successfully joined the group")
+                else:
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', data=validator.errors)
+            elif celebrity:
+                request.data['account'] = user.id
+                request.data['user'] = request.data.get('celebrity')
+                request.data['approved'] = True
+                validator = JoinGroupCelebritySerializer(data=request.data)
+                if validator.is_valid():
+                    validator.save()
+                    return self.jp_response(s_code='HTTP_200_OK', data="successfully joined the group")
+                else:
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', data=validator.errors)
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Already requested.')
 
@@ -163,7 +175,7 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
     pagination_class = CustomOffsetPagination
     serializer_class = MemberListSerializer
 
-    def list(self, request):
+    def list(self, request, pk):
 
         try:
             StargramzUser.objects.get(username=request.user)
@@ -191,9 +203,9 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
 
         return self.jp_response(s_code='HTTP_200_OK', data={'group_follow_members': {'group_user': serializer.data}})
 
-    def delete(self, request):
+    def delete(self, request, pk):
 
-        member_id = request.data.get('id', None)
+        member_id = pk
         if member_id:
             try:
                 member_id = decode_pk(member_id)

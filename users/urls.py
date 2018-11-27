@@ -59,6 +59,6 @@ router.register(r'fan/favourite_stars', FanFavouriteStars, base_name='Fan Favour
 router.register(r'referral_list', ReferralList, base_name='Referral List')
 router.register(r'filtered_professions', FilterProfessions, base_name='filtered-profession')
 router.register(r'group_list', GroupAccountList, base_name='group-account-list')
-router.register(r'get_members', GetMembersList, base_name='members-list'),
+router.register(r'get_members/?(?P<pk>[0-9a-zA-Z]{0,8})', GetMembersList, base_name='members-list'),
 
 urlpatterns = router.urls + urlpatterns
