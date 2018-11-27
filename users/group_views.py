@@ -201,7 +201,10 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
         page = self.paginate_queryset(search_query.distinct())
         serializer = self.get_serializer(page, many=True)
 
-        return self.jp_response(s_code='HTTP_200_OK', data={'group_follow_members': {'group_user': serializer.data}})
+        return self.paginator.get_paginated_response(
+            data={'group_user': serializer.data},
+            key_name='group_follow_members'
+        )
 
     def delete(self, request, pk):
 
