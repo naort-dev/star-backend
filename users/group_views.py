@@ -9,6 +9,7 @@ from utilities.utils import ROLES, get_user_id, decode_pk
 from users.models import StargramzUser, GroupAccount, GroupType, CelebrityGroupAccount, CelebrityFollow
 from users.serializer import GroupListSerializer, GroupAccountSerializer, GroupAccountDataSerializer, \
     GroupTypeSerializer, JoinGroupSerializer, GroupFollowSerializer, MemberListSerializer, JoinGroupCelebritySerializer
+from django.db.models import Q
 
 
 class GroupAccountsView(APIView, ResponseViewMixin):
@@ -190,14 +191,17 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
         status = request.GET.get('status', None)
         if option:
             filter_condition['celebrity_account__account'] = request.user
-            if status and status == 'true':
-                filter_condition.update(celebrity_account__approved=True)
-            elif status and status == 'false':
-                filter_condition.update(celebrity_account__approved=False)
             search_query = search_query.filter(**filter_condition)
+            if status and status == 'true':
+                search_query = search_query.filter(
+                    celebrity_account__approved=True, celebrity_account__celebrity_invite=True)
+            elif status and status == 'false':
+                search_query = search_query.filter(
+                    Q(celebrity_account__approved=False) | Q(celebrity_account__celebrity_invite=False))
         else:
             search_query = search_query.filter(**filter_condition).exclude(celebrity_account__account=request.user)
 
+        search_query = search_query.order_by('-celebrity_account__id', 'id')
         page = self.paginate_queryset(search_query.distinct())
         serializer = self.get_serializer(page, many=True)
 
