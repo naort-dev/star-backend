@@ -941,8 +941,11 @@ class JoinGroupSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        celebrity_account, created = CelebrityGroupAccount.objects.update_or_create(user=validated_data['user']
-                                                                                    , defaults=validated_data)
+        celebrity_account, created = CelebrityGroupAccount.objects.update_or_create(
+            user=validated_data.get('user'),
+            account=validated_data.get('account'),
+            defaults=validated_data
+        )
         return celebrity_account
 
 
@@ -963,8 +966,11 @@ class JoinGroupCelebritySerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        celebrity_account, created = CelebrityGroupAccount.objects.update_or_create(user=validated_data['user']
-                                                                                    , defaults=validated_data)
+        celebrity_account, created = CelebrityGroupAccount.objects.update_or_create(
+            user=validated_data.get('user'),
+            account=validated_data.get('account'),
+            defaults=validated_data
+        )
         return celebrity_account
 
 
