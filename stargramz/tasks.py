@@ -178,7 +178,8 @@ def notify_fan_reaction_videos_and_feedback(booking_id):
             requests = Stargramrequest.objects.get(id=booking_id)
         except Exception:
             return True
-        data = {'type': NOTIFICATION_TYPES.pending_reaction_video, 'role': ROLES.fan, 'id': hashids.encode(booking_id)}
+        booking_hash_id = hashids.encode(booking_id)
+        data = {'type': NOTIFICATION_TYPES.pending_reaction_video, 'role': ROLES.fan, 'id': booking_hash_id}
         send_notification.delay(
             requests.fan_id,
             PENDING_REACTION_VIDEO_TITLE,
@@ -197,9 +198,9 @@ def notify_fan_reaction_videos_and_feedback(booking_id):
                'app_url': generate_branch_io_url(
                     title="Add reaction videos",
                     desc="Add review and share your reaction videos",
-                    canonical_url='%sapplinks/reactions' % base_url,
+                    canonical_url='%sapplinks/reactions/%s' % (base_url, booking_hash_id),
                     mob_url='reactions',
-                    desktop_url='%sreactions' % web_url,
+                    desktop_url='%suser/myVideos' % web_url,
                     image_url='%smedia/web-images/starsona_logo.png' % base_url,
                 )}
         sender_email = Config.objects.get(key='sender_email').value
