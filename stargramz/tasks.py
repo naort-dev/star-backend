@@ -1,19 +1,17 @@
 from __future__ import absolute_import, unicode_literals
 from main.celery import app
 from django.db.models import Q
-from .models import Stargramrequest, STATUS_TYPES
+from .models import Stargramrequest, STATUS_TYPES, Reaction, StargramVideo
 from users.models import VanityUrl
 from django.utils import timezone
 import datetime
 from notification.tasks import send_notification
 from utilities.konstants import NOTIFICATION_TYPES, ROLES
-from .constants import NOTIFICATION_REQUEST_FIVE_DAY_BODY, NOTIFICATION_REQUEST_FIVE_DAY_TITLE, \
-    NOTIFICATION_REQUEST_SEVEN_DAY_TITLE, NOTIFICATION_REQUEST_SEVEN_DAY_BODY, REQUEST_CANCEL_DAYS, \
-    REQUEST_CANCEL_COMMENT, NOTIICATION_AUTOMATIC_CANCEL_TITLE, NOTIICATION_AUTOMATIC_CANCEL_BODY,\
-    NOTIFICATION_REQUEST_LIMIT_BODY, NOTIFICATION_REQUEST_LIMIT_TITLE
+from .constants import *
 from payments.tasks import create_request_refund
 from config.models import Config
-from utilities.utils import SendMail, generate_branch_io_url
+from config.constants import *
+from utilities.utils import SendMail, generate_branch_io_url, get_bucket_url
 from django.template.loader import get_template
 from job.tasks import notify_email
 from hashids import Hashids
@@ -164,3 +162,50 @@ def request_limit_notification(celebrity):
     celebrity_email = celebrity.user.email
     notify_email(sender_email, celebrity_email, 'Request limit reached', 'celebrity_request_limit', ctx)
 
+
+def notify_fan_reaction_videos_and_feedback(booking_id):
+    """
+    Triggering Push/email notifications to fan to add review and share there reaction
+    videos with starsona for completed bookings
+    :param booking_id:
+    :return:
+    """
+    print("Reaction for %d" % booking_id)
+    if Reaction.objects.filter(booking_id=booking_id).count() == 0:
+        print('Adding reactions...')
+        try:
+            requests = Stargramrequest.objects.get(id=booking_id)
+        except Exception:
+            return True
+        data = {'type': NOTIFICATION_TYPES.pending_reaction_video, 'role': ROLES.fan}
+        send_notification.delay(
+            requests.fan_id,
+            PENDING_REACTION_VIDEO_TITLE,
+            PENDING_REACTION_VIDEO_BODY % requests.celebrity.get_short_name(),
+            data,
+            field='celebrity_starsona_request'
+        )
+        video = StargramVideo.objects.get(stragramz_request_id=booking_id, status=1)
+
+        base_url = Config.objects.get(key='base_url').value
+        web_url = Config.objects.get(key='web_url').value
+        ctx = {'celebrity_name': requests.celebrity.get_short_name(),
+               'fan_name': requests.fan.get_short_name(),
+               'booking_title': requests.booking_title,
+               'video_thumb': '{}/{}'.format(get_bucket_url(), STARGRAM_VIDEO_THUMB + video.thumbnail),
+               'app_url': generate_branch_io_url(
+                    title="Add reaction videos",
+                    desc="Add review and share your reaction videos",
+                    canonical_url='%sapplinks/reactions' % base_url,
+                    mob_url='reactions',
+                    desktop_url='%sreactions' % web_url,
+                    image_url='%smedia/web-images/starsona_logo.png' % base_url,
+                )}
+        sender_email = Config.objects.get(key='sender_email').value
+        fan_email = requests.fan.email
+        notify_email(sender_email, fan_email, 'Add Reaction videos', 'add_reaction_videos', ctx)
+        print('Notified fan for reaction videos')
+        return True
+    else:
+        print('Already added reactions')
+        return True

@@ -1,0 +1,18 @@
+{% include "emails/header.html" %}
+<h1 style="text-align: center;">Your opinion matters!</h1>
+<br/><br/>
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">
+{{ fan_name }}, do you have a moment? We'd love to know how everything worked out with you. Please take a moment to review and share your reactions with starsona.
+</p>
+
+<table>
+    <tr>
+        <td width="30%"><img src="{{video_thumb}}" alt="{{booking_title}}" width="100%"></td>
+        <td width="70%">
+            <p style="padding-left: 20px;">{{booking_title}}
+                <a href="{{app_url}}" style="margin-left: 20px;" class="button">Add Reactions</a></p>
+        </td>
+    </tr>
+</table>
+<br/><br/>
+{% include "emails/footer.html" %}

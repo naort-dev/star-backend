@@ -78,4 +78,5 @@ NOTIFICATION_TYPES = Konstants(
     K(alert_fan_celebrity_available=4, label='Alert Fan when celebrity is available'),
     K(alert_celebrity_approval=5, label='Notify Celebrity when celebrity account is approved'),
     K(request_limit_reached=6, label='Notify Celebrity when request limit has reached'),
+    K(pending_reaction_video=7, label='Notify Fan to add there reaction videos'),
 )

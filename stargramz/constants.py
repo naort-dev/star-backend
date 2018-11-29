@@ -35,3 +35,7 @@ SUBJECT_ADMIN_VIDEO_APPROVAL = 'New Video For Admin Approval'
 # Notification for celebrity when request limit has reached
 NOTIFICATION_REQUEST_LIMIT_TITLE = 'Starsona'
 NOTIFICATION_REQUEST_LIMIT_BODY = 'Your Starsona booking limit has reached. Tap to update the open booking limit'
+
+# Notification for pending reaction video
+PENDING_REACTION_VIDEO_TITLE = 'Starsona'
+PENDING_REACTION_VIDEO_BODY = 'Did %s video meet your expectations? Review and share reaction videos with Starsona'
