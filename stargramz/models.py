@@ -162,7 +162,7 @@ class Stargramrequest(models.Model):
                 # Trigger push/email notifications for reactions & reviews
                 notify_fan_reaction_videos_and_feedback.apply_async(
                     (self.pk,),
-                    eta=datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+                    eta=datetime.datetime.utcnow() + datetime.timedelta(seconds=25)
                 )
 
                 body_content = NOTIFICATION_Q_A % self.celebrity.get_short_name() if self.request_type == 3 else \

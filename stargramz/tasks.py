@@ -163,6 +163,7 @@ def request_limit_notification(celebrity):
     notify_email(sender_email, celebrity_email, 'Request limit reached', 'celebrity_request_limit', ctx)
 
 
+@app.task
 def notify_fan_reaction_videos_and_feedback(booking_id):
     """
     Triggering Push/email notifications to fan to add review and share there reaction
@@ -177,7 +178,7 @@ def notify_fan_reaction_videos_and_feedback(booking_id):
             requests = Stargramrequest.objects.get(id=booking_id)
         except Exception:
             return True
-        data = {'type': NOTIFICATION_TYPES.pending_reaction_video, 'role': ROLES.fan}
+        data = {'type': NOTIFICATION_TYPES.pending_reaction_video, 'role': ROLES.fan, 'id': hashids.encode(booking_id)}
         send_notification.delay(
             requests.fan_id,
             PENDING_REACTION_VIDEO_TITLE,
