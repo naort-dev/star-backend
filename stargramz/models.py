@@ -144,6 +144,7 @@ class Stargramrequest(models.Model):
         from job.tasks import send_email_notification
         from notification.tasks import send_notification
         from payments.tasks import create_request_refund
+        from stargramz.tasks import notify_fan_reaction_videos_and_feedback
         if self.request_status != self.__original_request_status:
             send_email_notification.apply_async(
                 (self.pk,),
@@ -157,6 +158,12 @@ class Stargramrequest(models.Model):
                 user.completed_view_count = F('completed_view_count') + 1
                 user.save()
                 user.refresh_from_db()
+
+                # Trigger push/email notifications for reactions & reviews
+                notify_fan_reaction_videos_and_feedback.apply_async(
+                    (self.pk,),
+                    eta=datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+                )
 
                 body_content = NOTIFICATION_Q_A % self.celebrity.get_short_name() if self.request_type == 3 else \
                     NOTIFICATION_REQUEST_COMPLETE_BODY
