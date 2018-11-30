@@ -203,8 +203,8 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
         else:
             exclude_condition.update({'celebrity_account__account': request.user})
 
-        search_query = search_query.filter(**filter_condition)\
-            .exclude(**exclude_condition).order_by('-celebrity_account__id', 'id')
+        search_query = search_query.exclude(**exclude_condition).filter(**filter_condition)\
+            .order_by('-celebrity_account__id', 'id')
         page = self.paginate_queryset(search_query.distinct())
         serializer = self.get_serializer(page, many=True)
 
