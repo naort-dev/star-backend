@@ -196,8 +196,8 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
                     {'celebrity_account__approved': True, 'celebrity_account__celebrity_invite': True}
                 )
             elif status and status == 'false':
-                exclude_condition.update(
-                    {'celebrity_account__approved': False, 'celebrity_account__celebrity_invite': False}
+                filter_condition.update(
+                    {'celebrity_account__approved': False}
                 )
         else:
             exclude_condition.update({'celebrity_account__account_id': user_id})
