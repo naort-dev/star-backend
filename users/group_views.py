@@ -9,7 +9,6 @@ from utilities.utils import ROLES, get_user_id, decode_pk
 from users.models import StargramzUser, GroupAccount, GroupType, CelebrityGroupAccount, CelebrityFollow
 from users.serializer import GroupListSerializer, GroupAccountSerializer, GroupAccountDataSerializer, \
     GroupTypeSerializer, JoinGroupSerializer, GroupFollowSerializer, MemberListSerializer, JoinGroupCelebritySerializer
-from django.db.models import Q
 
 
 class GroupAccountsView(APIView, ResponseViewMixin):
@@ -179,7 +178,7 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
     def list(self, request, pk):
 
         try:
-            StargramzUser.objects.get(username=request.user)
+            user_id = StargramzUser.objects.get(username=request.user).id
         except StargramzUser.DoesNotExist:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
 
@@ -191,21 +190,21 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
         option = request.GET.get('member', None)
         status = request.GET.get('status', None)
         if option:
-            filter_condition.update({'celebrity_account__account': request.user})
+            filter_condition.update({'celebrity_account__account_id': user_id})
             if status and status == 'true':
                 filter_condition.update(
                     {'celebrity_account__approved': True, 'celebrity_account__celebrity_invite': True}
                 )
             elif status and status == 'false':
                 exclude_condition.update(
-                    {'celebrity_account__approved': True, 'celebrity_account__celebrity_invite': True}
+                    {'celebrity_account__approved': False, 'celebrity_account__celebrity_invite': False}
                 )
         else:
-            exclude_condition.update({'celebrity_account__account': request.user})
+            exclude_condition.update({'celebrity_account__account_id': user_id})
 
-        search_query = search_query.exclude(**exclude_condition).filter(**filter_condition)\
+        result_query = search_query.exclude(**exclude_condition).filter(**filter_condition)\
             .order_by('-celebrity_account__id', 'id')
-        page = self.paginate_queryset(search_query.distinct())
+        page = self.paginate_queryset(result_query.distinct())
         serializer = self.get_serializer(page, many=True)
 
         return self.paginator.get_paginated_response(
