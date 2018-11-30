@@ -195,16 +195,18 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
                 filter_condition.update(
                     {'celebrity_account__approved': True, 'celebrity_account__celebrity_invite': True}
                 )
-            elif status and status == 'false':
-                search_query = search_query.filter(
-                    Q(celebrity_account__approved=True, celebrity_account__celebrity_invite=False)|
-                    Q(celebrity_account__approved=False, celebrity_account__celebrity_invite=True)
-                )
         else:
             exclude_condition.update({'celebrity_account__account_id': user_id})
 
-        result_query = search_query.exclude(**exclude_condition).filter(**filter_condition)\
-            .order_by('-celebrity_account__id', 'id')
+        result_query = search_query.exclude(**exclude_condition).filter(**filter_condition)
+        if status and status == 'false':
+            filter_condition.update(
+                {'celebrity_account__approved': True, 'celebrity_account__celebrity_invite': True}
+            )
+            with_approved = search_query.exclude(**exclude_condition).filter(**filter_condition)
+            result_query = result_query.difference(with_approved)
+
+        result_query.order_by('-celebrity_account__id', 'id')
         page = self.paginate_queryset(result_query.distinct())
         serializer = self.get_serializer(page, many=True)
 
