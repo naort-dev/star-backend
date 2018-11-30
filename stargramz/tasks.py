@@ -199,7 +199,7 @@ def notify_fan_reaction_videos_and_feedback(booking_id):
                     title="Add reaction videos",
                     desc="Add review and share your reaction videos",
                     canonical_url='%sapplinks/reactions/%s' % (base_url, booking_hash_id),
-                    mob_url='reactions',
+                    mob_url='reactions/%s' % booking_hash_id,
                     desktop_url='%suser/myVideos' % web_url,
                     image_url='%smedia/web-images/starsona_logo.png' % base_url,
                 )}

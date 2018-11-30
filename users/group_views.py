@@ -187,21 +187,24 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
             .prefetch_related('images', 'celebrity_profession__profession', 'celebrity_account', 'vanity_urls')
 
         filter_condition = {'celebrity_user__admin_approval': True}
+        exclude_condition = {}
         option = request.GET.get('member', None)
         status = request.GET.get('status', None)
         if option:
-            filter_condition['celebrity_account__account'] = request.user
-            search_query = search_query.filter(**filter_condition)
+            filter_condition.update({'celebrity_account__account': request.user})
             if status and status == 'true':
-                search_query = search_query.filter(
-                    celebrity_account__approved=True, celebrity_account__celebrity_invite=True)
+                filter_condition.update(
+                    {'celebrity_account__approved': True, 'celebrity_account__celebrity_invite': True}
+                )
             elif status and status == 'false':
-                search_query = search_query.filter(
-                    Q(celebrity_account__approved=False) | Q(celebrity_account__celebrity_invite=False))
+                exclude_condition.update(
+                    {'celebrity_account__approved': True, 'celebrity_account__celebrity_invite': True}
+                )
         else:
-            search_query = search_query.filter(**filter_condition).exclude(celebrity_account__account=request.user)
+            exclude_condition.update({'celebrity_account__account': request.user})
 
-        search_query = search_query.order_by('-celebrity_account__id', 'id')
+        search_query = search_query.filter(**filter_condition)\
+            .exclude(**exclude_condition).order_by('-celebrity_account__id', 'id')
         page = self.paginate_queryset(search_query.distinct())
         serializer = self.get_serializer(page, many=True)
 
