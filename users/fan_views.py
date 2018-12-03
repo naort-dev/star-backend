@@ -20,6 +20,7 @@ from difflib import get_close_matches
 from django.db.models.functions import Concat
 from config.models import Config
 from config.constants import *
+from .utils import search_name
 
 
 class ApproveFan(APIView, ResponseViewMixin):
@@ -64,7 +65,16 @@ class CelebrityList(GenericViewSet, ResponseViewMixin):
         available = request.GET.get('available')
         group_type = request.GET.get('group_type', None)
         if filter_by_name:
-            query_set = search_name(filter_by_name, search_query)
+            filter_fields = [
+                'first_name',
+                'last_name',
+                'nick_name',
+                'celebrity_user__description',
+                'celebrity_user__charity',
+                'celebrity_profession__profession__title',
+                'celebrity_profession__profession__parent__title'
+            ]
+            query_set = search_name(filter_by_name, search_query, filter_fields)
         if filter_by_lower_rate and filter_by_upper_rate:
             try:
                 query_set = query_set.filter(
@@ -135,69 +145,6 @@ class CelebrityList(GenericViewSet, ResponseViewMixin):
         return self.list(request)
 
 
-def search_name(filter_by_name, search_query):
-    query_set_list = []
-    query_field_dict = {}
-
-    ######
-    filter_by_name = filter_by_name.lower()
-    filter_fields = [
-        'first_name',
-        'last_name',
-        'nick_name',
-        'celebrity_user__description',
-        'celebrity_user__charity',
-        'celebrity_profession__profession__title',
-        'celebrity_profession__profession__parent__title'
-    ]
-
-    for term in filter_by_name.split():
-        q_objects = Q()
-        for key in filter_fields:
-            kwargs_contains = {str('%s__icontains' % key): term}
-            q_objects |= Q(**kwargs_contains)
-
-        querying = search_query.filter(q_objects).distinct()
-        if querying.exists():
-            query_set_list.append(querying)
-            query_set = first = query_set_list[0]
-            for index in range(len(query_set_list) - 1):
-                query_set = first | query_set_list[index + 1]
-        else:
-            query_set = querying
-
-    ######
-    # for term in filter_by_name.split():
-    #     query_set = search_query
-    #     list_filter_fields = ['first_name', 'last_name', 'nick_name', 'celebrity_user__description',
-    #                           'celebrity_user__charity']
-    #     profession_filters = ['celebrity_profession__profession__title',
-    #                           'celebrity_profession__profession__parent__title']
-    #     for list_field in list_filter_fields:
-    #         kwargs = {list_field: None}
-    #         query_field_dict[list_field] = list(set(query_set.values_list(list_field, flat=True).exclude(**kwargs)))
-    #
-    #     for key, value in query_field_dict.items():
-    #         close_matches = get_close_matches(term.lower(), value)
-    #         kwargs_list_in = {str('%s__in' % key): close_matches}
-    #         kwargs_contains = {str('%s__icontains' % key): term}
-    #         querying = query_set.filter(Q(**kwargs_list_in) | Q(**kwargs_contains))
-    #         if querying.exists():
-    #             query_set_list.append(querying)
-    #     for profession_filter in profession_filters:
-    #         kwargs = {str('%s__icontains' % profession_filter): term}
-    #         querying = query_set.filter(**kwargs)
-    #         if querying.exists():
-    #             query_set_list.append(querying)
-    #     if len(query_set_list) > 0:
-    #         query_set = first = query_set_list[0]
-    #         for postns in range(len(query_set_list) - 1):
-    #             query_set = first = first | query_set_list[postns + 1]
-    #     else:
-    #         query_set = querying
-    return query_set
-
-
 class FanFavouriteStars(GenericViewSet, ResponseViewMixin):
     """
         The list of Favorite Stars
@@ -215,7 +162,16 @@ class FanFavouriteStars(GenericViewSet, ResponseViewMixin):
         )
         filter_by_name = request.GET.get('name')
         if filter_by_name:
-            query_set = search_name(filter_by_name, search_query)
+            filter_fields = [
+                'first_name',
+                'last_name',
+                'nick_name',
+                'celebrity_user__description',
+                'celebrity_user__charity',
+                'celebrity_profession__profession__title',
+                'celebrity_profession__profession__parent__title'
+            ]
+            query_set = search_name(filter_by_name, search_query, filter_fields)
         page = self.paginate_queryset(query_set.distinct())
         serializer = self.get_serializer(page, many=True)
         return self.paginator.get_paginated_response(serializer.data, key_name='celebrity_list')
