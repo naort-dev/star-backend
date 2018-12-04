@@ -544,3 +544,18 @@ class SocialMediaLinks(models.Model):
 
     def __str__(self):
         return self.user.get_short_name()
+
+
+class Representative(models.Model):
+    celebrity = models.ForeignKey('StargramzUser', related_name='celebrity_representative', blank=False)
+    first_name = models.CharField('First Name', max_length=128)
+    last_name = models.CharField('Last Name', max_length=128, blank=True, null=True)
+    email = models.EmailField('Email', blank=True, null=True, db_index=True, unique=True)
+    phone = models.CharField('Phone Number', blank=True, null=True, max_length=15)
+    email_notify = models.BooleanField('Email Notify', default=False)
+    sms_notify = models.BooleanField('SMS Notify', default=False)
+    created_date = models.DateTimeField('Created date', auto_now_add=True)
+    modified_date = models.DateTimeField('Modified date', auto_now=True)
+
+    def __str__(self):
+        return 'Celebrity Representative'

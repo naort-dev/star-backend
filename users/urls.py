@@ -8,7 +8,8 @@ from users.group_views import GroupAccountList, GroupAccountsView, GroupTypesVie
     GroupAccountProfileFollow, GetMembersList
 from .fan_views import CelebrityList, ApproveFan, CelebrityRate, CelebrityProfileFollow, CelebrityFanAbuse, \
     CelebritySuggestionList, FanFavouriteStars
-from .celebrity_views import CelebrityManagement, NotifyAdmin, ReferralRequest, ReferralList, ReferralValidate
+from .celebrity_views import CelebrityManagement, NotifyAdmin, ReferralRequest, ReferralList, ReferralValidate, \
+    CelebrityRepresentative
 
 router = DefaultRouter()
 
@@ -49,6 +50,7 @@ urlpatterns = [
     url(r'^join_group/$', JoinGroupView.as_view(), name='join-group'),
     url(r'^social_links/$', SocialMediaUrls.as_view(), name='social-links'),
     url(r'^fan/group_follow/$', GroupAccountProfileFollow.as_view(), name='group-follow'),
+    url(r'^celebrity_representative/?(?P<pk>[0-9a-zA-Z]{0,8})', CelebrityRepresentative.as_view(), name='celebrity-representative'),
 
 ]
 

@@ -5,10 +5,11 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from utilities.pagination import CustomOffsetPagination
-from .models import StargramzUser, Celebrity, UserRoleMapping, Role, CelebrityProfession, Campaign
+from .models import StargramzUser, Celebrity, UserRoleMapping, Role, CelebrityProfession, Campaign, Representative
 from config.models import Config
-from .serializer import CelebrityProfileSerializer, CelebrityProfessionSerializer, ReferralUserSerializer
-from utilities.utils import removefromdict, ROLES
+from .serializer import CelebrityProfileSerializer, CelebrityProfessionSerializer, ReferralUserSerializer, \
+    CelebrityRepresentativeSerializer, CelebrityRepresentativeViewSerializer
+from utilities.utils import removefromdict, ROLES, decode_pk
 from utilities.permissions import CustomPermission
 from utilities.utils import SendMail
 from utilities.constants import BASE_URL
@@ -222,3 +223,55 @@ class ReferralValidate(APIView, ResponseViewMixin):
             return self.jp_response(s_code='HTTP_200_OK', data={'message': 'Valid promo code'})
         except StargramzUser.DoesNotExist:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Invalid Promo code')
+
+
+class CelebrityRepresentative(APIView, ResponseViewMixin):
+
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def post(self, request, pk):
+        try:
+            user = StargramzUser.objects.get(username=request.user)
+            celebrity = Celebrity.objects.get(user=user)
+        except Exception:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
+        request.data['celebrity'] = user.id
+        if pk:
+            try:
+                representative = decode_pk(pk)
+                representative = Representative.objects.get(id=representative)
+                serializer = CelebrityRepresentativeSerializer(data=request.data, instance=representative)
+            except Exception:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'invalid id')
+            if serializer.is_valid():
+                serializer.save()
+                return self.jp_response(s_code='HTTP_200_OK', data={'message': 'Successfully updated'})
+        else:
+            serializer = CelebrityRepresentativeSerializer(data=request.data, instance=None)
+            if serializer.is_valid():
+                try:
+                    serializer.save()
+                except Exception:
+                    return self.jp_error_response(
+                        'HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Maximum limit reached or already registered'
+                    )
+                return self.jp_response(s_code='HTTP_200_OK', data={'message': 'Successfully inserted'})
+            else:
+                return self.jp_error_response(
+                    'HTTP_400_BAD_REQUEST', 'EXCEPTION', 'data invalid'
+                )
+
+    def get(self, request, pk):
+        representative = Representative.objects.filter(celebrity=request.user)
+        serializer = CelebrityRepresentativeViewSerializer(representative, many=True)
+        return self.jp_response(s_code='HTTP_200_OK', data=serializer.data)
+
+    def delete(self, request, pk):
+        try:
+            representative = decode_pk(pk)
+            Representative.objects.filter(celebrity=request.user, id=representative).delete()
+        except Exception:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'invalid id')
+        return self.jp_response(s_code='HTTP_200_OK', data={'message': 'Successfully deleted'})
+
