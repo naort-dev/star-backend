@@ -876,12 +876,30 @@ class GroupAccountSerializer(CustomModelSerializer):
 
 class GroupAccountDataSerializer(serializers.ModelSerializer):
 
-    id = serializers.IntegerField(read_only=True)
+    avatar_photo = ProfilePictureSerializer(read_only=True)
     account_name = serializers.CharField(read_only=True, source='get_short_name')
+    group_id = serializers.CharField(read_only=True, source="vanity_urls.name")
 
     class Meta:
         model = StargramzUser
-        fields = ['account_name', 'id']
+        fields = ['group_id', 'account_name', 'avatar_photo']
+
+
+class GroupTypeListSerializer(serializers.ModelSerializer):
+
+    groups = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = GroupType
+        fields = ['group_name', 'groups']
+
+    def get_groups(self, obj):
+        user = StargramzUser.objects.select_related(
+            'avatar_photo').prefetch_related('vanity_urls', 'group_account').filter(
+            group_account__admin_approval=True, group_account__group_type=obj
+        )
+        serializers_data = GroupAccountDataSerializer(user, many=True).data
+        return serializers_data
 
 
 class GroupTypeSerializer(serializers.ModelSerializer):
