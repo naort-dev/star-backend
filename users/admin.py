@@ -4,7 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib import admin
 from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profession, GroupAccountUser, GroupAccount,\
     UserRoleMapping, Celebrity, CelebrityProfession, SettingsNotifications, FanRating, Campaign, Referral, VanityUrl, \
-    CelebrityAvailableAlert, GroupType, CelebrityGroupAccount
+    CelebrityAvailableAlert, GroupType, CelebrityGroupAccount, Representative
 from role.models import Role
 from payments.models import PaymentPayout, TipPayment
 from utilities.konstants import ROLES
@@ -164,6 +164,13 @@ class TipPaymentAdmin(ReadOnlyTabularInline):
     def has_add_permission(self, request):
 
         return False
+
+
+class RepresentativeInline(ReadOnlyStackedInline):
+    model = Representative
+    max_num = 2
+    can_delete = False
+
 
 class ProfessionInline(ReadOnlyStackedInline):
     model = CelebrityProfession
@@ -329,7 +336,7 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
                        'stripe_customer_id', 'featured_image', 'stripe_user_id')
     list_per_page = 10
     inlines = [RoleInline, ReferralInline, VanityUrlInline, CelebrityInline, ProfessionInline, NotificationSettingInline, PayoutsTabular,
-               RatingInline, ReferralTabular, TipPaymentAdmin]
+               RatingInline, ReferralTabular, TipPaymentAdmin, RepresentativeInline]
     ordering = ['-id', ]
 
     class Media:

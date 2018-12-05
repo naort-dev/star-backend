@@ -10,7 +10,7 @@ from config.models import Config
 from config.constants import *
 from .models import StargramzUser, SIGN_UP_SOURCE_CHOICES, Celebrity, Profession, UserRoleMapping, ProfileImage, \
     CelebrityAbuse, CelebrityProfession, CelebrityFollow, DeviceTokens, SettingsNotifications, FanRating, Referral,\
-    VanityUrl, GroupAccount, GroupType, CelebrityGroupAccount, SocialMediaLinks
+    VanityUrl, GroupAccount, GroupType, CelebrityGroupAccount, SocialMediaLinks, Representative
 from .impersonators import IMPERSONATOR
 from role.models import Role
 from datetime import datetime, timedelta
@@ -1034,3 +1034,62 @@ class MemberListSerializer(serializers.ModelSerializer):
             celebrity_account[0].update(id=hashids.encode(celebrity_account[0].get('id')))
         return celebrity_account
 
+
+class CelebrityRepresentativeSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(required=True, allow_blank=False)
+    last_name = serializers.CharField(required=False, allow_blank=True)
+    email = serializers.EmailField(required=False, allow_blank=True)
+    phone = serializers.CharField(required=False, allow_blank=True)
+    email_notify = serializers.BooleanField(required=False, default=False)
+    sms_notify = serializers.BooleanField(required=False, default=False)
+
+    class Meta:
+        model = Representative
+        fields = ('celebrity', 'first_name', 'last_name', 'email', 'phone', 'email_notify', 'sms_notify')
+
+    def create(self, validated_data):
+        celebrity = validated_data.get('celebrity')
+        representatives_number = Representative.objects.filter(celebrity=celebrity).count()
+        if representatives_number >= 2:
+            raise serializers.ValidationError("Maximum number of representatives")
+        else:
+            try:
+                first_name = validated_data.get('first_name')
+                last_name = validated_data.get('last_name')
+                email = validated_data.get('email')
+                phone = validated_data.get('phone')
+                email_notify = validated_data.get('email_notify')
+                sms_notify = validated_data.get('sms_notify')
+                representative = Representative.objects.create(
+                    first_name=first_name, last_name=last_name,
+                    email=email, phone=phone, email_notify=email_notify,
+                    sms_notify=sms_notify, celebrity=celebrity
+                )
+                return representative
+            except Exception as e:
+                raise serializers.ValidationError(str(e))
+
+    def update(self, instance, validated_data):
+        field_list = ['first_name', 'last_name', 'email', 'phone', 'email_notify', 'sms_notify']
+        for list_item in field_list:
+            if list_item in validated_data:
+                setattr(instance, list_item, validated_data.get(list_item))
+        instance.save()
+        return instance
+
+
+class CelebrityRepresentativeViewSerializer(serializers.ModelSerializer):
+    representative_id = serializers.SerializerMethodField(read_only=True)
+    first_name = serializers.CharField(required=True, allow_blank=False)
+    last_name = serializers.CharField(required=False, allow_blank=True)
+    email = serializers.EmailField(required=False, allow_blank=True)
+    phone = serializers.CharField(required=False, allow_blank=True)
+    email_notify = serializers.BooleanField(required=False, default=False)
+    sms_notify = serializers.BooleanField(required=False, default=False)
+
+    class Meta:
+        model = Representative
+        fields = ('representative_id', 'first_name', 'last_name', 'email', 'phone', 'email_notify', 'sms_notify')
+
+    def get_representative_id(self, obj):
+        return hashids.encode(obj.id)

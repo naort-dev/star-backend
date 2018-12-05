@@ -467,6 +467,9 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
             data['unseen_bookings'] = user.unseen_bookings if user_logged_in == user.id else 0
             (notifications, created) = SettingsNotifications.objects.get_or_create(user_id=user.id)
             data['notification_settings'] = NotificationSettingsSerializer(notifications).data
+            celebrity_representatives = Representative.objects.filter(celebrity=pk)
+            celebrity_data = CelebrityRepresentativeViewSerializer(celebrity_representatives, many=True).data
+            data['celebrity_representatives'] = celebrity_data
         else:
             data.pop('email', None)
         if data['celebrity']:
