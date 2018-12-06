@@ -7,8 +7,9 @@ from utilities.mixins import ResponseViewMixin
 from utilities.pagination import CustomOffsetPagination
 from utilities.utils import ROLES, get_user_id, decode_pk
 from users.models import StargramzUser, GroupAccount, GroupType, CelebrityGroupAccount, CelebrityFollow
-from users.serializer import GroupListSerializer, GroupAccountSerializer, GroupAccountDataSerializer, \
-    GroupTypeSerializer, JoinGroupSerializer, GroupFollowSerializer, MemberListSerializer, JoinGroupCelebritySerializer
+from users.serializer import GroupListSerializer, GroupAccountSerializer, \
+    GroupTypeSerializer, JoinGroupSerializer, GroupFollowSerializer, MemberListSerializer,\
+    JoinGroupCelebritySerializer, GroupTypeListSerializer
 from django.db.models import Q
 from .utils import search_name
 
@@ -46,8 +47,8 @@ class GroupAccountsView(APIView, ResponseViewMixin):
         self.permission_classes = (CustomPermission,)
 
         try:
-            user = StargramzUser.objects.filter(group_account__admin_approval=True)
-            serializer = GroupAccountDataSerializer(user, many=True)
+            group = GroupType.objects.all()
+            serializer = GroupTypeListSerializer(group, many=True)
             return self.jp_response(s_code='HTTP_200_OK', data={'group_accounts': serializer.data})
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
