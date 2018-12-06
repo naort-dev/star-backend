@@ -10,6 +10,7 @@ THUMB_IMAGES = "images/thumb/"
 AUTHENTICATION_VIDEOS = "videos/profile_videos/"
 STARGRAM_VIDEOS = "videos/stargram_videos/"
 STARGRAM_VIDEO_THUMB = "videos/starsona_thumb/"
+REACTIONS = "reactions/"
 ANDROID_VERSION = '2.1.0'
 IOS_VERSION = '2.1.0'
 REQUEST_EXPIRATION_DAYS = "7"
