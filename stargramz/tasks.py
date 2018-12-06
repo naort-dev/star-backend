@@ -1,5 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 from main.celery import app
+from celery import shared_task
 from django.db.models import Q
 from .models import Stargramrequest, STATUS_TYPES, Reaction, StargramVideo
 from users.models import VanityUrl
@@ -126,7 +127,7 @@ def cancel_booking_on_seven_days_completion():
         hours = estimated.seconds//3600
         minutes = (estimated.seconds//60) - (hours * 60)
         if scheduled_time > timezone.now() and estimated.days >= 0:
-            print("Cancel request in %d hours %d minutes" %(hours, minutes))
+            print("Cancel request in %d hours %d minutes" % (hours, minutes))
             cancel_starsona_celebrity_no_response.apply_async(
                 eta=datetime.datetime.utcnow() + datetime.timedelta(
                     hours=hours,
@@ -163,7 +164,7 @@ def request_limit_notification(celebrity):
     notify_email(sender_email, celebrity_email, 'Request limit reached', 'celebrity_request_limit', ctx)
 
 
-@app.task
+@shared_task(default_retry_delay=1, max_retries=1)
 def notify_fan_reaction_videos_and_feedback(booking_id):
     """
     Triggering Push/email notifications to fan to add review and share there reaction

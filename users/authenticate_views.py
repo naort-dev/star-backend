@@ -33,6 +33,9 @@ from hashids import Hashids
 from .utils import generate_random_code
 from distutils.version import StrictVersion
 import time
+import requests
+import json
+from urllib.parse import urlencode
 hashids = Hashids(min_length=8)
 
 
@@ -761,7 +764,8 @@ class GetAWSSignedPostUrl(APIView, ResponseViewMixin):
             constants_value = {
                 'profile_images': PROFILE_IMAGES,
                 'stargram_videos': STARGRAM_VIDEOS,
-                'authentication_videos': AUTHENTICATION_VIDEOS
+                'authentication_videos': AUTHENTICATION_VIDEOS,
+                'reactions': REACTIONS
             }
             valid_extensions = {
                 'image': ['png', 'jpg', 'jpeg'],
@@ -793,7 +797,8 @@ class GetAWSSignedUrl(APIView, ResponseViewMixin):
             constants_value = {
                 'profile_images': PROFILE_IMAGES,
                 'stargram_videos': STARGRAM_VIDEOS,
-                'authentication_videos': AUTHENTICATION_VIDEOS
+                'authentication_videos': AUTHENTICATION_VIDEOS,
+                'reactions': REACTIONS
             }
 
             if key in constants_value:
@@ -828,3 +833,64 @@ class SocialMediaUrls(APIView, ResponseViewMixin):
             return self.jp_response(s_code='HTTP_200_OK', data=serializer.validated_data)
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', serializer.errors)
+
+
+class ValidateMobile(APIView, ResponseViewMixin):
+    """
+        Validate mobile by sending OTP to the mobile number
+    """
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission)
+
+    def post(self, request):
+
+        phone_validate = ValidatePhoneNumberSerializer(data=request.data)
+        if phone_validate.is_valid():
+            data = {
+                "phone_number": phone_validate.validated_data.get('phone_number'),
+                "country_code": phone_validate.validated_data.get('country_code'),
+                "locale": "en",
+                "via": "sms"
+            }
+            payload = json.dumps(data)
+            try:
+                response = requests.post(
+                    url="https://api.authy.com/protected/json/phones/verification/start",
+                    data=payload,
+                    headers={"X-Authy-API-Key": "eZTgCj55Ip5F5pol0a8ouoIeBKRr6nRv", "Content-Type": "application/json"}
+                )
+                return self.jp_response(s_code='HTTP_200_OK', data=response.json())
+            except Exception as e:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', str(e))
+        else:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', phone_validate.errors)
+
+
+class VerifyMobile(APIView, ResponseViewMixin):
+
+    """
+        Verify mobile number with the OTP verification code
+    """
+
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission)
+
+    def post(self, request):
+
+        phone_verify = VerifyPhoneNumberSerializer(data=request.data)
+        if phone_verify.is_valid():
+            data = {
+                "phone_number": phone_verify.validated_data.get('phone_number'),
+                "country_code": phone_verify.validated_data.get('country_code'),
+                "verification_code": phone_verify.validated_data.get('verification_code'),
+            }
+            try:
+                response = requests.get(
+                    url="https://api.authy.com/protected/json/phones/verification/check?%s" % urlencode(data),
+                    headers={"X-Authy-API-Key": "eZTgCj55Ip5F5pol0a8ouoIeBKRr6nRv", "Content-Type": "application/json"}
+                )
+                return self.jp_response(s_code='HTTP_200_OK', data=response.json())
+            except Exception as e:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', str(e))
+        else:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', phone_verify.errors)

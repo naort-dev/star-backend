@@ -3,7 +3,8 @@ from rest_framework.routers import DefaultRouter
 from users.authenticate_views import UserRegister, UserLogin, EmailValidate, SocialSignup, ForgotPassword, \
     ResetPassword, Professions, ProfileImages, UserDetails, UserLogout, RemoveProfileImage, ChangePassword, \
     DeviceToken, NotificationSettings, ContactSupport, RoleUpdate, UpdateNotificationBadge, AlertFan, \
-    ValidateSocialSignup, FilterProfessions, UpdateBookingCount, GetAWSSignedUrl, GetAWSSignedPostUrl, SocialMediaUrls
+    ValidateSocialSignup, FilterProfessions, UpdateBookingCount, GetAWSSignedUrl, GetAWSSignedPostUrl, SocialMediaUrls, \
+    ValidateMobile, VerifyMobile
 from users.group_views import GroupAccountList, GroupAccountsView, GroupTypesView, JoinGroupView, \
     GroupAccountProfileFollow, GetMembersList
 from .fan_views import CelebrityList, ApproveFan, CelebrityRate, CelebrityProfileFollow, CelebrityFanAbuse, \
@@ -51,7 +52,8 @@ urlpatterns = [
     url(r'^social_links/$', SocialMediaUrls.as_view(), name='social-links'),
     url(r'^fan/group_follow/$', GroupAccountProfileFollow.as_view(), name='group-follow'),
     url(r'^celebrity_representative/?(?P<pk>[0-9a-zA-Z]{0,8})', CelebrityRepresentative.as_view(), name='celebrity-representative'),
-
+    url(r'^validate_mobile/$', ValidateMobile.as_view(), name='validate-mobile'),
+    url(r'^verify_mobile/$', VerifyMobile.as_view(), name='verify-mobile'),
 ]
 
 router = DefaultRouter()
