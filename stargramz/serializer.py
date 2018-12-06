@@ -69,6 +69,7 @@ class StargramzVideoSerializer(CustomModelSerializer):
     video_url = serializers.SerializerMethodField(read_only=True)
     following = serializers.SerializerMethodField(read_only=True)
     video_id = serializers.SerializerMethodField(read_only=True)
+    fan_rate = serializers.SerializerMethodField(read_only=True)
     occasion = serializers.CharField(read_only=True, source="stragramz_request.occasion.title")
     user_id = serializers.CharField(read_only=True, source="stragramz_request.celebrity.vanity_urls.name")
     question_answer_videos = serializers.SerializerMethodField(read_only=True)
@@ -135,6 +136,13 @@ class StargramzVideoSerializer(CustomModelSerializer):
             except StargramzUser.DoesNotExist:
                 return False
         return False
+
+    def get_fan_rate(self, obj):
+        try:
+            fan_rate = FanRating.objects.values_list('fan_rate', flat=True).get(starsona=obj.stragramz_request)
+        except Exception:
+            return None
+        return fan_rate
 
 
 class StargramzSerializer(serializers.ModelSerializer):
