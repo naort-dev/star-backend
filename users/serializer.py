@@ -819,7 +819,7 @@ class AWSSignedURLSerializer(serializers.Serializer):
     key = serializers.ChoiceField(
         required=True,
         write_only=True,
-        choices=['profile_images', 'stargram_videos', 'authentication_videos']
+        choices=['profile_images', 'stargram_videos', 'authentication_videos', 'reactions']
     )
     extension = serializers.ChoiceField(
         required=True,
