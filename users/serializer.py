@@ -1,7 +1,7 @@
 import django.contrib.auth.password_validation as validators
 from django.contrib.auth.models import update_last_login
 from django.contrib.auth import authenticate
-from django.core import exceptions, validators
+from django.core import exceptions, validators as SerialValidator
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from rest_framework.authtoken.models import Token
@@ -1127,16 +1127,16 @@ class CelebrityRepresentativeViewSerializer(serializers.ModelSerializer):
 
 
 class ValidatePhoneNumberSerializer(serializers.Serializer):
-    phone_regex = validators.RegexValidator(regex=r'^\+?1?\d{8,10}$', message="Phone number must be up to 10 digits.")
-    country_code_regex = validators.RegexValidator(regex=r'^\+?1?\d{1,4}$', message="Country code up to 5 digits.")
+    phone_regex = SerialValidator.RegexValidator(regex=r'^\+?1?\d{8,10}$', message="Phone number must be up to 10 digits.")
+    country_code_regex = SerialValidator.RegexValidator(regex=r'^\+?1?\d{1,4}$', message="Country code up to 5 digits.")
     phone_number = serializers.IntegerField(required=True, validators=[phone_regex])
     country_code = serializers.IntegerField(required=True, validators=[country_code_regex])
 
 
 class VerifyPhoneNumberSerializer(serializers.Serializer):
-    phone_regex = validators.RegexValidator(regex=r'^\+?1?\d{8,10}$', message="Phone number must be up to 10 digits.")
-    country_code_regex = validators.RegexValidator(regex=r'^\+?1?\d{1,4}$', message="Country code up to 5 digits.")
-    verify_regex = validators.RegexValidator(regex=r'^\+?1?\d{3,4}$', message="Verification code up to 4 digits.")
+    phone_regex = SerialValidator.RegexValidator(regex=r'^\+?1?\d{8,10}$', message="Phone number must be up to 10 digits.")
+    country_code_regex = SerialValidator.RegexValidator(regex=r'^\+?1?\d{1,4}$', message="Country code up to 5 digits.")
+    verify_regex = SerialValidator.RegexValidator(regex=r'^\+?1?\d{3,4}$', message="Verification code up to 4 digits.")
     phone_number = serializers.IntegerField(required=True, validators=[phone_regex])
     country_code = serializers.IntegerField(required=True, validators=[country_code_regex])
     verification_code = serializers.IntegerField(required=True, validators=[verify_regex])
