@@ -856,7 +856,11 @@ class ValidateMobile(APIView, ResponseViewMixin):
                     data=payload,
                     headers={"X-Authy-API-Key": "eZTgCj55Ip5F5pol0a8ouoIeBKRr6nRv", "Content-Type": "application/json"}
                 )
-                return self.jp_response(s_code='HTTP_200_OK', data=response.json())
+
+                if response.status_code == 200:
+                    return self.jp_response(s_code='HTTP_200_OK', data=response.json())
+                else:
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', data=response.json())
             except Exception as e:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', str(e))
         else:
@@ -886,7 +890,10 @@ class VerifyMobile(APIView, ResponseViewMixin):
                     url="https://api.authy.com/protected/json/phones/verification/check?%s" % urlencode(data),
                     headers={"X-Authy-API-Key": "eZTgCj55Ip5F5pol0a8ouoIeBKRr6nRv", "Content-Type": "application/json"}
                 )
-                return self.jp_response(s_code='HTTP_200_OK', data=response.json())
+                if response.status_code == 200:
+                    return self.jp_response(s_code='HTTP_200_OK', data=response.json())
+                else:
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', data=response.json())
             except Exception as e:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', str(e))
         else:
