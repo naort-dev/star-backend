@@ -138,3 +138,19 @@ def welcome_email(user_id):
         return sent_email(email, subject, template, ctx)
     else:
         print('User profile is not complete.')
+
+
+def representative_email(celebrity, representative):
+    from utilities.utils import sent_email, encode_pk
+
+    template = 'representative_email'
+    subject = 'Welcome to Starsona'
+    base_url = Config.objects.get(key='base_url').value
+    representative_id = encode_pk(representative.id)
+    ctx = {
+        'representative_name': representative.first_name,
+        'celebrity_name': celebrity.get_short_name(),
+        'verify_link': "%srepresentative/email_verification/%s" % (base_url, representative_id)
+    }
+
+    return sent_email(representative.email, subject, template, ctx)
