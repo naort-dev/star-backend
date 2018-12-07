@@ -552,8 +552,11 @@ class Representative(models.Model):
     last_name = models.CharField('Last Name', max_length=128, blank=True, null=True)
     email = models.EmailField('Email', blank=True, null=True, db_index=True, unique=True)
     phone = models.CharField('Phone Number', blank=True, null=True, max_length=15)
+    country_code = models.CharField('Country Code', blank=True, null=True, max_length=5)
     email_notify = models.BooleanField('Email Notify', default=False)
+    email_verified = models.BooleanField('Email Verified', default=False)
     sms_notify = models.BooleanField('SMS Notify', default=False)
+    sms_verified = models.BooleanField('SMS Verified', default=False)
     created_date = models.DateTimeField('Created date', auto_now_add=True)
     modified_date = models.DateTimeField('Modified date', auto_now=True)
 

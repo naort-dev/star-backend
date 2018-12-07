@@ -233,7 +233,6 @@ class CelebrityRepresentative(APIView, ResponseViewMixin):
     def post(self, request, pk):
         try:
             user = StargramzUser.objects.get(username=request.user)
-            celebrity = Celebrity.objects.get(user=user)
         except Exception:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
         request.data['celebrity'] = user.id
@@ -247,14 +246,17 @@ class CelebrityRepresentative(APIView, ResponseViewMixin):
             if serializer.is_valid():
                 serializer.save()
                 return self.jp_response(s_code='HTTP_200_OK', data={'message': 'Successfully updated'})
+            return self.jp_error_response(
+                'HTTP_400_BAD_REQUEST', 'EXCEPTION', 'only provide changed fields'
+            )
         else:
             serializer = CelebrityRepresentativeSerializer(data=request.data, instance=None)
             if serializer.is_valid():
                 try:
                     serializer.save()
-                except Exception:
+                except Exception as e:
                     return self.jp_error_response(
-                        'HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Maximum limit reached or already registered'
+                        'HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Maximum limit reached'
                     )
                 return self.jp_response(s_code='HTTP_200_OK', data={'message': 'Successfully inserted'})
             else:
@@ -265,7 +267,7 @@ class CelebrityRepresentative(APIView, ResponseViewMixin):
     def get(self, request, pk):
         representative = Representative.objects.filter(celebrity=request.user)
         serializer = CelebrityRepresentativeViewSerializer(representative, many=True)
-        return self.jp_response(s_code='HTTP_200_OK', data=serializer.data)
+        return self.jp_response(s_code='HTTP_200_OK', data={"representatives": serializer.data})
 
     def delete(self, request, pk):
         try:
@@ -275,3 +277,15 @@ class CelebrityRepresentative(APIView, ResponseViewMixin):
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'invalid id')
         return self.jp_response(s_code='HTTP_200_OK', data={'message': 'Successfully deleted'})
 
+
+def celebrity_representative_email_verification(request, rep_id):
+    from django.http import HttpResponseRedirect
+    web_url = Config.objects.get(key='web_url').value
+    try:
+        representative_id = decode_pk(rep_id)
+        representative = Representative.objects.get(id=representative_id)
+        representative.email_verified = True
+        representative.save()
+    except Exception:
+        return HttpResponseRedirect(web_url)
+    return HttpResponseRedirect(web_url)

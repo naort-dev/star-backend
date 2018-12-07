@@ -21,11 +21,13 @@ from django.conf.urls.static import static
 from utilities import utils, constants
 from stargramz.views import play_video, profile_detail, request_detail, page_not_found, get_bucket_private_url
 from health.views import health
+from users.celebrity_views import celebrity_representative_email_verification
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', TemplateView.as_view(template_name="home/index.html")),
     url(r'^applinks/set_weekly_limit', TemplateView.as_view(template_name="home/index.html")),
+    url(r'^representative/email_verification/(?P<rep_id>[0-9a-zA-Z]{5,8})', celebrity_representative_email_verification),
     url(r'^applinks/reset$', TemplateView.as_view(template_name="home/index.html")),
     url(r'^(?P<id>[0-9a-zA-Z]{5,8})/$', play_video, name="play-video"),
     url(r'^private/video/(?P<vname>.+)$', get_bucket_private_url, name="get-bucket-url"),

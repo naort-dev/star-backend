@@ -25,7 +25,7 @@ from rest_framework import status
 from stargramz.models import Stargramrequest, STATUS_TYPES
 from django.db.models import Q, Sum
 from utilities.constants import BASE_URL
-from .tasks import welcome_email
+from .tasks import welcome_email, representative_email
 from payments.models import PaymentPayout
 from hashids import Hashids
 hashids = Hashids(min_length=8)
@@ -1067,16 +1067,23 @@ class MemberListSerializer(serializers.ModelSerializer):
 
 
 class CelebrityRepresentativeSerializer(serializers.ModelSerializer):
-    first_name = serializers.CharField(required=True, allow_blank=False)
+    first_name = serializers.CharField(required=False, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_blank=True)
     email = serializers.EmailField(required=False, allow_blank=True)
     phone = serializers.CharField(required=False, allow_blank=True)
+    country_code = serializers.CharField(required=False, allow_blank=True)
     email_notify = serializers.BooleanField(required=False, default=False)
     sms_notify = serializers.BooleanField(required=False, default=False)
 
     class Meta:
         model = Representative
-        fields = ('celebrity', 'first_name', 'last_name', 'email', 'phone', 'email_notify', 'sms_notify')
+        fields = ('celebrity', 'first_name', 'last_name', 'email', 'phone', 'email_notify', 'sms_notify',
+                  'country_code')
+
+    def validate_email(self, value):
+        if Representative.objects.filter(email=value).exists():
+            raise serializers.ValidationError("The email has already been registered.")
+        return value
 
     def create(self, validated_data):
         celebrity = validated_data.get('celebrity')
@@ -1089,19 +1096,21 @@ class CelebrityRepresentativeSerializer(serializers.ModelSerializer):
                 last_name = validated_data.get('last_name')
                 email = validated_data.get('email')
                 phone = validated_data.get('phone')
+                country_code = validated_data.get('country_code')
                 email_notify = validated_data.get('email_notify')
                 sms_notify = validated_data.get('sms_notify')
                 representative = Representative.objects.create(
                     first_name=first_name, last_name=last_name,
                     email=email, phone=phone, email_notify=email_notify,
-                    sms_notify=sms_notify, celebrity=celebrity
+                    sms_notify=sms_notify, celebrity=celebrity, country_code=country_code
                 )
+                representative_email(celebrity, representative)
                 return representative
             except Exception as e:
                 raise serializers.ValidationError(str(e))
 
     def update(self, instance, validated_data):
-        field_list = ['first_name', 'last_name', 'email', 'phone', 'email_notify', 'sms_notify']
+        field_list = ['first_name', 'last_name', 'email', 'phone', 'email_notify', 'sms_notify', 'country_code']
         for list_item in field_list:
             if list_item in validated_data:
                 setattr(instance, list_item, validated_data.get(list_item))
@@ -1111,16 +1120,11 @@ class CelebrityRepresentativeSerializer(serializers.ModelSerializer):
 
 class CelebrityRepresentativeViewSerializer(serializers.ModelSerializer):
     representative_id = serializers.SerializerMethodField(read_only=True)
-    first_name = serializers.CharField(required=True, allow_blank=False)
-    last_name = serializers.CharField(required=False, allow_blank=True)
-    email = serializers.EmailField(required=False, allow_blank=True)
-    phone = serializers.CharField(required=False, allow_blank=True)
-    email_notify = serializers.BooleanField(required=False, default=False)
-    sms_notify = serializers.BooleanField(required=False, default=False)
 
     class Meta:
         model = Representative
-        fields = ('representative_id', 'first_name', 'last_name', 'email', 'phone', 'email_notify', 'sms_notify')
+        fields = ('representative_id', 'first_name', 'last_name', 'email', 'phone', 'email_notify', 'email_verified',
+                  'sms_notify', 'sms_verified', 'country_code')
 
     def get_representative_id(self, obj):
         return hashids.encode(obj.id)
