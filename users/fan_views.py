@@ -323,12 +323,12 @@ class CelebritySuggestionList(APIView, ResponseViewMixin):
         if available:
             query_set.filter(Q(celebrity_user__availability=True) | Q(group_account__admin_approval=True))
 
-        filter_by_name = request.GET.get('s')
+        filter_by_name = request.GET.get('s', None)
         if filter_by_name:
             for term in filter_by_name.split():
                 query_set = query_set.filter(Q(first_name__icontains=term) |
                                              Q(last_name__icontains=term) |
                                              Q(nick_name__icontains=term))
-        # query_set = query_set[:10]
+        query_set = query_set[:50]
         data = SuggestionSerializer(query_set, many=True).data
         return self.jp_response('HTTP_200_OK', data={"suggestion_list": data})

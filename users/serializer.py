@@ -423,18 +423,33 @@ class ProfessionChildSerializer(serializers.RelatedField):
 
 
 class ProfessionSerializer(serializers.ModelSerializer):
-    child = ProfessionChildSerializer(many=True, read_only=True)
+    child = serializers.SerializerMethodField()
     file = serializers.SerializerMethodField()
 
     def get_file(self, obj):
-        if obj.file:
-            return "%s media/ %s" % (BASE_URL, obj.file)
         return None
+
+    def get_child(self, obj):
+        return ChildSerializer(Profession.objects.filter(parent=obj.id), many=True).data
 
     class Meta:
         model = Profession
         fields = ('id', 'title', 'parent', 'child', 'file', 'order')
 
+
+class ChildSerializer(serializers.ModelSerializer):
+    file = serializers.SerializerMethodField()
+    child = serializers.SerializerMethodField()
+
+    def get_file(self, obj):
+        return None
+
+    def get_child(self, obj):
+        return []
+
+    class Meta:
+        model = Profession
+        fields = ('id', 'title', 'parent', 'child', 'file', 'order')
 
 class ProfessionFilterSerializer(serializers.ModelSerializer):
     file = serializers.SerializerMethodField()
@@ -446,11 +461,9 @@ class ProfessionFilterSerializer(serializers.ModelSerializer):
             .values_list('profession', flat=True).distinct()
         profession = Profession.objects.filter(id__in=query_set)
 
-        return ProfessionSerializer(profession, many=True).data
+        return ChildSerializer(profession, many=True).data
 
     def get_file(self, obj):
-        if obj.file:
-            return "%s media/ %s" % (BASE_URL, obj.file)
         return None
 
     class Meta:
