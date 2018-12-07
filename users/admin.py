@@ -169,6 +169,8 @@ class TipPaymentAdmin(ReadOnlyTabularInline):
 class RepresentativeInline(ReadOnlyStackedInline):
     model = Representative
     max_num = 2
+    extra = 0
+    min_num = 0
     can_delete = False
 
 
