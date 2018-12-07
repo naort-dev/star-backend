@@ -222,7 +222,7 @@ class Profession(models.Model):
         verbose_name_plural = 'Professions'
         ordering = ['order', 'title']
         indexes = [
-            models.Index(fields=['title',]),
+            models.Index(fields=['title', 'parent']),
         ]
 
     def __str__(self):
