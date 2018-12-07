@@ -319,7 +319,7 @@ class CelebritySuggestionList(APIView, ResponseViewMixin):
             | Q(group_account__admin_approval=True)
         )\
             .select_related('avatar_photo')\
-            .prefetch_related('images', 'celebrity_profession__profession', 'group_account')
+            .prefetch_related('images', 'celebrity_profession__profession', 'group_account', 'vanity_urls')
         if available:
             query_set.filter(Q(celebrity_user__availability=True) | Q(group_account__admin_approval=True))
 

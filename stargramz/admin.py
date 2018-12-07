@@ -142,6 +142,34 @@ class OrderRelationshipInline(ReadOnlyTabularInline):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
+class ReactionStackedInline(ReadOnlyStackedInline):
+    model = Reaction
+    min_num = 0
+    max_num = 3
+    extra = 0
+    fields = ('file_type', 'reaction_file', 'file_link')
+    readonly_fields = ('file_link', )
+    search_fields = ('booking', 'user',)
+
+    def has_add_permission(self, request):
+        return False
+
+    def file_link(self, instance):
+        """
+            Embed the video from S3
+        """
+        config = Config.objects.get(key='reaction_files')
+
+        if instance.file_type == 2:
+            return mark_safe('<video width="320" height="240" controls><source src="%s" type="video/mp4">'
+                             'Your browser does not support the video tag.</video>'
+                             % get_s3_public_url(instance.reaction_file, config.value))
+        elif instance.file_type == 1:
+            return mark_safe('<image width="320" height="240" src="%s"/>'
+                             % get_s3_public_url(instance.reaction_file, config.value))
+        else:
+            return mark_safe('<span>No File available.</span>')
+
 class OcccassionRelationshipAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'title', 'status')
 
@@ -192,7 +220,7 @@ class StargramrequestAdmin(ReadOnlyModelAdmin):
     readonly_fields = ('due_date', 'request_data', 'booking_from_audio', 'comment',
                        'booking_to_audio', 'created_date', 'modified_date',)
     search_fields = ('celebrity__username', 'fan__username', 'occasion__title', 'request_status')
-    inlines = [StargramVideosInline, TransactionsInline, AbuseInline]
+    inlines = [StargramVideosInline, TransactionsInline, AbuseInline, ReactionStackedInline]
 
     def make_complete(self, request, queryset):
         queryset.update(request_status=6)

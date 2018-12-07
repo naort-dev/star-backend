@@ -754,15 +754,9 @@ class CelebrityAbuseSerializer(serializers.ModelSerializer):
 class SuggestionSerializer(serializers.ModelSerializer):
     celebrity_profession = ProfessionTitleSerializer(read_only=True, many=True)
     avatar_photo = ProfilePictureSerializer(read_only=True)
-    user_id = serializers.SerializerMethodField(read_only=True)
+    user_id = serializers.CharField(read_only=True, source="vanity_urls.name")
     has_group_account = HasGroupAccountSerializer(read_only=True)
     group_type = serializers.CharField(read_only=True, source="group_account.group_type")
-
-    def get_user_id(self, obj):
-        try:
-            return VanityUrl.objects.values_list('name', flat=True).get(user=obj.id)
-        except Exception:
-            return ''
 
     class Meta:
         model = StargramzUser
