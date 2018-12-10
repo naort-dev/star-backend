@@ -773,10 +773,17 @@ class DeviceTokenSerializer(serializers.ModelSerializer):
 
 class NotificationSettingsSerializer(CustomModelSerializer):
     id = serializers.IntegerField(write_only=True)
+    secondary_email = serializers.EmailField(required=True)
 
     class Meta:
         model = SettingsNotifications
         fields = '__all__'
+
+    def validate_secondary_email(self, value):
+        email = value.lower()
+        if StargramzUser.objects.filter(email=email).exists():
+            raise serializers.ValidationError("The email has already been registered.")
+        return email
 
 
 class ContactSupportSerializer(serializers.Serializer):
