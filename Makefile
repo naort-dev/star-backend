@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# This file is outdated
 env:=dev
 
 configure:
