@@ -238,8 +238,10 @@ class CelebrityRepresentative(APIView, ResponseViewMixin):
         request.data['celebrity'] = user.id
         if pk:
             try:
-                representative = decode_pk(pk)
-                representative = Representative.objects.get(id=representative)
+                representative_id = decode_pk(pk)
+                representative = Representative.objects.get(id=representative_id)
+                if not request.data.get('email'):
+                    del request.data['email']
                 serializer = CelebrityRepresentativeSerializer(data=request.data, instance=representative)
             except Exception:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'invalid id')

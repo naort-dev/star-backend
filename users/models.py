@@ -52,6 +52,11 @@ NOTIFICATION_TYPES = Konstants(
     K(fan_starsona_messages=5, label='Fan Starsona Messages'),
     K(fan_starsona_videos=6, label='Fan Starsona Videos'),
     K(fan_email_starsona_videos=7, label='Fan Email Starsona Videos'),
+    K(email_notification=8, label='Email Notification'),
+    K(secondary_email=9, label='Secondary Email'),
+    K(mobile_country_code=10, label='Mobile Country Code'),
+    K(mobile_number=11, label='Mobile Number'),
+    K(mobile_notification=12, label='Mobile Notification'),
 )
 
 
@@ -410,6 +415,11 @@ class SettingsNotifications(models.Model):
     fan_starsona_messages = models.BooleanField(default=True)
     fan_starsona_videos = models.BooleanField(default=True)
     fan_email_starsona_videos = models.BooleanField(default=True)
+    email_notification = models.BooleanField(default=False)
+    secondary_email = models.EmailField(blank=True, null=True, unique=True)
+    mobile_country_code = models.CharField(blank=True, null=True, max_length=5)
+    mobile_number = models.CharField(blank=True, null=True, max_length=15)
+    mobile_notification = models.BooleanField(default=False)
 
 
 class CelebrityAvailableAlert(models.Model):

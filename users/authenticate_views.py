@@ -391,8 +391,11 @@ class NotificationSettings(APIView, ResponseViewMixin):
             # Setting the fields to add in defaults
             for field in fields:
                 field_defaults[field] = serializer.validated_data.get(field)
-            notifications, created = SettingsNotifications.objects.update_or_create(user_id=user.id,
-                                                                                    defaults=field_defaults)
+            try:
+                notifications, created = SettingsNotifications.objects.update_or_create(user_id=user.id,
+                                                                                        defaults=field_defaults)
+            except Exception:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE', 'email already exist')
             data = NotificationSettingsSerializer(notifications).data
             return self.jp_response(s_code='HTTP_200_OK', data={'notification_settings': data})
         else:
