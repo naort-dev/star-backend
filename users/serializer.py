@@ -773,7 +773,7 @@ class DeviceTokenSerializer(serializers.ModelSerializer):
 
 class NotificationSettingsSerializer(CustomModelSerializer):
     id = serializers.IntegerField(write_only=True)
-    secondary_email = serializers.EmailField(required=True)
+    secondary_email = serializers.EmailField(required=False)
 
     class Meta:
         model = SettingsNotifications
@@ -1080,11 +1080,6 @@ class CelebrityRepresentativeSerializer(serializers.ModelSerializer):
         model = Representative
         fields = ('celebrity', 'first_name', 'last_name', 'email', 'phone', 'email_notify', 'sms_notify',
                   'country_code')
-
-    def validate_email(self, value):
-        if Representative.objects.filter(email=value).exists():
-            raise serializers.ValidationError("The email has already been registered.")
-        return value
 
     def create(self, validated_data):
         celebrity = validated_data.get('celebrity')
