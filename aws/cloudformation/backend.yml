@@ -480,6 +480,35 @@ Resources:
           !Join [':', [!Ref 'StackName', 'PublicListenerHTTPS']]
       Priority: !Join ['', [!Ref 'PriorityPrefix', '30']]
 
+  BackendScalingTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    DependsOn: BackendService
+    Properties:
+      MaxCapacity: 8
+      MinCapacity: 2
+      ResourceId: !Join
+        - '/'
+        - - 'service'
+          - Fn::ImportValue:
+              !Join [':', [!Ref 'StackName', 'ClusterName']]
+          - !Join ['-', [!Ref 'AWS::StackName', 'backend']]
+      RoleARN: !GetAtt [AutoscalingRole, Arn]
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+
+  BackendScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: BackendScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref 'BackendScalingTarget'
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 50.0
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+        PredefinedMetricSpecification:
+            PredefinedMetricType: ECSServiceAverageCPUUtilization
+
   #--------------------------------------------------------------------------------------------------------------------
   # CELERY
   #
