@@ -141,13 +141,14 @@ class Stargramrequest(models.Model):
         """
             Override the save to check the old value of request_status field
         """
+        booking_id = self.pk
         from job.tasks import send_email_notification
         from notification.tasks import send_notification
         from payments.tasks import create_request_refund
         from stargramz.tasks import notify_fan_reaction_videos_and_feedback
         if self.request_status != self.__original_request_status:
             send_email_notification.apply_async(
-                (self.pk,),
+                (booking_id,),
                 eta=datetime.datetime.utcnow() + datetime.timedelta(seconds=5)
             )
             if self.request_status == STATUS_TYPES.cancelled:
@@ -161,10 +162,7 @@ class Stargramrequest(models.Model):
 
                 # Trigger push/email notifications for reactions & reviews
                 later = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
-                notify_fan_reaction_videos_and_feedback.apply_async(
-                    (self.pk,),
-                    eta=later
-                )
+                notify_fan_reaction_videos_and_feedback.apply_async((booking_id,), eta=later)
 
                 body_content = NOTIFICATION_Q_A % self.celebrity.get_short_name() if self.request_type == 3 else \
                     NOTIFICATION_REQUEST_COMPLETE_BODY

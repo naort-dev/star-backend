@@ -164,8 +164,8 @@ def request_limit_notification(celebrity):
     notify_email(sender_email, celebrity_email, 'Request limit reached', 'celebrity_request_limit', ctx)
 
 
-@shared_task(bind=True, max_retries=1)
-def notify_fan_reaction_videos_and_feedback(booking_id):
+@app.task(bind=True, max_retries=1)
+def notify_fan_reaction_videos_and_feedback(self, booking_id):
     """
     Triggering Push/email notifications to fan to add review and share there reaction
     videos with starsona for completed bookings
