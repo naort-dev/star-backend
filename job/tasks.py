@@ -15,7 +15,7 @@ from django.template.loader import get_template
 from users.models import ProfileImage, Celebrity, StargramzUser, Campaign
 from config.models import Config
 from utilities.utils import get_pre_signed_get_url, upload_image_s3, SendMail, verify_user_for_notifications,\
-    generate_branch_io_url
+    generate_branch_io_url, sent_email
 import urllib.request
 from datetime import datetime, timedelta
 import imageio
@@ -716,7 +716,6 @@ def notify_users_on_payouts(user_dict, subject, template):
     """
         Notify user via Emails regarding payouts
     """
-    sender_email = Config.objects.get(key='sender_email').value
     ctx = {
         'base_url': BASE_URL,
         'name': user_dict['name'],
@@ -724,11 +723,10 @@ def notify_users_on_payouts(user_dict, subject, template):
         'pay_count': user_dict['pay_count'],
     }
 
-    return notify_email(sender_email, user_dict['email'], subject, template, ctx)
+    return sent_email(user_dict['email'], subject, template, ctx)
 
 
 def notify_admin(paid, not_paid, failed, subject):
-    sender_email = Config.objects.get(key='sender_email').value
     support_email = Config.objects.get(key='support_email').value
 
     ctx = {
@@ -737,22 +735,7 @@ def notify_admin(paid, not_paid, failed, subject):
         'failed_users': failed,
     }
 
-    return notify_email(sender_email, support_email, subject, 'payouts-admin', ctx)
-
-
-def notify_email(sender_email, to_email, subject, template, ctx):
-    """
-        Sent email
-    """
-    ctx.update({'base_url': BASE_URL})
-
-    html_template = get_template('../templates/emails/%s.html' % template)
-    html_content = html_template.render(ctx)
-
-    try:
-        return SendMail(subject, html_content, sender_email=sender_email, to=to_email)
-    except Exception as e:
-        print(str(e))
+    return sent_email(support_email, subject, 'payouts-admin', ctx)
 
 
 @app.task
