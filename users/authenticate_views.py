@@ -865,7 +865,7 @@ class ValidateMobile(APIView, ResponseViewMixin):
                 if response.status_code == 200:
                     return self.jp_response(s_code='HTTP_200_OK', data=response.json())
                 else:
-                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', data=response.json())
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', data=response.json()['errors']['message'])
             except Exception as e:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', str(e))
         else:
@@ -898,7 +898,7 @@ class VerifyMobile(APIView, ResponseViewMixin):
                 if response.status_code == 200:
                     return self.jp_response(s_code='HTTP_200_OK', data=response.json())
                 else:
-                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', data=response.json())
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', data=response.json()['errors']['message'])
             except Exception as e:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', str(e))
         else:
