@@ -258,7 +258,7 @@ class CelebrityRepresentative(APIView, ResponseViewMixin):
                     serializer.save()
                 except Exception as e:
                     return self.jp_error_response(
-                        'HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Maximum limit reached'
+                        'HTTP_400_BAD_REQUEST', 'EXCEPTION', e.args[0]
                     )
                 return self.jp_response(s_code='HTTP_200_OK', data={'message': 'Successfully inserted'})
             else:

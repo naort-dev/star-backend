@@ -773,7 +773,7 @@ class DeviceTokenSerializer(serializers.ModelSerializer):
 
 class NotificationSettingsSerializer(CustomModelSerializer):
     id = serializers.IntegerField(write_only=True)
-    secondary_email = serializers.EmailField(required=False)
+    secondary_email = serializers.EmailField(required=False, allow_null=True, allow_blank=True)
 
     class Meta:
         model = SettingsNotifications
@@ -1103,7 +1103,7 @@ class CelebrityRepresentativeSerializer(serializers.ModelSerializer):
                 representative_email(celebrity, representative)
                 return representative
             except Exception as e:
-                raise serializers.ValidationError(str(e))
+                raise serializers.ValidationError("Email already exist")
 
     def update(self, instance, validated_data):
         field_list = ['first_name', 'last_name', 'email', 'phone', 'email_notify', 'sms_notify', 'country_code']
