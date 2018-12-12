@@ -386,6 +386,8 @@ class NotificationSettings(APIView, ResponseViewMixin):
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE',
                                           'No valid notification types where provided')
         fields.append('user')
+        if not request.data['secondary_email']:
+            del request.data['secondary_email']
         serializer = NotificationSettingsSerializer(data=request.data, fields=fields)
         if serializer.is_valid():
             # Setting the fields to add in defaults
@@ -400,7 +402,7 @@ class NotificationSettings(APIView, ResponseViewMixin):
             return self.jp_response(s_code='HTTP_200_OK', data={'notification_settings': data})
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE',
-                                          self.error_msg_list(serializer.errors))
+                                          self.error_msg_string(serializer.errors))
 
 
 class UserDetails(viewsets.ViewSet, ResponseViewMixin):
