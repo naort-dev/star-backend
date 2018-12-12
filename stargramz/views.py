@@ -20,7 +20,8 @@ from .models import Stargramrequest, StargramVideo, OccasionRelationship, Occasi
 from rest_framework.viewsets import ViewSet, GenericViewSet
 from utilities.pagination import CustomOffsetPagination
 import datetime
-from utilities.utils import datetime_range, get_pre_signed_get_url, check_user_role, upload_image_s3, get_s3_public_url
+from utilities.utils import datetime_range, get_pre_signed_get_url, check_user_role, upload_image_s3,\
+    get_s3_public_url, sent_email
 from utilities.permissions import CustomPermission
 from rest_framework.decorators import detail_route
 from django.db.models import Q
@@ -30,7 +31,7 @@ import os
 import ast
 from difflib import get_close_matches
 from .constants import *
-from job.tasks import generate_video_thumbnail, notify_email, combine_video_clips, convert_audio
+from job.tasks import generate_video_thumbnail, combine_video_clips, convert_audio
 from payments.models import StarsonaTransaction, TRANSACTION_STATUS
 from django.utils import timezone
 from hashids import Hashids
@@ -636,14 +637,14 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
         data = StargramzVideoSerializer(video_saved, fields=[
             'stragramz_request', 'video', 'video_status', 'duration', 'thumbnail', 'comments_count'
         ]).data
-        sender_email = Config.objects.get(key='sender_email').value
         admin_email = Config.objects.get(key='admin_email').value
         try:
             ctx = {
                 'id': stargramz_request.id,
                 'celebrity_name': stargramz_request.celebrity.get_short_name()
             }
-            notify_email(sender_email, admin_email, SUBJECT_ADMIN_VIDEO_APPROVAL, 'video_approval', ctx)
+            # notify_email replaced with send email
+            sent_email(admin_email, SUBJECT_ADMIN_VIDEO_APPROVAL, 'video_approval', ctx)
         except Exception:
             pass
         return data

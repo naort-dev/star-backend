@@ -12,9 +12,8 @@ from .constants import *
 from payments.tasks import create_request_refund
 from config.models import Config
 from config.constants import *
-from utilities.utils import SendMail, generate_branch_io_url, get_bucket_url
+from utilities.utils import SendMail, generate_branch_io_url, get_bucket_url, sent_email
 from django.template.loader import get_template
-from job.tasks import notify_email
 from hashids import Hashids
 import pytz
 hashids = Hashids(min_length=8)
@@ -103,10 +102,10 @@ def notify_admin_approvals():
 
     if request_counts > 0:
 
-        sender_email = Config.objects.get(key='sender_email').value
         admin_email = Config.objects.get(key='admin_email').value
         ctx = {'requests': request_counts}
-        notify_email(sender_email, admin_email, 'Pending Video approvals', 'pending_video_approval', ctx)
+        # notify_email replaced with send email
+        sent_email(admin_email, 'Pending Video approvals', 'pending_video_approval', ctx)
         print('Notified admin on pending video approvals')
     else:
         print('No pending video approvals')
@@ -159,9 +158,9 @@ def request_limit_notification(celebrity):
                 desktop_url='%ssettings' % web_url,
                 image_url='%smedia/web-images/starsona_logo.png' % base_url,
             )}
-    sender_email = Config.objects.get(key='sender_email').value
     celebrity_email = celebrity.user.email
-    notify_email(sender_email, celebrity_email, 'Request limit reached', 'celebrity_request_limit', ctx)
+    # notify_email replaced with send email
+    sent_email(celebrity_email, 'Request limit reached', 'celebrity_request_limit', ctx)
 
 
 @shared_task(bind=True, max_retries=1)
@@ -204,9 +203,9 @@ def notify_fan_reaction_videos_and_feedback(booking_id):
                     desktop_url='%suser/myVideos' % web_url,
                     image_url='%smedia/web-images/starsona_logo.png' % base_url,
                 )}
-        sender_email = Config.objects.get(key='sender_email').value
         fan_email = requests.fan.email
-        notify_email(sender_email, fan_email, 'Add Reaction videos', 'add_reaction_videos', ctx)
+        # notify_email replaced with send email
+        sent_email(fan_email, 'Add Reaction videos', 'add_reaction_videos', ctx)
         print('Notified fan for reaction videos')
         return True
     else:
