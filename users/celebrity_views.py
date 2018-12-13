@@ -9,7 +9,7 @@ from .models import StargramzUser, Celebrity, UserRoleMapping, Role, CelebrityPr
 from config.models import Config
 from .serializer import CelebrityProfileSerializer, CelebrityProfessionSerializer, ReferralUserSerializer, \
     CelebrityRepresentativeSerializer, CelebrityRepresentativeViewSerializer
-from utilities.utils import removefromdict, ROLES, decode_pk
+from utilities.utils import removefromdict, ROLES, decode_pk, encode_pk
 from utilities.permissions import CustomPermission
 from utilities.utils import SendMail
 from utilities.constants import BASE_URL
@@ -255,12 +255,16 @@ class CelebrityRepresentative(APIView, ResponseViewMixin):
             serializer = CelebrityRepresentativeSerializer(data=request.data, instance=None)
             if serializer.is_valid():
                 try:
-                    serializer.save()
+                    data = serializer.save()
+                    representative_id = encode_pk(data.id)
                 except Exception as e:
                     return self.jp_error_response(
                         'HTTP_400_BAD_REQUEST', 'EXCEPTION', e.args[0]
                     )
-                return self.jp_response(s_code='HTTP_200_OK', data={'message': 'Successfully inserted'})
+                return self.jp_response(
+                    s_code='HTTP_200_OK',
+                    data={'message': 'Successfully inserted', 'representative_id': representative_id}
+                )
             else:
                 return self.jp_error_response(
                     'HTTP_400_BAD_REQUEST', 'EXCEPTION', 'data invalid'

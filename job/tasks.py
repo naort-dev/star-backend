@@ -15,7 +15,7 @@ from django.template.loader import get_template
 from users.models import ProfileImage, Celebrity, StargramzUser, Campaign
 from config.models import Config
 from utilities.utils import get_pre_signed_get_url, upload_image_s3, SendMail, verify_user_for_notifications,\
-    generate_branch_io_url, sent_email
+    generate_branch_io_url, sent_email, representative_notify
 import urllib.request
 from datetime import datetime, timedelta
 import imageio
@@ -793,6 +793,9 @@ def send_email_notification(request_id):
         email = details['email_%d' % request.request_status]
         template = details['template_%d' % request.request_status]
         sender_email = Config.objects.get(key='sender_email').value
+        if request.request_status == 2:
+            # inform the representative of the celebrity about this booking
+            representative_notify(celebrity, fan, occasion)
         try:
             data = json.loads(request.request_details)
         except Exception:

@@ -21,7 +21,7 @@ from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 from config.models import Config
 from users.models import ProfileImage, Celebrity, SettingsNotifications, GroupAccount, StargramzUser, \
-    CelebrityGroupAccount
+    CelebrityGroupAccount, Representative
 import datetime
 import re
 from tempfile import gettempdir
@@ -499,3 +499,25 @@ def get_user_id(slug_name):
         return user_id
     except Exception as e:
         raise str(e)
+
+
+def representative_notify(celebrity, fan, occasion):
+    """
+    Send a Notifying email to representatives of the celebrity about the new registered booking
+    :param celebrity:
+    :param fan:
+    :param occasion:
+    :return: True
+    """
+    representatives = Representative.objects.filter(celebrity=celebrity, email_verified=True)
+    if representatives:
+        for representative in representatives:
+            if representative.email:
+                ctx = {
+                    'celebrity_name': celebrity.get_short_name(),
+                    'fan_name': fan.get_short_name(),
+                    'occasion': occasion,
+                    'representative_name': representative.first_name
+                }
+                sent_email(representative.email, 'Starsona Request Notification', 'representative_notify', ctx)
+    return True
