@@ -1068,8 +1068,10 @@ class MemberListSerializer(serializers.ModelSerializer):
 
 
 class CelebrityRepresentativeSerializer(serializers.ModelSerializer):
-    first_name = serializers.CharField(required=False, allow_blank=True)
-    last_name = serializers.CharField(required=False, allow_blank=True)
+    first_name = serializers.CharField(required=False, allow_blank=True, max_length=120,
+                                       error_messages={"max_length": "First Name must not exceed 120 character"})
+    last_name = serializers.CharField(required=False, allow_blank=True, max_length=120,
+                                      error_messages={"max_length": "Last Name must not exceed 120 character"})
     email = serializers.EmailField(required=False, allow_blank=True)
     phone = serializers.CharField(required=False, allow_blank=True)
     country_code = serializers.CharField(required=False, allow_blank=True)
