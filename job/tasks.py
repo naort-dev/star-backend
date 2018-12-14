@@ -2,9 +2,10 @@ from moviepy.editor import *
 from moviepy import *
 from moviepy.video.fx.resize import resize
 from moviepy.video.compositing.transitions import slide_in
-from stargramz.models import Stargramrequest, StargramVideo, STATUS_TYPES, Occasion, REQUEST_TYPES, VIDEO_STATUS
+from stargramz.models import Stargramrequest, StargramVideo, STATUS_TYPES, Occasion, VIDEO_STATUS, Reaction
 from payments.models import StarsonaTransaction, PaymentPayout, TRANSACTION_STATUS, PAYOUT_STATUS
 import stripe
+from stargramz.constants import *
 from payments.constants import SECRET_KEY
 from main.celery import app
 from botocore.exceptions import ClientError
@@ -14,14 +15,16 @@ from django.conf import settings
 from django.template.loader import get_template
 from users.models import ProfileImage, Celebrity, StargramzUser, Campaign
 from config.models import Config
+from config.constants import *
 from utilities.utils import get_pre_signed_get_url, upload_image_s3, SendMail, verify_user_for_notifications,\
-    generate_branch_io_url, sent_email, representative_notify
+    generate_branch_io_url, sent_email, representative_notify, get_bucket_url
 import urllib.request
 from datetime import datetime, timedelta
 import imageio
 import time, json
 from hashids import Hashids
 from utilities.constants import BASE_URL
+from utilities.konstants import NOTIFICATION_TYPES
 from django.db.models import Sum
 imageio.plugins.ffmpeg.download()
 
@@ -1195,3 +1198,53 @@ def reprocess_pending_video_approval():
     except Exception as e:
         print(str(e))
     return True
+
+
+@app.task(bind=True, max_retries=1)
+def notify_fan_reaction_videos_and_feedback(self, booking_id):
+    from notification.tasks import send_notification
+    """
+    Triggering Push/email notifications to fan to add review and share there reaction
+    videos with starsona for completed bookings
+    :param booking_id:
+    :return:
+    """
+    print("Reaction for %d" % booking_id)
+    if Reaction.objects.filter(booking_id=booking_id).count() == 0:
+        print('Adding reactions...')
+        try:
+            requests = Stargramrequest.objects.get(id=booking_id)
+        except Exception:
+            return True
+        booking_hash_id = hashids.encode(booking_id)
+        data = {'type': NOTIFICATION_TYPES.pending_reaction_video, 'role': ROLES.fan, 'id': booking_hash_id}
+        send_notification.delay(
+            requests.fan_id,
+            PENDING_REACTION_VIDEO_TITLE,
+            PENDING_REACTION_VIDEO_BODY % requests.celebrity.get_short_name(),
+            data,
+            field='celebrity_starsona_request'
+        )
+        video = StargramVideo.objects.get(stragramz_request_id=booking_id, status=1)
+
+        base_url = Config.objects.get(key='base_url').value
+        web_url = Config.objects.get(key='web_url').value
+        ctx = {'celebrity_name': requests.celebrity.get_short_name(),
+               'fan_name': requests.fan.get_short_name(),
+               'booking_title': requests.booking_title,
+               'video_thumb': '{}/{}'.format(get_bucket_url(), STARGRAM_VIDEO_THUMB + video.thumbnail),
+               'app_url': generate_branch_io_url(
+                    title="Add reaction videos",
+                    desc="Add review and share your reaction videos",
+                    canonical_url='%sapplinks/reactions/%s' % (base_url, booking_hash_id),
+                    mob_url='reactions/%s' % booking_hash_id,
+                    desktop_url='%suser/myVideos' % web_url,
+                    image_url='%smedia/web-images/starsona_logo.png' % base_url,
+                )}
+        fan_email = requests.fan.email
+        sent_email(fan_email, 'Add Reaction videos', 'add_reaction_videos', ctx)
+        print('Notified fan for reaction videos')
+        return True
+    else:
+        print('Already added reactions')
+        return True

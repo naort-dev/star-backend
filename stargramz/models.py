@@ -142,10 +142,9 @@ class Stargramrequest(models.Model):
             Override the save to check the old value of request_status field
         """
         booking_id = self.pk
-        from job.tasks import send_email_notification
+        from job.tasks import send_email_notification, notify_fan_reaction_videos_and_feedback
         from notification.tasks import send_notification
         from payments.tasks import create_request_refund
-        from stargramz.tasks import notify_fan_reaction_videos_and_feedback
         if self.request_status != self.__original_request_status:
             send_email_notification.apply_async(
                 (booking_id,),

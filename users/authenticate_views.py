@@ -850,7 +850,8 @@ class ValidateMobile(APIView, ResponseViewMixin):
                 "phone_number": phone_validate.validated_data.get('phone_number'),
                 "country_code": phone_validate.validated_data.get('country_code'),
                 "locale": "en",
-                "via": "sms"
+                "via": "sms",
+                "code_length": 4
             }
             payload = json.dumps(data)
             try:
