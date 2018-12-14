@@ -267,7 +267,7 @@ class CelebrityRepresentative(APIView, ResponseViewMixin):
                 )
             else:
                 return self.jp_error_response(
-                    'HTTP_400_BAD_REQUEST', 'EXCEPTION', 'data invalid'
+                    'HTTP_400_BAD_REQUEST', 'EXCEPTION', self.error_msg_string(serializer.errors)
                 )
 
     def get(self, request, pk):
