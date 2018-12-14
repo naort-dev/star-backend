@@ -24,7 +24,7 @@ import imageio
 import time, json
 from hashids import Hashids
 from utilities.constants import BASE_URL
-from utilities.konstants import NOTIFICATION_TYPES
+from utilities.konstants import NOTIFICATION_TYPES, ROLES
 from django.db.models import Sum
 imageio.plugins.ffmpeg.download()
 
@@ -1200,7 +1200,7 @@ def reprocess_pending_video_approval():
     return True
 
 
-@app.task(bind=True, max_retries=1)
+@app.task(bind=True, max_retries=0)
 def notify_fan_reaction_videos_and_feedback(self, booking_id):
     from notification.tasks import send_notification
     """
