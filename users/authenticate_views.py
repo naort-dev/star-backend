@@ -868,7 +868,7 @@ class ValidateMobile(APIView, ResponseViewMixin):
             except Exception as e:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', str(e))
         else:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', phone_validate.errors)
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', phone_validate.errors)
 
 
 class VerifyMobile(APIView, ResponseViewMixin):
