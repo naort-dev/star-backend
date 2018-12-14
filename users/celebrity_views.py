@@ -243,14 +243,15 @@ class CelebrityRepresentative(APIView, ResponseViewMixin):
                 if not request.data.get('email'):
                     del request.data['email']
                 serializer = CelebrityRepresentativeSerializer(data=request.data, instance=representative)
+                if serializer.is_valid():
+                    serializer.save()
+                    return self.jp_response(s_code='HTTP_200_OK', data={'message': 'Successfully updated'})
+                else:
+                    return self.jp_error_response(
+                        'HTTP_400_BAD_REQUEST', 'EXCEPTION', self.error_msg_string(serializer.errors)
+                    )
             except Exception:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'invalid id')
-            if serializer.is_valid():
-                serializer.save()
-                return self.jp_response(s_code='HTTP_200_OK', data={'message': 'Successfully updated'})
-            return self.jp_error_response(
-                'HTTP_400_BAD_REQUEST', 'EXCEPTION', 'only provide changed fields'
-            )
         else:
             serializer = CelebrityRepresentativeSerializer(data=request.data, instance=None)
             if serializer.is_valid():
