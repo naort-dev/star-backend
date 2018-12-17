@@ -39,7 +39,7 @@ def send_notifications_reminder(from_date, to_date):
     return True
 
 
-@app.task(name='cancel_notification_no_response')
+@app.task(name='cancel_notification_no_response', bind=True, max_retries=0)
 def cancel_starsona_celebrity_no_response():
     print('Cancel request in %s Days' % REQUEST_CANCEL_DAYS)
     requests = Stargramrequest.objects.filter(

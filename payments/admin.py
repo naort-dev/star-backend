@@ -55,14 +55,16 @@ class TipPaymentAdmin(ReadOnlyModelAdmin):
     fieldsets = (
         (_('Starsona Details'), {'fields': ('booking', 'fan', 'celebrity')}),
         (_('Transaction Details'),
-         {'fields': ('transaction_status', 'source_id', 'stripe_transaction_id', 'amount', 'comments')}
+         {'fields': ('transaction_status', 'source_id', 'stripe_transaction_id', 'amount', 'comments',
+                     'tip_payed_out', 'payed_out_transaction_id', 'payed_out_response')}
         ),
     )
     search_fields = ('id', 'fan__username', 'celebrity__username',)
     list_display_links = ('id',)
     list_filter = ('transaction_status',)
     readonly_fields = ('created_date', 'fan', 'celebrity', 'modified_date', 'source_id',
-                       'stripe_transaction_id', 'booking', 'amount', 'comments')
+                       'stripe_transaction_id', 'booking', 'amount', 'comments', 'tip_payed_out',
+                       'payed_out_transaction_id', 'payed_out_response')
 
 
 admin.site.register(StarsonaTransaction, TransactionAdmin)

@@ -6,8 +6,9 @@ from stargramz.models import Stargramrequest, STATUS_TYPES
 from users.models import StargramzUser
 from django.db.models import Q, F
 from utilities.konstants import ROLES
-from payments.models import TRANSACTION_STATUS, StarsonaTransaction
+from payments.models import TRANSACTION_STATUS, StarsonaTransaction, TipPayment, TIP_STATUS
 import stripe
+import json
 from payments.constants import SECRET_KEY
 from utilities.utils import check_user_role
 
@@ -52,7 +53,7 @@ def change_request_status_to_pending(request_id):
         return True
 
 
-@app.task
+@app.task(bind=True, max_retries=0)
 def create_request_refund():
     starsona = None
     print('Transaction Task')
@@ -91,3 +92,47 @@ def create_request_refund():
                         starsona.save()
                 except stripe.error.StripeError as e:
                     print(str(e))
+
+
+@app.task(bind=True, max_retries=0, name='tip_payments_payout')
+def tip_payments_payout(tip_id):
+    """
+    Send tip payments to celebrity accounts
+    :param tip_id:
+    :return:
+    """
+    stripe.api_key = SECRET_KEY
+    try:
+        tip_details = TipPayment.objects.get(pk=tip_id, transaction_status=2)
+        try:
+            payout_amount = stripe.Charge.retrieve(tip_details.stripe_transaction_id, expand=['balance_transaction'])
+            celebrity_tip_amount = payout_amount.balance_transaction.net
+
+            balance = stripe.Balance.retrieve()
+            available_balance = balance.available[0]['amount']
+            print("Total amount in Balance: %d" % int(available_balance))
+
+            if available_balance > celebrity_tip_amount and tip_details.celebrity.stripe_user_id:
+                try:
+                    transfer = stripe.Transfer.create(
+                        amount=celebrity_tip_amount,
+                        currency="usd",
+                        destination=tip_details.celebrity.stripe_user_id,
+                        description="Tip payment for booking %d" % int(tip_details.booking_id)
+                    )
+
+                    tip_details.status = TIP_STATUS.tip_payed_out
+                    tip_details.tip_payed_out = float(celebrity_tip_amount/100)
+                    tip_details.payed_out_transaction_id = transfer.id
+                    tip_details.payed_out_response = json.dumps(transfer)
+                    tip_details.save()
+                    print('Successfully transferred amount to celebrity account')
+                except Exception as e:
+                    print("Tip not payed: %s" % str(e))
+            else:
+                print('Insufficient balance. or stripe ID empty.')
+
+        except Exception as e:
+            print("No TipPayment records: %s" % str(e))
+    except Exception as e:
+        print('Tip payment not valid. %s', str(e))
