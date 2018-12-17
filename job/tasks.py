@@ -1225,14 +1225,16 @@ def notify_fan_reaction_videos_and_feedback(self, booking_id):
             data,
             field='celebrity_starsona_request'
         )
-        video = StargramVideo.objects.get(stragramz_request_id=booking_id, status=1)
+        video_thumbnail = StargramVideo.objects.values_list('thumbnail', flat=True).filter(
+            stragramz_request_id=booking_id, status=1
+        )
 
         base_url = Config.objects.get(key='base_url').value
         web_url = Config.objects.get(key='web_url').value
         ctx = {'celebrity_name': requests.celebrity.get_short_name(),
                'fan_name': requests.fan.get_short_name(),
                'booking_title': requests.booking_title,
-               'video_thumb': '{}/{}'.format(get_bucket_url(), STARGRAM_VIDEO_THUMB + video.thumbnail),
+               'video_thumb': '{}/{}'.format(get_bucket_url(), STARGRAM_VIDEO_THUMB + video_thumbnail),
                'app_url': generate_branch_io_url(
                     title="Add reaction videos",
                     desc="Add review and share your reaction videos",
