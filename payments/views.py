@@ -21,7 +21,7 @@ from utilities.pagination import CustomOffsetPagination
 import uuid
 import requests
 from django.db.models import Sum
-from .tasks import change_request_status_to_pending
+from .tasks import change_request_status_to_pending, tip_payments_payout
 from datetime import datetime, timedelta
 from config.constants import *
 
@@ -554,6 +554,8 @@ class TipPayments(APIView, ResponseViewMixin):
                     tip_transaction.stripe_transaction_id = charge.id
                     tip_transaction.transaction_status = TIP_STATUS.captured
                     tip_transaction.save()
+                    # Transfer tip amount to celbrity account
+                    tip_payments_payout.delay.apply_async((tip_transaction.id,), countdown=30)
                     return self.jp_response(data={"tip_status": "Tip payment was successful"})
                 except Exception as e:
                     tip_transaction.transaction_status = TIP_STATUS.failed

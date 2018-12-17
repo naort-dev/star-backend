@@ -1008,21 +1008,25 @@ def combine_video_clips(request_id):
             )
 
             if os.path.exists(your_media_root + combined_video_name):
-                upload_image_s3(your_media_root + combined_video_name, s3folder + combined_video_name)
-                new_video = StargramVideo.objects.create(
-                    stragramz_request_id=request_id,
-                    video=combined_video_name,
-                    status=VIDEO_STATUS.completed,
-                    visibility=True
-                )
-                generate_video_thumbnail.delay(id=new_video.id)
-                print('Created new combined video...')
-                for video in request_videos:
-                    video.thumbnail = None
-                    video.visibility = True
-                    video.save()
-                    generate_video_thumbnail.delay(id=video.id)
-
+                try:
+                    StargramVideo.objects.get(stragramz_request_id=request_id, status=1)
+                    print('Already created video...')
+                except Exception:
+                    upload_image_s3(your_media_root + combined_video_name, s3folder + combined_video_name)
+                    new_video = StargramVideo.objects.create(
+                        stragramz_request_id=request_id,
+                        video=combined_video_name,
+                        status=VIDEO_STATUS.completed,
+                        visibility=True
+                    )
+                    generate_video_thumbnail.delay(id=new_video.id)
+                    print('Generate video thumbnail for new file...')
+                    for video in request_videos:
+                        video.thumbnail = None
+                        video.visibility = True
+                        video.save()
+                        generate_video_thumbnail.delay(id=video.id)
+                    print('Created new combined video...')
         except Exception as e:
             print(str(e))
 
@@ -1225,9 +1229,12 @@ def notify_fan_reaction_videos_and_feedback(self, booking_id):
             data,
             field='celebrity_starsona_request'
         )
-        video_thumbnail = StargramVideo.objects.values_list('thumbnail', flat=True).filter(
-            stragramz_request_id=booking_id, status=1
-        )
+        try:
+            video_thumbnail = StargramVideo.objects.values_list('thumbnail', flat=True).get(
+                stragramz_request_id=booking_id, status=1
+            )
+        except Exception:
+            return True
 
         base_url = Config.objects.get(key='base_url').value
         web_url = Config.objects.get(key='web_url').value

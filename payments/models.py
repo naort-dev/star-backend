@@ -102,9 +102,12 @@ class TipPayment(models.Model):
     modified_date = models.DateTimeField('Modified Date', auto_now=True)
     transaction_status = models.IntegerField('Transaction Status', choices=TIP_STATUS.choices(),
                                              default=TIP_STATUS.pending, db_index=True)
-    source_id = models.CharField(max_length=120, blank=False, null=False)
-    stripe_transaction_id = models.CharField(max_length=120)
+    source_id = models.CharField('Source ID', max_length=120, blank=False, null=False)
+    stripe_transaction_id = models.CharField('Transaction ID', max_length=120)
     comments = models.TextField('Comments', max_length=200, blank=True)
+    tip_payed_out = models.DecimalField('Tip payed out', max_digits=7, decimal_places=2, blank=True, null=True)
+    payed_out_transaction_id = models.CharField('Payed out transaction', max_length=30, blank=True)
+    payed_out_response = models.TextField('Payed out response', max_length=1500, blank=True)
 
     def __str__(self):
         return 'Tip %d' % self.pk
