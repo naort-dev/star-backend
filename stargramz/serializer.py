@@ -388,3 +388,19 @@ class ReactionSerializer(serializers.ModelSerializer):
             except Exception:
                 pass
         return True
+
+
+class ReactionListingSerializer(serializers.ModelSerializer):
+    user_name = serializers.SerializerMethodField(read_only=True)
+    file_type = serializers.ChoiceField(allow_blank=False, required=True, choices=FILE_TYPES.choices())
+    s3_reaction_file_url = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Reaction
+        fields = ('user_name', 'file_type', 'reaction_file', 's3_reaction_file_url')
+
+    def get_user_name(self, obj):
+        return obj.user.get_short_name()
+
+    def get_s3_reaction_file_url(self, obj):
+        return get_s3_public_url(obj.reaction_file, "reactions/")

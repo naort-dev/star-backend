@@ -1,6 +1,7 @@
 from django.conf.urls import url, include
 from .views import OccasionList, StargramzRequest, StargramzVideo, FeaturedVideo, OtherRelationship,\
-    RequestList, ChangeRequestStatus, RequestReportAbuse, CommentsView, BookingFeedbackView, RequesterWatchedVideo
+    RequestList, ChangeRequestStatus, RequestReportAbuse, CommentsView, BookingFeedbackView, RequesterWatchedVideo,\
+    ReactionsListing
 from rest_framework.routers import DefaultRouter
 
 
@@ -13,6 +14,7 @@ urlpatterns = [
     url(r'^comments/(?P<pk>[0-9a-zA-Z]{5,8})/$', CommentsView.as_view(), name='comment-details'),
     url(r'^feedback/$', BookingFeedbackView.as_view(), name='feedback'),
     url(r'^readvideo/(?P<pk>[0-9a-zA-Z]{5,8})/$', RequesterWatchedVideo.as_view(), name='feedback'),
+    url(r'^reactions/(?P<pk>[0-9a-zA-Z]{5,8})/$', ReactionsListing.as_view(), name='reaction_listing'),
 ]
 
 router = DefaultRouter()
