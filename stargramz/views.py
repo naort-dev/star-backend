@@ -1070,3 +1070,15 @@ def get_bucket_private_url(request, vname):
     except Exception:
         return page_not_found(request)
     return HttpResponseRedirect(url)
+
+
+def invite_referral(request, referral_code):
+    """
+    Referral code redirect to web page
+    :param request:
+    :param referral_code:
+    :return:
+    """
+    web_url = Config.objects.get(key='web_url').value
+    referral_url = '{}signup?referral={}'.format(web_url, referral_code)
+    return HttpResponseRedirect(referral_url)
