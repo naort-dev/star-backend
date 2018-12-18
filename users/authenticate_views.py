@@ -301,8 +301,7 @@ class FilterProfessions(GenericViewSet, ResponseViewMixin):
         Get the filtered list of Profession
     """
     def list(self, request):
-        query_set = CelebrityProfession.objects.select_related('profession', 'celebrity_profession')\
-            .filter(profession__parent__isnull=True).values_list('profession', flat=True).distinct()
+        query_set = CelebrityProfession.active_professions.all()
         profession = Profession.objects.filter(id__in=query_set, parent__isnull=True)
         profession_data = ProfessionFilterSerializer(profession, many=True)
         return self.jp_response(s_code='HTTP_200_OK', data={'filtered-professions': profession_data.data})

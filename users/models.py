@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db.models import F
+from django.db import connection
 from role.models import Role
 from utilities.konstants import Konstants, K, ROLES, NOTIFICATION_TYPES as device_notify
 from .utils import generate_referral_unique_code, generate_vanity_url
@@ -314,10 +315,22 @@ class Celebrity(models.Model):
         super(Celebrity, self).save(*args, **kwargs)
 
 
+class ProfessionsManager(models.Manager):
+    def get_queryset(self):
+        with connection.cursor() as cursor:
+            cursor.execute("select DISTINCT p.parent_id from users_profession p JOIN users_celebrityprofession cp "
+                           "ON cp.profession_id = p.id where p.parent_id is NOT NULL")
+            return [key[0] for key in cursor.fetchall()]
+
+
 class CelebrityProfession(models.Model):
     user = models.ForeignKey('StargramzUser', related_name='celebrity_profession', blank=False)
     profession = models.ForeignKey('Profession', related_name='profession', blank=False)
     created_date = models.DateTimeField(auto_now=True)
+
+    objects = models.Manager()
+
+    active_professions = ProfessionsManager()
 
 
 class ProfileImage(models.Model):
