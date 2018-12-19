@@ -5,7 +5,7 @@ from rest_framework.viewsets import GenericViewSet
 from utilities.permissions import CustomPermission
 from utilities.mixins import ResponseViewMixin
 from utilities.pagination import CustomOffsetPagination
-from utilities.utils import ROLES, get_user_id, decode_pk
+from utilities.utils import ROLES, get_user_id, decode_pk, group_notify
 from users.models import StargramzUser, GroupAccount, GroupType, CelebrityGroupAccount, CelebrityFollow
 from users.serializer import GroupListSerializer, GroupAccountSerializer, \
     GroupTypeSerializer, JoinGroupSerializer, GroupFollowSerializer, MemberListSerializer,\
@@ -118,6 +118,7 @@ class JoinGroupView(APIView, ResponseViewMixin):
                 validator = JoinGroupSerializer(data=request.data)
                 if validator.is_valid():
                     validator.save()
+                    group_notify(user, account)
                     return self.jp_response(s_code='HTTP_200_OK', data="successfully joined the group")
                 else:
                     return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', data=validator.errors)

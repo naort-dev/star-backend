@@ -521,3 +521,19 @@ def representative_notify(celebrity, fan, occasion):
                 }
                 sent_email(representative.email, 'Starsona Request Notification', 'representative_notify', ctx)
     return True
+
+
+def group_notify(celebrity, account):
+    """
+    Notify Group owner when a celebrity request to join group
+    :param celebrity:
+    :param account:
+    :return:
+    """
+    account = get_user_id(account)
+    ctx = {
+        'account_name': account.get_short_name(),
+        'celebrity_name': celebrity.get_short_name()
+    }
+    sent_email(account.email, 'Group Entry Request', 'group_join_notify', ctx)
+    return True

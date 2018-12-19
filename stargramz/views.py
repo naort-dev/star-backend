@@ -5,7 +5,7 @@ from rest_framework import viewsets
 from utilities.mixins import ResponseViewMixin
 from .serializer import OccasionSerializer, StargramzSerializer, StargramzVideoSerializer, StargramzRetrieveSerializer,\
     RequestStatusSerializer, ReportAbuseSerializer, OccasionCreateSerializer, CommentSerializer, \
-    CommentReplySerializer, ReactionSerializer
+    CommentReplySerializer, ReactionSerializer, ReactionListingSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from utilities.konstants import ROLES, NOTIFICATION_TYPES
@@ -16,12 +16,12 @@ from users.models import StargramzUser, Celebrity, UserRoleMapping, ProfileImage
 from users.serializer import CelebrityRatingSerializer
 import json
 from .models import Stargramrequest, StargramVideo, OccasionRelationship, Occasion, STATUS_TYPES, REQUEST_TYPES,\
-    VIDEO_STATUS, Comment
+    VIDEO_STATUS, Comment, Reaction
 from rest_framework.viewsets import ViewSet, GenericViewSet
 from utilities.pagination import CustomOffsetPagination
 import datetime
 from utilities.utils import datetime_range, get_pre_signed_get_url, check_user_role, upload_image_s3,\
-    get_s3_public_url, sent_email
+    get_s3_public_url, sent_email, decode_pk
 from utilities.permissions import CustomPermission
 from rest_framework.decorators import detail_route
 from django.db.models import Q
@@ -1082,3 +1082,21 @@ def invite_referral(request, referral_code):
     web_url = Config.objects.get(key='web_url').value
     referral_url = '{}signup?referral={}'.format(web_url, referral_code)
     return HttpResponseRedirect(referral_url)
+
+
+class ReactionsListing(APIView, ResponseViewMixin):
+    """
+        List the reaction files for any booking
+    """
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission)
+
+    def get(self, request, pk):
+        try:
+            booking_id = decode_pk(pk)
+            reactions = Reaction.objects.filter(booking_id=booking_id)
+            data = ReactionListingSerializer(reactions, many=True).data
+            return self.jp_response('HTTP_200_OK', data={"reactions-details": data})
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
+
