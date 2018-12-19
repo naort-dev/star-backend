@@ -274,11 +274,18 @@ class Reaction(models.Model):
     file_thumbnail = models.CharField('Thumbnail', max_length=600, null=True, blank=True)
     admin_approval = models.BooleanField('Admin Approved', default=False)
     order = models.IntegerField('list order', blank=True, null=True)
+    width = models.IntegerField('Width', blank=True, null=True)
+    height = models.IntegerField('Height', blank=True, null=True)
+    duration = models.TimeField('Duration', blank=True, null=True)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
 
     def __str__(self):
         return 'Reaction - %s' % str(self.pk)
 
+    class Meta:
+        verbose_name = 'Reactions'
+        verbose_name_plural = 'Reaction'
+        ordering = ['-id', '-created_date']
 
 class BookingAdminAdd(Stargramrequest):
     """

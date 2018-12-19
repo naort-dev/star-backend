@@ -164,12 +164,13 @@ class StargramzSerializer(serializers.ModelSerializer):
     remove_audios = serializers.CharField(required=False, write_only=True)
     booking_title = serializers.CharField(required=True)
     created_date = serializers.SerializerMethodField(read_only=True)
+    booking_id = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Stargramrequest
         fields = ['id', 'fan', 'celebrity', 'occasion', 'request_details', 'from_audio_file', 'to_audio_file',
                   'request_status', 'created_date', 'request_video', 'comment', 'avatar_photo', 'public_request',
-                  'professions', 'editable', 'fan_rating', 'celebrity_id', 'occasion_type', 'charity',
+                  'professions', 'editable', 'fan_rating', 'celebrity_id', 'occasion_type', 'charity', 'booking_id'
                   'order_details', 'fan_photo', 'occasion_id', 'remove_audios', 'request_type', 'booking_title']
 
     def create(self, data):
@@ -185,6 +186,12 @@ class StargramzSerializer(serializers.ModelSerializer):
                                                          request_type=request_type, public_request=public_request)
         stargramrequest.save()
         return stargramrequest
+
+    def get_booking_id(self, obj):
+        """
+            Return hashed booking ID
+        """
+        return hashids.encode(obj.id)
 
     def get_created_date(self, obj):
         """
