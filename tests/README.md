@@ -1,6 +1,6 @@
 # Load tests 
 ## Installing locust.io
-For installation refer to the documentation [https://docs.locust.io/en/stable/]()
+For installation refer to the documentation [Locust](https://docs.locust.io/en/stable/)
 
 ## Debug tests
 Intellij Python debugger setup:
@@ -21,7 +21,7 @@ Run tests in UI mode
 [2018-12-18 20:49:27,184] local/INFO/locust.runners: All locusts hatched: WebsiteUser: 50
 ```
 
-* Open web UI at [http://localhost:8089]()
+* Open web UI at [http://localhost:8089](http://localhost:8089)
 * Enter how many users and how fast to hatch
 
 ## Running tests in batch mode
