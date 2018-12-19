@@ -126,12 +126,12 @@ def cancel_booking_on_seven_days_completion():
         minutes = (estimated.seconds//60) - (hours * 60)
         if scheduled_time > timezone.now() and estimated.days >= 0:
             print("Cancel request in %d hours %d minutes" % (hours, minutes))
-            cancel_starsona_celebrity_no_response.apply_async(
-                eta=datetime.datetime.utcnow() + datetime.timedelta(
-                    hours=hours,
-                    minutes=minutes
-                )
-            )
+            # cancel_starsona_celebrity_no_response.apply_async(
+            #    eta=datetime.datetime.utcnow() + datetime.timedelta(
+            #        hours=hours,
+            #        minutes=minutes
+            #    )
+            #)
     print("Completed %d booking cancel process" % len(requests))
     return True
 

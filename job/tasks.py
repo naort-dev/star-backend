@@ -1251,7 +1251,7 @@ def notify_fan_reaction_videos_and_feedback(self, booking_id):
                     image_url='%smedia/web-images/starsona_logo.png' % base_url,
                 )}
         fan_email = requests.fan.email
-        sent_email(fan_email, 'Add Reaction videos', 'add_reaction_videos', ctx)
+        sent_email(fan_email, 'Share your reaction with %s' % requests.celebrity.get_short_name(), 'add_reaction_videos', ctx)
         print('Notified fan for reaction videos')
         return True
     else:
