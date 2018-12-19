@@ -12,7 +12,7 @@ from django.utils import timezone
 import datetime
 from users.serializer import ProfilePictureSerializer, CelebrityRatingSerializer, CelebrityProfessionSerializer
 from users.models import ProfileImage, FanRating, CelebrityProfession, StargramzUser, CelebrityFollow, VanityUrl
-from payments.models import StarsonaTransaction
+from payments.models import StarsonaTransaction, TipPayment
 from django.db.models import Q
 from hashids import Hashids
 hashids = Hashids(min_length=8)
@@ -411,3 +411,10 @@ class ReactionListingSerializer(serializers.ModelSerializer):
 
     def get_s3_reaction_file_url(self, obj):
         return get_s3_public_url(obj.reaction_file, "reactions/")
+
+
+class TippingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TipPayment
+        fields = ('amount', 'comments')

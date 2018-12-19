@@ -525,7 +525,7 @@ def representative_notify(celebrity, fan, occasion):
 
 def group_notify(celebrity, account):
     """
-    Notify Group owner when a celebrity request to join group
+        Send a notification mail to the group when a celebrity supports it
     :param celebrity:
     :param account:
     :return:
@@ -535,5 +535,20 @@ def group_notify(celebrity, account):
         'account_name': account.get_short_name(),
         'celebrity_name': celebrity.get_short_name()
     }
-    sent_email(account.email, 'Group Entry Request', 'group_join_notify', ctx)
+    sent_email(account.email, 'Group Invite Request', 'group_join_notify', ctx)
+    return True
+
+
+def invite_celebrity_notify(account, celebrity):
+    """
+        Send a notification mail to the celebrity when group invites that celebrity
+    :param account:
+    :param celebrity:
+    :return:
+    """
+    ctx = {
+        'account_name': account.get_short_name(),
+        'celebrity_name': celebrity.get_short_name()
+    }
+    sent_email(celebrity.email, 'Group Invite', 'group_invite_notify', ctx)
     return True

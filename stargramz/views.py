@@ -5,7 +5,7 @@ from rest_framework import viewsets
 from utilities.mixins import ResponseViewMixin
 from .serializer import OccasionSerializer, StargramzSerializer, StargramzVideoSerializer, StargramzRetrieveSerializer,\
     RequestStatusSerializer, ReportAbuseSerializer, OccasionCreateSerializer, CommentSerializer, \
-    CommentReplySerializer, ReactionSerializer, ReactionListingSerializer
+    CommentReplySerializer, ReactionSerializer, ReactionListingSerializer, TippingSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from utilities.konstants import ROLES, NOTIFICATION_TYPES
@@ -32,7 +32,7 @@ import ast
 from difflib import get_close_matches
 from .constants import *
 from job.tasks import generate_video_thumbnail, combine_video_clips, convert_audio
-from payments.models import StarsonaTransaction, TRANSACTION_STATUS
+from payments.models import StarsonaTransaction, TRANSACTION_STATUS, TipPayment
 from django.utils import timezone
 from hashids import Hashids
 from notification.tasks import send_notification
@@ -1088,15 +1088,21 @@ class ReactionsListing(APIView, ResponseViewMixin):
     """
         List the reaction files for any booking
     """
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated, CustomPermission)
 
     def get(self, request, pk):
         try:
             booking_id = decode_pk(pk)
             reactions = Reaction.objects.filter(booking_id=booking_id)
+            tip_serializer = {'amount': 0.00, 'comments': ''}
+            try:
+                tip_amount = TipPayment.objects.get(booking_id=booking_id)
+                tip_serializer = TippingSerializer(tip_amount).data
+            except Exception:
+                pass
             data = ReactionListingSerializer(reactions, many=True).data
-            return self.jp_response('HTTP_200_OK', data={"reactions-details": data})
+            return self.jp_response(
+                'HTTP_200_OK',
+                data={"reactions-details": {"tip_details": tip_serializer, "reaction_files": data}}
+            )
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
-
