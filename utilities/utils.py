@@ -533,7 +533,14 @@ def group_notify(celebrity, account):
     account = get_user_id(account)
     ctx = {
         'account_name': account.get_short_name(),
-        'celebrity_name': celebrity.get_short_name()
+        'celebrity_name': celebrity.get_short_name(),
+        'redirect_link': generate_branch_io_url(
+            desktop_url='%ssettings' % BASE_URL,
+            mob_url='%ssettings' % BASE_URL,
+            image_url='%smedia/web-images/starsona_logo.png' % BASE_URL,
+            title='Group Joining Request',
+            desc='Group Joining Request',
+        )
     }
     sent_email(account.email, 'Group Invite Request', 'group_join_notify', ctx)
     return True
@@ -548,7 +555,15 @@ def invite_celebrity_notify(account, celebrity):
     """
     ctx = {
         'account_name': account.get_short_name(),
-        'celebrity_name': celebrity.get_short_name()
+        'celebrity_name': celebrity.get_short_name(),
+        'redirect_link': generate_branch_io_url(
+            desktop_url='%ssettings' % BASE_URL,
+            mob_url='%ssettings' % BASE_URL,
+            image_url='%smedia/web-images/starsona_logo.png' % BASE_URL,
+            title='Group Invite',
+            desc='Group Invite',
+        ),
+        'joining_link': '%ssettings' % BASE_URL
     }
     sent_email(celebrity.email, 'Group Invite', 'group_invite_notify', ctx)
     return True
