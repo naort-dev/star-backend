@@ -170,7 +170,7 @@ class StargramzSerializer(serializers.ModelSerializer):
         model = Stargramrequest
         fields = ['id', 'fan', 'celebrity', 'occasion', 'request_details', 'from_audio_file', 'to_audio_file',
                   'request_status', 'created_date', 'request_video', 'comment', 'avatar_photo', 'public_request',
-                  'professions', 'editable', 'fan_rating', 'celebrity_id', 'occasion_type', 'charity', 'booking_id'
+                  'professions', 'editable', 'fan_rating', 'celebrity_id', 'occasion_type', 'charity', 'booking_id',
                   'order_details', 'fan_photo', 'occasion_id', 'remove_audios', 'request_type', 'booking_title']
 
     def create(self, data):
