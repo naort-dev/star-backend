@@ -1095,7 +1095,9 @@ class ReactionsListing(APIView, ResponseViewMixin):
             reactions = Reaction.objects.filter(booking_id=booking_id)
             tip_serializer = {'amount': 0.00, 'comments': ''}
             try:
-                tip_amount = TipPayment.objects.get(booking_id=booking_id)
+                tip_amount = TipPayment.objects.get(
+                    Q(booking_id=booking_id) & (Q(transaction_status=2) | Q(transaction_status=3))
+                )
                 tip_serializer = TippingSerializer(tip_amount).data
             except Exception:
                 pass
