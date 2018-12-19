@@ -20,8 +20,8 @@ class Struct(object):
 class UserBehavior(TaskSet):
     def on_start(self):
         self.locust.headers = dict(
-            version='4.4.0',
-            device='ios'
+            version='1.0',
+            device='web'
         )
         self.username = 'phil.peshin@gmail.com'
         self.password = 'action2!'
