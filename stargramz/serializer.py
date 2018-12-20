@@ -419,11 +419,11 @@ class ReactionListingSerializer(serializers.ModelSerializer):
         return obj.user.get_short_name()
 
     def get_reaction_file_url(self, obj):
-        return "{}reactions/{}".format(self.bucket_url, obj.reaction_file)
+        return "{}/reactions/{}".format(self.bucket_url, obj.reaction_file)
 
     def get_reaction_thumbnail_url(self, obj):
         if obj.file_thumbnail:
-            return "{}reactions/{}".format(self.bucket_url, obj.file_thumbnail)
+            return "{}/reactions/{}".format(self.bucket_url, obj.file_thumbnail)
         else:
             return None
 
