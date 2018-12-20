@@ -383,7 +383,7 @@ class ReactionSerializer(serializers.ModelSerializer):
         fields = ('booking', 'files', 'user')
 
     def create(self, validated_data):
-        from job.tasks import generate_reaction_videos
+        from job.tasks import generate_reaction_videos, generate_reaction_image
         files = validated_data.get('files')
         for file in files:
             try:
@@ -395,6 +395,8 @@ class ReactionSerializer(serializers.ModelSerializer):
                 )
                 if file.get('file_type') == 2:
                     generate_reaction_videos.delay(id=reaction.id)
+                elif file.get('file_type') == 1:
+                    generate_reaction_image.delay(id=reaction.id)
             except Exception as e:
                 print(str(e))
         return True

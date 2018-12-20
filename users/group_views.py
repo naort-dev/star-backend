@@ -9,7 +9,7 @@ from utilities.utils import ROLES, get_user_id, decode_pk, group_notify, invite_
 from users.models import StargramzUser, GroupAccount, GroupType, CelebrityGroupAccount, CelebrityFollow
 from users.serializer import GroupListSerializer, GroupAccountSerializer, \
     GroupTypeSerializer, JoinGroupSerializer, GroupFollowSerializer, MemberListSerializer,\
-    JoinGroupCelebritySerializer, GroupTypeListSerializer
+    JoinGroupCelebritySerializer, GroupTypeListSerializer, CelebrityGroupAccountSerializer
 from django.db.models import Q
 from .utils import search_name
 
@@ -117,9 +117,10 @@ class JoinGroupView(APIView, ResponseViewMixin):
                 request.data['celebrity_invite'] = True
                 validator = JoinGroupSerializer(data=request.data)
                 if validator.is_valid():
-                    validator.save()
+                    group_details = validator.save()
+                    serialized = CelebrityGroupAccountSerializer(group_details).data
                     group_notify(user, account)
-                    return self.jp_response(s_code='HTTP_200_OK', data="successfully joined the group")
+                    return self.jp_response(s_code='HTTP_200_OK', data=serialized)
                 else:
                     return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', data=validator.errors)
             elif celebrity:
@@ -128,9 +129,10 @@ class JoinGroupView(APIView, ResponseViewMixin):
                 request.data['approved'] = True
                 validator = JoinGroupCelebritySerializer(data=request.data)
                 if validator.is_valid():
-                    validator.save()
+                    group_details = validator.save()
+                    serialized = CelebrityGroupAccountSerializer(group_details).data
                     invite_celebrity_notify(user, validator.validated_data.get('user'))
-                    return self.jp_response(s_code='HTTP_200_OK', data="successfully joined the group")
+                    return self.jp_response(s_code='HTTP_200_OK', data=serialized)
                 else:
                     return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', data=validator.errors)
         except Exception as e:

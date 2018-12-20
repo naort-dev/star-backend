@@ -1268,7 +1268,7 @@ def generate_reaction_videos(self, **kwargs):
     imageio.plugins.ffmpeg.download()
     reaction_video_id = kwargs.pop('id', None)
     if reaction_video_id:
-        reactions = Reaction.objects.get(id=reaction_video_id)
+        reactions = Reaction.objects.get(id=reaction_video_id, file_type=2)
     else:
         return True
 
@@ -1371,3 +1371,72 @@ def generate_reaction_videos(self, **kwargs):
         except (AttributeError, KeyError, IndexError):
             print('Video file not available in S3 bucket.')
     print('Completed reactions thumbnail creations.')
+
+
+@app.task(bind=True)
+def generate_reaction_image(self, **kwargs):
+    """
+        Generate thumbnail for reactions image
+    """
+
+    reaction_video_id = kwargs.pop('id', None)
+    if reaction_video_id:
+        reactions = Reaction.objects.get(id=reaction_video_id, file_type=1)
+    else:
+        return True
+
+    your_media_root = settings.MEDIA_ROOT + 'thumbnails/'
+    s3folder = 'reactions/'
+    s3folder_thumb = 'reactions/thumbnails/'
+
+    img_url = get_pre_signed_get_url(reactions.reaction_file, s3folder)
+    image_original = your_media_root + reactions.reaction_file
+    print("reaction image: " + reactions.reaction_file)
+    if check_file_exist_in_s3(s3folder + reactions.reaction_file) is not False:
+        try:
+            # Downloading the image from s3
+            urllib.request.urlretrieve(img_url, image_original)
+            thumbnail_name = "reaction_thumbnail_" + reactions.reaction_file
+            thumbnail = your_media_root + thumbnail_name
+            # Rotate image based on orientation
+            rotate_image(image_original)
+
+            try:
+                # Generate Thumbnail
+                thumb = Image.open(image_original)
+                thumb.thumbnail(size, Image.LANCZOS)
+                thumb.save(thumbnail, quality=80, optimize=True)
+            except Exception as e:
+                print(str(e))
+
+            try:
+                # Uploading the image to s3
+                upload_image_s3(thumbnail, s3folder_thumb + thumbnail_name)
+            except Exception as e:
+                print('Upload failed with reason %s', str(e))
+
+            # Deleting the created thumbnail image and downloaded image
+            time.sleep(2)
+
+        except (AttributeError, KeyError, IndexError):
+            print('Image file not available in S3 bucket')
+        reactions.file_thumbnail = thumbnail_name
+        reactions.save()
+        print('Thumbnail image uploaded to S3 bucket')
+    else:
+        print('File not found.')
+
+
+@app.task(name='generate_reactions_thumb')
+def generate_reactions_thumb():
+    """
+        Generating reactions
+    """
+    reactions = Reaction.objects.filter(file_thumbnail__isnull=True)
+
+    for reaction in reactions:
+        if reaction.file_type == 1:
+            generate_reaction_image.delay(id=reaction.id)
+        elif reaction.file_type == 2:
+            generate_reaction_videos.delay(id=reaction.id)
+    print("Generating reaction task added.")

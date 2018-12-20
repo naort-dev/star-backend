@@ -66,12 +66,16 @@ app.conf.beat_schedule = {
     #    'task': 'cancel_booking_on_seven_days_completion',
     #    'schedule': crontab(minute=0, hour=0),
     #},
-
+    'schedule-9': {
+        'task': 'generate_reactions_thumb',
+        'schedule': crontab(minute=0, hour=15),
+    },
 }
 app.conf.timezone = 'UTC'
 app.conf.task_routes = {
     'job.tasks.generate_video_thumbnail': {'queue': 'videos'},
-    'job.tasks.combine_video_clips': {'queue': 'videos'}
+    'job.tasks.combine_video_clips': {'queue': 'videos'},
+    'job.tasks.generate_reaction_videos': {'queue': 'videos'},
 }
 
 # This reads, e.g., CELERY_ACCEPT_CONTENT = ['json'] from settings.py:
