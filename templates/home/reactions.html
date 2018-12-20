@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html prefix="og: http://ogp.me/ns#">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>{{ page_title }}</title>
+    <link rel="shortcut icon" type="image/png" href="/media/web-images/favicon.png"/>
+    <link rel='shortcut icon' type='image/x-icon' href="/media/web-images/favicon.ico"/>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Starsona">
+    <meta name="keywords" content="Starsona, celebrity">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <meta name="theme-color" content="#ffffff">
+    <link href="https://vjs.zencdn.net/6.4.0/video-js.css" rel="stylesheet">
+<style>
+    @import url(https://fonts.googleapis.com/css?family=Poppins:300);
+    @import url(https://fonts.googleapis.com/css?family=Poppins:500);
+    @import url(https://fonts.googleapis.com/css?family=Playfair+Display:400);
+</style>
+
+    <meta property="og:title" content="{{ title }}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="{{ url }}" />
+    <meta property="og:image" content="{{ thumbnail }}" />
+    <meta property="og:video" content="{{ file }}" />
+    <meta property="og:description" content="{{ desc }}" />
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:url" content="{{ url }}">
+    <meta name="twitter:title" content="{{ title }}">
+    <meta name="twitter:description" content="{{ desc }}">
+    <meta name="twitter:image" content="{{ thumbnail }}">
+
+    <meta itemprop="name" content="{{ title }}">
+    <meta itemprop="description" content="{{ desc }}">
+    <meta itemprop="image" content="{{ thumbnail }}">
+
+    {% include "home/apps.html" with request='video' arg='video_id' %}
+
+    <script src="https://vjs.zencdn.net/ie8/1.1.2/videojs-ie8.min.js"></script>
+    <style>
+    .vjs-big-play-button {
+      background-color: transparent;
+      width: 1.6em !important;
+      height: 1.6em !important;
+      top: 50% !important;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url('/media/web-images/play.png') !important;
+      background-repeat: no-repeat !important;
+      background-size: 46px;
+      background-position: 50% calc(50% - 10px);
+      border: none !important; // @stylint ignore
+      box-shadow: none !important; // @stylint ignore
+      &:before {
+        content: "" !important;
+        display: none;
+      }
+      &:hover {
+        background-color: transparent;
+        opacity: .7;
+      }
+    }
+    .vjs-big-play-button .vjs-icon-placeholder:before{
+        content:none !important;
+    }
+    @media screen and (-webkit-min-device-pixel-ratio: 0) and (max-width: 640px)
+        #welcome {
+            max-width: 100% !important;
+        }
+    }
+
+
+.starsonabanner {
+    left:0;top:0;
+    width:100%;
+    height:78px;
+    font-family: "Helvetica Neue", helvetica, arial, sans-serif;
+    background:#fff;
+    overflow:hidden;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 10px;
+    -webkit-font-smoothing:antialiased;
+    -webkit-text-size-adjust:none;
+}
+.starsonabanner-container {
+    margin: 0 auto;
+    width: 100%;
+    height: 60px;
+    background-color: #432;
+    top: 0;
+    left: 0;
+    z-index:9;
+}
+.starsonabanner-close {
+    display: block;
+    font-family: 'ArialRoundedMTBold',Arial;
+    font-size: 24px;
+    text-align: center;
+    color: #fff;
+    text-decoration: none;
+    -webkit-font-smoothing: subpixel-antialiased;
+    border: 0;
+    width: 17px;
+    height: 17px;
+    line-height: 17px;
+    color: #FFF;
+    font-weight: 500;
+    position: relative;
+    top: 20px;
+    margin-left: 2px;
+}
+.starsonabanner-close:active,.starsonabanner-close:hover {
+    color:#FFF;
+}
+.starsonabanner-icon {
+    display: block;
+    position: absolute;
+    float: left;
+    width: 51px;
+    top: 10px;
+    height: 51px;
+    background-color: transparent;
+    background-size: cover;
+    margin-top: 0;
+    background-image: url(/media/web-images/star.png);
+    background-repeat: no-repeat;
+    background-size: 35px 35px;
+    margin-left: 25px;
+    margin-top: 40px;
+    clear: both;
+}
+.starsonabanner-info {
+    font-family: 'Poppins',Arial,sans-serif;
+    width: 60%;
+    display: block;
+    position: absolute;
+    top: 10px;
+    float: left;
+    font-size: 12px;
+    line-height: 1.2em;
+    font-weight: bold;
+    color: #FFF;
+    margin-left: 70px;
+}
+.starsonabanner-title {
+    font-size: 15px;
+    float: left;
+    width: 100%;
+    line-height: 17px;
+    color: #FFF !important;
+    font-weight: bold;
+    position: relative;
+    top: 10px;
+}
+.starsonabanner-button {
+    position: absolute;
+    right: 15px;
+    float: right;
+    top: 12px;
+    padding-top: 4px;
+    text-transform: uppercase;
+    min-width: 75px;
+    height: 24px;
+    display: inline-block;
+    font-size: 14px;
+    line-height: 14px;
+    text-align: center;
+    font-weight: bold;
+    color: #fff;
+    background-color: #ff7e4e;
+    text-decoration: none;
+    border-radius: 0;
+    margin-top: 0px;
+}
+.starsonabanner-button:hover, .starsonabanner-button:active{
+    background-color:#ffa730;
+    color:#FFF;
+}
+a:hover{
+    text-decoration:none
+}
+.starsonabanner-button-text {
+    text-align:center;
+    display:block;
+    padding:0 5px;
+}
+#share-buttons a {
+    display: block;
+    width: 50px;
+    float: left;
+    height: 50px;
+    overflow: hidden;
+    background-position: 10px 20px;
+    margin: 10px;
+}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+div#video-share {
+    width: 48%;
+    float: right;
+}
+span {
+    color: #333 !important;
+    margin-top: 0em !important;
+}
+body{
+background: linear-gradient(90deg,#ff6c58,#40284c);
+    -moz-animation: fadein 2.5s;
+    -ms-animation: fadein 2.5s;
+    -o-animation: fadein 2.5s;
+    animation: fadein 2.5s;
+}
+h3.title {
+    text-align: center;
+    width: 100%;
+    color: #fff;
+    font-size: 18px;
+    font-family: 'Poppins',Arial,sans-serif;
+    padding-top: 20px;
+}
+header{
+    background: #5C344E;
+    padding: 10px;
+}
+video{
+    margin-bottom:100px;
+}
+.logo {
+    height: 40px;
+    margin: 0 auto;
+}
+div#videoplayer-box {
+    background: #000;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+#videoplayer-box img {
+    margin-top: 7px;
+    margin-left: 15px;
+}
+.fa {
+    float: right;
+    padding: 10px;
+    font-size: 20px;
+}
+.fa-download {
+  color: white;
+}
+footer{
+    margin-top:25px;
+    background: #5C344E;
+    padding: 15px;
+    bottom:0px;
+    position: fixed;
+    bottom: 0;
+}
+.copy{
+    text-align: center;
+    color: #fff !important;
+    width: 99%;
+    font-size: 12px;
+    font-family: 'Poppins',Arial,sans-serif;
+    margin-top: 20px;
+}
+.video-js .vjs-big-play-button{background-color: transparent !important;}
+.video-js:hover .vjs-big-play-button, .video-js .vjs-big-play-button:focus {
+    border-color: none !important;
+    background-color: transparent !important;
+    background-color: transparent !important;
+    -webkit-transition: all 0s;
+    -moz-transition: all 0s;
+    -ms-transition: all 0s;
+    -o-transition: all 0s;
+    transition: all 0s;
+}
+</style>
+</head>
+<body>
+    <div class="starsonabanner-container">
+        <a href="#" id="smb-close" class="starsonabanner-close">&times;</a>
+        <span class="starsonabanner-icon"></span>
+        <a class="starsonabanner-info storeurl" href="" target="_blank">
+            <span class="starsonabanner-title">Starsona</span>
+        </a>
+        <a href="" target="_blank" class="starsonabanner-button storeurl">
+            Install
+        </a>
+    </div>
+<!--<header class="container-fluid">-->
+    <!--<div class="row" style="text-align:center;">-->
+        <!--<img class="logo" src="/media/web-images/starsona_logo.svg">-->
+    <!--</div>-->
+<!--</header>-->
+<div class="addthis_inline_share_toolbox"></div>
+<div id="wrapper" class="container-fluid">
+        <div class="row">
+                {% if file %}
+            <div class="col-lg-6 offset-lg-4"><h3>{{ title }}</h3></div>
+            <div class="col-lg-6 offset-lg-3" id="videoplayer-box">
+                {% if file_type == 1 %}
+                <img src="{{ file }}" width="600" height="400">
+                {% else %}
+                <video id="my-video" class="video-js col-md-12 vjs-big-play-centered" controls preload="auto" width="640" height="400"
+  poster="{{ thumbnail }}" data-setup="{}">
+    <source src="{{ file }}" type='video/mp4'>
+    <p class="vjs-no-js">
+      To view this video please enable JavaScript, and consider upgrading to a web browser that
+      <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+    </p>
+</video>
+                {% endif %}
+<img src="/media/web-images/starsona_logo.svg" height="20">
+<a class="fa-download fa" target="_blank" href="{{ download_url }}"></a>
+</div>
+                {% else %}
+                <h1>404 <br/>No reaction link was found</h1>
+                {% endif %}
+        </div>
+</div>
+<footer class="container-fluid">
+<div class="footer-logo row">
+<span class="copy"> Copyright &copy; 2018 Starsona inc.</span>
+</div>
+
+</footer>
+<script src="/media/js/jquery.min.js"></script>
+<script src="//vjs.zencdn.net/6.4.0/video.js"></script>
+<!-- Go to www.addthis.com/dashboard to customize your tools -->
+<script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5a98d9cf9534a37e"></script>
+<script type="text/javascript">
+    if (parseInt($(window).width()) < 640){
+        document.getElementById("my-video").width = $(window).width();
+        document.getElementById("my-video").height = "300";
+    }
+    $('#smb-close').click(function(){
+        $('.starsonabanner-container').slideUp();
+    });
+
+    if( /Android/i.test(navigator.userAgent) ) {
+
+        $('.storeurl').attr('href', 'https://play.google.com/store/apps/details?id=com.starsona.app&hl=en');
+    } else if (/iPad|iPhone|iPod/i.test(navigator.userAgent) && !window.MSStream){
+
+        $('.storeurl').attr('href', 'https://itunes.apple.com/app/id1294478616');
+    } else {
+
+        $('.storeurl').attr('href', 'https://play.google.com/store/apps/details?id=com.starsona.app&hl=en');
+    }
+
+    if( /Android/i.test(navigator.userAgent) ) {
+        window.location = android_package+'://video/?video_id={{id}}';
+    }
+
+    <!--if (/iPad|iPhone|iPod/i.test(navigator.userAgent) && !window.MSStream) {-->
+        <!--window.location = ios_package+'://video/?video_id={{id}}';-->
+    <!--}-->
+</script>
+</body>
+</html>

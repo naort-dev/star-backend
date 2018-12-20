@@ -29,7 +29,7 @@ from fcm_django.models import FCMDevice
 from django.db.models import Q
 from django.template.loader import get_template
 import urllib.request
-from stargramz.models import StargramVideo
+from stargramz.models import StargramVideo, Reaction
 from hashids import Hashids
 hashids = Hashids(min_length=8)
 
@@ -281,6 +281,46 @@ def download_video(request, id):
                 response = HttpResponse(fh.read(), content_type='video/mp4')
                 response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(video_download)
                 response['X-Sendfile'] = smart_str(video_download)
+                return response
+    except Exception as e:
+        return HttpResponse(content_type='video/mp4')
+
+
+def download_reaction_file(request, id):
+    """
+        Download the reaction file
+    """
+    try:
+        reaction_id = decode_pk(id)
+    except Exception as e:
+        return HttpResponse(content_type='video/mp4')
+
+    file_download = file_url = None
+    try:
+        video = Reaction.objects.get(id=reaction_id)
+        s3_path = '/reactions/'
+        video_url = get_pre_signed_get_url(video.reaction_file, s3_path)
+        name = video.reaction_file.split(".", 1)[0]
+        if video.file_type == 1:
+            file_download = gettempdir() + '/' + name + '-starsona.jpg'
+            content_type = 'image/jpg'
+        else:
+            file_download = gettempdir() + '/' + name + '-starsona.mp4'
+            content_type = 'video/mp4'
+    except Exception as e:
+        return HttpResponse(content_type='video/mp4')
+
+    try:
+        # Downloading video from s3
+        urllib.request.urlretrieve(video_url, file_download)
+    except Exception as e:
+        return HttpResponse(content_type='video/mp4')
+    try:
+        if os.path.exists(file_download):
+            with open(file_download, 'rb') as fh:
+                response = HttpResponse(fh.read(), content_type=content_type)
+                response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(file_download)
+                response['X-Sendfile'] = smart_str(file_download)
                 return response
     except Exception as e:
         return HttpResponse(content_type='video/mp4')
