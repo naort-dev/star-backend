@@ -53,7 +53,7 @@ def change_request_status_to_pending(request_id):
         return True
 
 
-@app.task(bind=True, max_retries=0)
+@app.task
 def create_request_refund():
     starsona = None
     print('Transaction Task')
