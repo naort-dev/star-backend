@@ -1257,3 +1257,81 @@ def notify_fan_reaction_videos_and_feedback(self, booking_id):
     else:
         print('Already added reactions')
         return True
+
+
+@app.task
+def generate_reaction_video_thumbnail(**kwargs):
+    """
+        Creating the reaction video thumbnail from s3 uploaded video
+    """
+    imageio.plugins.ffmpeg.download()
+
+    reaction_video_id = kwargs.pop('id', None)
+    if reaction_video_id:
+        query_set = Reaction.objects.filter(id=reaction_video_id)
+    else:
+        query_set = Reaction.objects.all()
+
+    videos = query_set
+    s3folder_video_thumb = 'images/reactions/thumb/'
+    s3folder_video = 'videos/reactions/'
+
+    your_media_root = settings.MEDIA_ROOT + 'thumbnails/'
+    thumbnail_name = 'novideo.png'
+    for request_video in videos:
+        if check_file_exist_in_s3(s3folder_video + request_video.reaction_file) is not False:
+
+            try:
+                video_name = request_video.reaction_file
+
+                # Generating the pre-signed s3 URL
+                video_url = get_pre_signed_get_url(video_name, s3folder_video)
+                video_original = your_media_root+video_name
+
+                # Downloading video from s3
+                urllib.request.urlretrieve(video_url, video_original)
+
+                name = video_name.split(".", 1)[0]
+
+                video_thumbnail_name = name+"_reaction_thumbnail.jpg"
+                video_thumb = your_media_root + video_thumbnail_name
+
+                try:
+                    VideoFileClip(video_original)
+                except Exception:
+                    new_file = your_media_root + 'DUP_%s.mp4' % name
+                    fix_corrupted_video(video_original, new_file)
+                    try:
+                        upload_image_s3(new_file, s3folder_video + request_video.reaction_file)
+                    except Exception:
+                        pass
+                    video_original = new_file
+
+                try:
+                    # Creating the image thumbnail from the video
+                    clip = VideoFileClip(video_original)
+                    if clip.rotation in [90, 270]:
+                        clip = clip.resize(clip.size[::-1])
+                        clip.rotation = 0
+                    clip.save_frame(video_thumb, t=0.00)
+                except Exception as e:
+                    print(str(e))
+                    continue
+
+                try:
+                    # Upload the thumbnail image to s3
+                    upload_image_s3(video_thumb, s3folder_video_thumb+video_thumbnail_name)
+                except Exception as e:
+                    print('Upload failed with reason %s', str(e))
+
+                thumbnail_name = video_thumbnail_name
+
+            except (AttributeError, KeyError, IndexError):
+                print('Video file not available in S3 bucket')
+        else:
+            thumbnail_name = 'novideo.png'
+
+        request_video.file_thumbnail = thumbnail_name
+        request_video.save()
+
+    print('Completed video thumbnail creations')
