@@ -383,25 +383,29 @@ class ReactionSerializer(serializers.ModelSerializer):
         fields = ('booking', 'files', 'user')
 
     def create(self, validated_data):
+        from job.tasks import generate_reaction_videos
         files = validated_data.get('files')
         for file in files:
             try:
-                Reaction.objects.create(
+                reaction = Reaction.objects.create(
                     booking=validated_data.get('booking'),
                     user=validated_data.get('user'),
                     file_type=file.get('file_type'),
                     reaction_file=file.get('reaction_file'),
                 )
-            except Exception:
-                pass
+                if file.get('file_type') == 2:
+                    generate_reaction_videos.delay(id=reaction.id)
+            except Exception as e:
+                print(str(e))
         return True
 
 
 class ReactionListingSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField(read_only=True)
     file_type = serializers.ChoiceField(allow_blank=False, required=True, choices=FILE_TYPES.choices())
-    s3_reaction_file_url = serializers.SerializerMethodField(read_only=True)
-    s3_reaction_thumbnail_url = serializers.SerializerMethodField(read_only=True)
+    reaction_file_url = serializers.SerializerMethodField(read_only=True)
+    reaction_thumbnail_url = serializers.SerializerMethodField(read_only=True)
+    share_url = serializers.SerializerMethodField(read_only=True)
 
     def __init__(self, *args, **kwargs):
         self.bucket_url = get_bucket_url()
@@ -409,19 +413,22 @@ class ReactionListingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reaction
-        fields = ('user_name', 'file_type', 'reaction_file', 's3_reaction_file', 's3_reaction_thumbnail')
+        fields = ('user_name', 'file_type', 'reaction_file', 'reaction_file_url', 'reaction_thumbnail_url', 'share_url')
 
     def get_user_name(self, obj):
         return obj.user.get_short_name()
 
-    def get_s3_reaction_file_url(self, obj):
+    def get_reaction_file_url(self, obj):
         return "{}reactions/{}".format(self.bucket_url, obj.reaction_file)
 
-    def get_s3_reaction_thumbnail_url(self, obj):
+    def get_reaction_thumbnail_url(self, obj):
         if obj.file_thumbnail:
             return "{}reactions/{}".format(self.bucket_url, obj.file_thumbnail)
         else:
             return None
+
+    def get_share_url(self, obj):
+        return "{}reactions/{}".format(BASE_URL, hashids.encode(obj.id))
 
 
 class TippingSerializer(serializers.ModelSerializer):
