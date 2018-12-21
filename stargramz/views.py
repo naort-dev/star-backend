@@ -1126,7 +1126,7 @@ def play_reaction_video(request, id):
         title = "Reaction Image from %s" % user if video.file_type == 1 else "Reaction Video from %s" % user
         data = {
             "id": id,
-            "thumbnail": get_s3_public_url(video.file_thumbnail, reaction_thumb_folder),
+            "thumbnail": get_s3_public_url(video.file_thumbnail, reaction_thumb_folder) if video.file_thumbnail else '',
             "file": get_s3_public_url(video.reaction_file, reaction_folder),
             "user": user,
             "base_url": base_url,
