@@ -425,7 +425,7 @@ class ReactionListingSerializer(serializers.ModelSerializer):
 
     def get_reaction_thumbnail_url(self, obj):
         if obj.file_thumbnail:
-            return "{}/reactions/{}".format(self.bucket_url, obj.file_thumbnail)
+            return "{}/reactions/thumbnails/{}".format(self.bucket_url, obj.file_thumbnail)
         else:
             return None
 
