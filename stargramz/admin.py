@@ -1,7 +1,7 @@
 from django.utils.translation import ugettext_lazy as _
 from django.contrib import admin
 from .models import Occasion, Stargramrequest, StargramVideo, OccasionRelationship, ReportAbuse, OrderRelationship,\
-    Comment, Reaction, BookingAdminAdd
+    Comment, Reaction, BookingAdminAdd, ReactionAbuse
 from payments.models import StarsonaTransaction
 from config.models import Config
 from django.utils.safestring import mark_safe
@@ -191,6 +191,14 @@ class AbuseAdmin(ReadOnlyModelAdmin):
 
     request_url.allow_tags = True
     request_url.short_description = 'Request'
+
+
+class ReactionAbuseAdmin(ReadOnlyModelAdmin):
+    list_display = ('id', 'reaction', 'reported_by', 'read_flag')
+    fieldsets = (
+        (_('Basic info'), {'fields': ('reaction', 'comments', 'reported_by', 'read_flag')}),
+    )
+    verbose_name_plural = 'Reaction Abuse Details'
 
 
 class OccasionAdmin(ReadOnlyModelAdmin):
@@ -400,3 +408,4 @@ admin.site.register(Occasion, OccasionAdmin)
 admin.site.register(Stargramrequest, StargramrequestAdmin)
 admin.site.register(StargramVideo, StargramVideosAdmin)
 admin.site.register(OccasionRelationship, OcccassionRelationshipAdmin)
+admin.site.register(ReactionAbuse, ReactionAbuseAdmin)

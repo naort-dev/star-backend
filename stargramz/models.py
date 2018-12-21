@@ -295,3 +295,14 @@ class BookingAdminAdd(Stargramrequest):
         verbose_name = 'Bookings Admin Adding'
         verbose_name_plural = 'Bookings Admin Adding'
         proxy = True
+
+
+class ReactionAbuse(models.Model):
+    reaction = models.ForeignKey('Reaction', related_name='reaction_abuse')
+    comments = models.TextField('Comments')
+    reported_by = models.ForeignKey('users.StargramzUser', related_name='abuse_reported_user')
+    read_flag = models.BooleanField('Verified abuse', default=False)
+    created_date = models.DateTimeField('Created Date', auto_now_add=True)
+
+    def __str__(self):
+        return 'Abuse reported'

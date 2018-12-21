@@ -1,7 +1,7 @@
 from django.conf.urls import url, include
 from .views import OccasionList, StargramzRequest, StargramzVideo, FeaturedVideo, OtherRelationship,\
     RequestList, ChangeRequestStatus, RequestReportAbuse, CommentsView, BookingFeedbackView, RequesterWatchedVideo,\
-    ReactionsListing
+    ReactionsListing, RequestReactionAbuse
 from rest_framework.routers import DefaultRouter
 
 
@@ -15,6 +15,7 @@ urlpatterns = [
     url(r'^feedback/$', BookingFeedbackView.as_view(), name='feedback'),
     url(r'^readvideo/(?P<pk>[0-9a-zA-Z]{5,8})/$', RequesterWatchedVideo.as_view(), name='feedback'),
     url(r'^reactions/(?P<pk>[0-9a-zA-Z]{5,8})/$', ReactionsListing.as_view(), name='reaction_listing'),
+    url(r'^reaction_abuse/$', RequestReactionAbuse.as_view(), name='reaction-abuse'),
 ]
 
 router = DefaultRouter()
