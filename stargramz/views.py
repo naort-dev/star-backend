@@ -1176,6 +1176,6 @@ class RequestReactionAbuse(APIView, ResponseViewMixin):
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Already Reported')
 
             serializer.save()
-            return self.jp_response('HTTP_200_OK', data={'reported_abuse': "Added the request to Abuse list"})
+            return self.jp_response('HTTP_200_OK', data={'reaction_abuse': "Added the request to Abuse list"})
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', self.error_msg_string(serializer.errors))
