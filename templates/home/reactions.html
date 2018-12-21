@@ -2,7 +2,7 @@
 <html prefix="og: http://ogp.me/ns#">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>{{ page_title }}</title>
+    <title>{{ title }}</title>
     <link rel="shortcut icon" type="image/png" href="/media/web-images/favicon.png"/>
     <link rel='shortcut icon' type='image/x-icon' href="/media/web-images/favicon.ico"/>
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -35,7 +35,7 @@
     <meta itemprop="description" content="{{ desc }}">
     <meta itemprop="image" content="{{ thumbnail }}">
 
-    {% include "home/apps.html" with request='video' arg='video_id' %}
+    {% include "home/apps.html" with request='reactions' arg='reaction_id' %}
 
     <script src="https://vjs.zencdn.net/ie8/1.1.2/videojs-ie8.min.js"></script>
     <style>

@@ -1114,39 +1114,31 @@ def play_reaction_video(request, id):
     """
         Web view for sharing and viewing reaction videos and photos
     """
-
     try:
         video_id = decode_pk(id)
         video = Reaction.objects.get(id=video_id)
         base_url = Config.objects.get(key='base_url').value
-    except Exception:
-        return render(request=request, template_name='home/404.html')
-    reaction_folder = 'reactions/'
-    reaction_thumb_folder = 'reactions/thumbnails/'
-    user = video.user.get_short_name()
-    celebrity = video.booking.celebrity.get_short_name()
 
-    if video.file_type == 1:
-        """When the reaction file is image"""
-
-        title = "Reaction Image from %s" % video.user.get_short_name()
-    else:
-        """When the reaction file is video"""
-
-        title = "Reaction Video from %s" % video.user.get_short_name()
-    data = {
-        "id": id,
-        "thumbnail": get_s3_public_url(video.file_thumbnail, reaction_thumb_folder),
-        "file": get_s3_public_url(video.reaction_file, reaction_folder),
-        "user": user,
-        "base_url": base_url,
-        "file_type": video.file_type,
-        "download_url": "%sdownload_reactions/%s" % (base_url, id),
-        "url": "%sreactions/%s" % (base_url, id),
-        "title": title,
-        "desc": "Reaction of %s for the starsona video of %s" % (user, celebrity)
-    }
-    return render(request=request, template_name='home/reactions.html', context=data)
+        reaction_folder = 'reactions/'
+        reaction_thumb_folder = 'reactions/thumbnails/'
+        user = video.user.get_short_name()
+        celebrity = video.booking.celebrity.get_short_name()
+        title = "Reaction Image from %s" % user if video.file_type == 1 else "Reaction Video from %s" % user
+        data = {
+            "id": id,
+            "thumbnail": get_s3_public_url(video.file_thumbnail, reaction_thumb_folder),
+            "file": get_s3_public_url(video.reaction_file, reaction_folder),
+            "user": user,
+            "base_url": base_url,
+            "file_type": video.file_type,
+            "download_url": "%sdownload_reactions/%s" % (base_url, id),
+            "url": "%sreactions/%s" % (base_url, id),
+            "title": title,
+            "desc": "Reaction of %s for the starsona video of %s" % (user, celebrity)
+        }
+        return render(request=request, template_name='home/reactions.html', context=data)
+    except Exception as e:
+        return render(request=request, template_name='home/404.html', context={'message': str(e)})
 
 
 class RequestReactionAbuse(APIView, ResponseViewMixin):
