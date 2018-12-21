@@ -35,7 +35,7 @@
     <meta itemprop="description" content="{{ desc }}">
     <meta itemprop="image" content="{{ thumbnail }}">
 
-    {% include "home/apps.html" with request='reactions' arg='reaction_id' %}
+    {% include "home/apps.html" with request='reactionmedia' arg='reaction_id' %}
 
     <script src="https://vjs.zencdn.net/ie8/1.1.2/videojs-ie8.min.js"></script>
     <style>
@@ -302,7 +302,7 @@ footer{
             <div class="col-lg-6 offset-lg-4"><h3 style="font-family: 'Poppins',Arial,sans-serif">{{ title }}</h3></div>
             <div class="col-lg-6 offset-lg-3" id="videoplayer-box">
                 {% if file_type == 1 %}
-                <img src="{{ file }}" width="600" height="400">
+                <img src="{{ file }}" width="100%">
                 {% else %}
                 <video id="my-video" class="video-js col-md-12 vjs-big-play-centered" controls preload="auto" width="640" height="400"
   poster="{{ thumbnail }}" data-setup="{}">
