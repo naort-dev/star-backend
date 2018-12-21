@@ -394,9 +394,15 @@ class ReactionSerializer(serializers.ModelSerializer):
                     reaction_file=file.get('reaction_file'),
                 )
                 if file.get('file_type') == 2:
-                    generate_reaction_videos.delay(id=reaction.id)
+                    generate_reaction_videos.apply_async(
+                        (reaction.id,),
+                        eta=datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+                    )
                 elif file.get('file_type') == 1:
-                    generate_reaction_image.delay(id=reaction.id)
+                    generate_reaction_image.apply_async(
+                        (reaction.id,),
+                        eta=datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+                    )
             except Exception as e:
                 print(str(e))
         return True

@@ -1260,15 +1260,15 @@ def notify_fan_reaction_videos_and_feedback(self, booking_id):
         return True
 
 
-@app.task(bind=True)
-def generate_reaction_videos(self, **kwargs):
+@app.task(name='generate_reaction_videos')
+def generate_reaction_videos(reaction_id):
     """
         Creating the reaction video thumbnail from s3 uploaded video
     """
     imageio.plugins.ffmpeg.download()
-    reaction_video_id = kwargs.pop('id', None)
-    if reaction_video_id:
-        reactions = Reaction.objects.get(id=reaction_video_id, file_type=2)
+
+    if reaction_id:
+        reactions = Reaction.objects.get(id=reaction_id, file_type=2, file_thumbnail__isnull=True)
     else:
         return True
 
@@ -1373,15 +1373,14 @@ def generate_reaction_videos(self, **kwargs):
     print('Completed reactions thumbnail creations.')
 
 
-@app.task(bind=True)
-def generate_reaction_image(self, **kwargs):
+@app.task(name='generate_reaction_image')
+def generate_reaction_image(reaction_id):
     """
         Generate thumbnail for reactions image
     """
 
-    reaction_video_id = kwargs.pop('id', None)
-    if reaction_video_id:
-        reactions = Reaction.objects.get(id=reaction_video_id, file_type=1)
+    if reaction_id:
+        reactions = Reaction.objects.get(id=reaction_id, file_type=1, file_thumbnail__isnull=True)
     else:
         return True
 
@@ -1398,6 +1397,7 @@ def generate_reaction_image(self, **kwargs):
             urllib.request.urlretrieve(img_url, image_original)
             thumbnail_name = "reaction_thumbnail_" + reactions.reaction_file
             thumbnail = your_media_root + thumbnail_name
+            new_image_original = your_media_root + reactions.reaction_file
             # Rotate image based on orientation
             rotate_image(image_original)
 
@@ -1406,12 +1406,16 @@ def generate_reaction_image(self, **kwargs):
                 thumb = Image.open(image_original)
                 thumb.thumbnail(size, Image.LANCZOS)
                 thumb.save(thumbnail, quality=80, optimize=True)
+
+                main_image = Image.open(image_original)
+                main_image.save(new_image_original, quality=80, optimize=True)
             except Exception as e:
                 print(str(e))
 
             try:
                 # Uploading the image to s3
                 upload_image_s3(thumbnail, s3folder_thumb + thumbnail_name)
+                upload_image_s3(image_original, s3folder + reactions.reaction_file)
             except Exception as e:
                 print('Upload failed with reason %s', str(e))
 
@@ -1425,18 +1429,3 @@ def generate_reaction_image(self, **kwargs):
         print('Thumbnail image uploaded to S3 bucket')
     else:
         print('File not found.')
-
-
-@app.task(name='generate_reactions_thumb')
-def generate_reactions_thumb():
-    """
-        Generating reactions
-    """
-    reactions = Reaction.objects.filter(file_thumbnail__isnull=True)
-
-    for reaction in reactions:
-        if reaction.file_type == 1:
-            generate_reaction_image.delay(id=reaction.id)
-        elif reaction.file_type == 2:
-            generate_reaction_videos.delay(id=reaction.id)
-    print("Generating reaction task added.")
