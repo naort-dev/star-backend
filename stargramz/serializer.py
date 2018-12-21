@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Occasion, Stargramrequest, StargramVideo, OccasionRelationship, ReportAbuse, REQUEST_TYPES, \
-    Comment, Reaction, FILE_TYPES
+    Comment, Reaction, FILE_TYPES, ReactionAbuse
 from config.models import Config
 from config.constants import *
 import json
@@ -408,6 +408,7 @@ class ReactionListingSerializer(serializers.ModelSerializer):
     reaction_file_url = serializers.SerializerMethodField(read_only=True)
     reaction_thumbnail_url = serializers.SerializerMethodField(read_only=True)
     share_url = serializers.SerializerMethodField(read_only=True)
+    reaction_id = serializers.SerializerMethodField(read_only=True)
 
     def __init__(self, *args, **kwargs):
         self.bucket_url = get_bucket_url()
@@ -415,7 +416,7 @@ class ReactionListingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reaction
-        fields = ('user_name', 'file_type', 'reaction_file', 'reaction_file_url', 'reaction_thumbnail_url', 'share_url')
+        fields = ('reaction_id', 'user_name', 'file_type', 'reaction_file', 'reaction_file_url', 'reaction_thumbnail_url', 'share_url')
 
     def get_user_name(self, obj):
         return obj.user.get_short_name()
@@ -432,9 +433,19 @@ class ReactionListingSerializer(serializers.ModelSerializer):
     def get_share_url(self, obj):
         return "{}reactions/{}".format(BASE_URL, hashids.encode(obj.id))
 
+    def get_reaction_id(self, obj):
+        return hashids.encode(obj.id)
+
 
 class TippingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TipPayment
         fields = ('amount', 'comments')
+
+
+class ReactionAbuseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ReactionAbuse
+        fields = ('reaction', 'comments', 'reported_by')

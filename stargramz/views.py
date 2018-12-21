@@ -5,7 +5,7 @@ from rest_framework import viewsets
 from utilities.mixins import ResponseViewMixin
 from .serializer import OccasionSerializer, StargramzSerializer, StargramzVideoSerializer, StargramzRetrieveSerializer,\
     RequestStatusSerializer, ReportAbuseSerializer, OccasionCreateSerializer, CommentSerializer, \
-    CommentReplySerializer, ReactionSerializer, ReactionListingSerializer, TippingSerializer
+    CommentReplySerializer, ReactionSerializer, ReactionListingSerializer, TippingSerializer, ReactionAbuseSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from utilities.konstants import ROLES, NOTIFICATION_TYPES
@@ -16,7 +16,7 @@ from users.models import StargramzUser, Celebrity, UserRoleMapping, ProfileImage
 from users.serializer import CelebrityRatingSerializer
 import json
 from .models import Stargramrequest, StargramVideo, OccasionRelationship, Occasion, STATUS_TYPES, REQUEST_TYPES,\
-    VIDEO_STATUS, Comment, Reaction
+    VIDEO_STATUS, Comment, Reaction, ReactionAbuse
 from rest_framework.viewsets import ViewSet, GenericViewSet
 from utilities.pagination import CustomOffsetPagination
 import datetime
@@ -1147,3 +1147,31 @@ def play_reaction_video(request, id):
         "desc": "Reaction of %s for the starsona video of %s" % (user, celebrity)
     }
     return render(request=request, template_name='home/reactions.html', context=data)
+
+
+class RequestReactionAbuse(APIView, ResponseViewMixin):
+    """
+        Report Abuse in the reactions
+    """
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission)
+
+    def post(self, request):
+        try:
+            request.data['reaction'] = decode_pk(request.data['reaction'])
+            user = StargramzUser.objects.get(username=request.user)
+            request.data['reported_by'] = user.id
+            serializer = ReactionAbuseSerializer(data=request.data)
+        except Exception:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', "Access Denied")
+        if serializer.is_valid():
+            reaction_abuse = ReactionAbuse.objects.filter(
+                reaction=serializer.validated_data['reaction'], reported_by=serializer.validated_data['reported_by']
+            )
+            if reaction_abuse:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Already Reported')
+
+            serializer.save()
+            return self.jp_response('HTTP_200_OK', data={'reported_abuse': "Added the request to Abuse list"})
+
+        return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', self.error_msg_string(serializer.errors))
