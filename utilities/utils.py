@@ -302,8 +302,8 @@ def download_reaction_file(request, id):
         video_url = get_pre_signed_get_url(video.reaction_file, s3_path)
         name = video.reaction_file.split(".", 1)[0]
         if video.file_type == 1:
-            file_download = gettempdir() + '/' + name + '-starsona.jpg'
-            content_type = 'image/jpg'
+            file_download = gettempdir() + '/' + video.reaction_file
+            content_type = 'image/*'
         else:
             file_download = gettempdir() + '/' + name + '-starsona.mp4'
             content_type = 'video/mp4'
