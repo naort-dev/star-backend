@@ -36,7 +36,7 @@ app.conf.beat_schedule = {
     },
     'schedule-3': {
         'task': 'cancel_notification_no_response',
-        'schedule': crontab(minute=0, hour=0, nowfun=get_now_fun),
+        'schedule': crontab(minute=0, hour='*/1', nowfun=get_now_fun),
     },
     'schedule-4': {
         'task': 'remove_unused_fcm_tokens',
@@ -66,10 +66,6 @@ app.conf.beat_schedule = {
     #    'task': 'cancel_booking_on_seven_days_completion',
     #    'schedule': crontab(minute=0, hour=0),
     #},
-    'schedule-9': {
-        'task': 'generate_reactions_thumb',
-        'schedule': crontab(minute=0, hour=15),
-    },
 }
 app.conf.timezone = 'UTC'
 app.conf.task_routes = {
