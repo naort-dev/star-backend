@@ -1158,20 +1158,24 @@ class RequestReactionAbuse(APIView, ResponseViewMixin):
 
     def post(self, request):
         try:
-            request.data['reaction'] = decode_pk(request.data['reaction'])
             user = StargramzUser.objects.get(username=request.user)
+        except Exception:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_USER', "Invalid user")
+        try:
+            request.data['reaction'] = decode_pk(request.data['reaction'])
             request.data['reported_by'] = user.id
             serializer = ReactionAbuseSerializer(data=request.data)
         except Exception:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', "Access Denied")
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', "Incorrect Reaction Id")
         if serializer.is_valid():
             reaction_abuse = ReactionAbuse.objects.filter(
-                reaction=serializer.validated_data['reaction'], reported_by=serializer.validated_data['reported_by']
+                reaction=serializer.validated_data.get('reaction'),
+                reported_by=serializer.validated_data.get('reported_by')
             )
             if reaction_abuse:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Already Reported')
 
             serializer.save()
             return self.jp_response('HTTP_200_OK', data={'reported_abuse': "Added the request to Abuse list"})
-
-        return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', self.error_msg_string(serializer.errors))
+        else:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', self.error_msg_string(serializer.errors))
