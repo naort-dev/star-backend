@@ -32,7 +32,7 @@ urlpatterns = [
     url(r'^representative/email_verification/(?P<rep_id>[0-9a-zA-Z]{5,8})', celebrity_representative_email_verification),
     url(r'^applinks/reset$', TemplateView.as_view(template_name="home/index.html")),
     url(r'^(?P<id>[0-9a-zA-Z]{5,8})/$', play_video, name="play-video"),
-    url(r'^reactions/(?P<id>[0-9a-zA-Z]{5,8})/$', play_reaction_video, name="play-reaction-video"),
+    url(r'^reaction/(?P<id>[0-9a-zA-Z]{5,8})/$', play_reaction_video, name="play-reaction-video"),
     url(r'^private/video/(?P<vname>.+)$', get_bucket_private_url, name="get-bucket-url"),
     url(r'^video/(?P<id>[0-9a-zA-Z]{5,8})/$', play_video, name="play-video"),
     url(r'^applinks/profile/(?P<user_id>[-\w]+)/$', profile_detail, name="profile-details"),

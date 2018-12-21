@@ -300,7 +300,7 @@ footer{
         <div class="row">
                 {% if file %}
             <div class="col-lg-6 offset-lg-4"><h3 style="font-family: 'Poppins',Arial,sans-serif">{{ title }}</h3></div>
-            <div class="col-lg-6 offset-lg-3" id="videoplayer-box">
+            <div class="col-lg-6 offset-lg-3" id="videoplayer-box" style="overflow:hidden;">
                 {% if file_type == 1 %}
                 <img src="{{ file }}" width="95%">
                 {% else %}
@@ -350,14 +350,6 @@ footer{
 
         $('.storeurl').attr('href', 'https://play.google.com/store/apps/details?id=com.starsona.app&hl=en');
     }
-
-    if( /Android/i.test(navigator.userAgent) ) {
-        window.location = android_package+'://video/?video_id={{id}}';
-    }
-
-    <!--if (/iPad|iPhone|iPod/i.test(navigator.userAgent) && !window.MSStream) {-->
-        <!--window.location = ios_package+'://video/?video_id={{id}}';-->
-    <!--}-->
 </script>
 </body>
 </html>

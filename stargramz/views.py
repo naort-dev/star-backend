@@ -1132,7 +1132,7 @@ def play_reaction_video(request, id):
             "base_url": base_url,
             "file_type": video.file_type,
             "download_url": "%sdownload_reactions/%s" % (base_url, id),
-            "url": "%sreactions/%s" % (base_url, id),
+            "url": "%sreaction/%s" % (base_url, id),
             "title": title,
             "desc": "Reaction of %s for the starsona video of %s" % (user, celebrity)
         }
