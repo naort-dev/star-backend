@@ -142,9 +142,9 @@ class WidgetView(APIView, ResponseViewMixin):
                 x = 0
                 y = 0
                 for i in range(6):
-                    output_row = []
                     if month < 1:
                         month = 12
+                        date = date.replace(year=date.year-1)
                     if len(rows3) > x:
                         if rows3[x][0].month == month:
                             output_row = [rows3[x][0], rows3[x][1], rows3[x][2]]
@@ -152,7 +152,7 @@ class WidgetView(APIView, ResponseViewMixin):
                         else:
                             output_row = [date.replace(month=month), 0, 0]
                     else:
-                         output_row = [date.replace(month=month), 0, 0]
+                        output_row = [date.replace(month=month), 0, 0]
                     if len(rows4) > y:
                         if rows4[y][0].month == month:
                             output_row.append(rows4[y][1])
