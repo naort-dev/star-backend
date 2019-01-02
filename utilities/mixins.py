@@ -40,6 +40,19 @@ class ResponseViewMixin(object):
                         content_type='application/json'
                         )
 
+    def stripe_exception_response(self, data=None):
+        """
+        Filter out the unwanted parts of the exception message
+        :param data:
+        :return:
+        """
+        msg = data
+        if data:
+            data = data.split(':')
+            if len(data) > 2:
+                msg = data[1]
+        return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', msg)
+
     def exception_response(self, data=None):
         return self.jp_error_response('HTTP_500_INTERNAL_SERVER_ERROR', 'EXCEPTION', data)
 
