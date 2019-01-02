@@ -218,7 +218,7 @@ class ReferralValidate(APIView, ResponseViewMixin):
 
     def post(self, request):
         try:
-            referral_code = request.data.get('referral_code', None)
+            referral_code = request.data.get('referral_code').upper() if request.data.get('referral_code', None) else None
             StargramzUser.objects.values_list('id', flat=True).get(referral_code=referral_code, referral_active=True)
             return self.jp_response(s_code='HTTP_200_OK', data={'message': 'Valid promo code'})
         except StargramzUser.DoesNotExist:

@@ -117,7 +117,7 @@ class CreateChargeFan(APIView, ResponseViewMixin):
             try:
                 request_charge = stripe.Source.retrieve(request.data['source'], api_key=API_KEY)
             except Exception as e:
-                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', str(e))
+                return self.stripe_exception_response(str(e))
             transaction = StarsonaTransaction.objects.create(
                 starsona_id=request.data['starsona'],
                 fan_id=customer.id,

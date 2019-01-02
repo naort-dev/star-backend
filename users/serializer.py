@@ -195,7 +195,7 @@ def create_referral(referral_code, user):
     if referral_code:
         try:
             referrer_id = StargramzUser.objects.values_list('id', flat=True) \
-                .get(referral_code=referral_code, referral_active=True)
+                .get(referral_code=referral_code.upper(), referral_active=True)
             Referral.objects.create(referrer_id=referrer_id, referee=user, source="branch.io")
         except StargramzUser.DoesNotExist:
             pass
