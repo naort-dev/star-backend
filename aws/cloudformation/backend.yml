@@ -340,7 +340,7 @@ Resources:
       Type: AWS::ElastiCache::ParameterGroup
       Properties:
         Description: !Ref 'AWS::StackName'
-        CacheParameterGroupFamily: 'memcached1.4'
+        CacheParameterGroupFamily: 'memcached1.5'
         Properties:
           cas_disabled: 1
 
