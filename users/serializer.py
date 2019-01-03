@@ -537,9 +537,12 @@ class CelebrityProfessionSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         mains = {}
-        professions = Profession.objects.filter(parent=None).values('title', 'id')
-        for profession in professions:
-            mains.update({profession['id']: profession['title']})
+        try:
+            professions = Profession.objects.filter(parent=None).values('title', 'id')
+            for profession in professions:
+                mains.update({profession['id']: profession['title']})
+        except Exception:
+            pass
         self.parent_professions = mains
         super().__init__(*args, **kwargs)
 
