@@ -17,6 +17,7 @@ Parameters:
     Type: String
     AllowedValues:
     - dev
+    - hot
     - live
     Description: Environment type
 
@@ -48,6 +49,7 @@ Parameters:
     AllowedValues:
     - starsona-stb-usea1
     - starsona-prb-usea1
+    - starsona-htb-usea1
     - starsona
     Description: S3 Bucket name
 
