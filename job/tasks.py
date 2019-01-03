@@ -13,7 +13,7 @@ import os
 from PIL import Image, ExifTags, ImageOps
 from django.conf import settings
 from django.template.loader import get_template
-from users.models import ProfileImage, Celebrity, StargramzUser, Campaign
+from users.models import ProfileImage, Celebrity, StargramzUser, Campaign, CelebrityGroupAccount
 from config.models import Config
 from config.constants import *
 from utilities.utils import get_pre_signed_get_url, upload_image_s3, SendMail, verify_user_for_notifications,\
@@ -1429,3 +1429,56 @@ def generate_reaction_image(reaction_id):
         print('Thumbnail image uploaded to S3 bucket')
     else:
         print('File not found.')
+
+
+@app.task
+def group_notify(group_details):
+    """
+        Send a notification mail to the group when a celebrity supports it
+    :param group_details:
+    :return:
+    """
+    for group in group_details:
+        try:
+            group = CelebrityGroupAccount.objects.get(id=group)
+            ctx = {
+                'account_name': group.account.get_short_name(),
+                'celebrity_name': group.user.get_short_name(),
+                'redirect_link': generate_branch_io_url(
+                    desktop_url='%ssettings' % BASE_URL,
+                    mob_url='%ssettings' % BASE_URL,
+                    image_url='%smedia/web-images/starsona_logo.png' % BASE_URL,
+                    title='Group Joining Request',
+                    desc='Group Joining Request',
+                )
+            }
+            sent_email(group.account.email, 'Group Invite Request', 'group_join_notify', ctx)
+        except Exception:
+            pass
+
+
+@app.task
+def invite_celebrity_notify(group_details):
+    """
+        Send a notification mail to the celebrity when group invites that celebrity
+    :param group_details:
+    :return:
+    """
+    for group in group_details:
+        try:
+            group = CelebrityGroupAccount.objects.get(id=group)
+            ctx = {
+                'account_name': group.account.get_short_name(),
+                'celebrity_name': group.user.get_short_name(),
+                'redirect_link': generate_branch_io_url(
+                    desktop_url='%ssettings' % BASE_URL,
+                    mob_url='%ssettings' % BASE_URL,
+                    image_url='%smedia/web-images/starsona_logo.png' % BASE_URL,
+                    title='Group Invite',
+                    desc='Group Invite',
+                ),
+                'joining_link': '%ssettings' % BASE_URL
+            }
+            sent_email(group.user.email, 'Group Invite', 'group_invite_notify', ctx)
+        except Exception:
+            pass
