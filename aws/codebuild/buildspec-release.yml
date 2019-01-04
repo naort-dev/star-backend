@@ -1,0 +1,17 @@
+version: 0.2
+
+env:
+  variables:
+    GIT_SSH_COMMAND: "ssh -i ~/.ssh/id_rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+
+phases:
+  install:
+    commands:
+      - apt-get update && apt-get install -y openssh-client jq
+      - mkdir -p ~/.ssh/ && chmod 700 ~/.ssh/
+      - aws ssm get-parameter --name /codebuild/github/backend/key.pem | jq -r .Parameter.Value > ~/.ssh/id_rsa
+      - chmod 600 ~/.ssh/id_rsa
+      - chmod +x aws/scripts/release.sh
+  build:
+    commands:
+      - aws/scripts/release.sh 'git@github.com:Starsona/backend.git'

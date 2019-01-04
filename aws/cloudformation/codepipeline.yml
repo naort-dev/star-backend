@@ -117,6 +117,27 @@ Resources:
         BuildSpec: aws/codebuild/buildspec-migrations.yml
       TimeoutInMinutes: 15
 
+  CreateRelease:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Join ['-', [!Ref 'AWS::StackName', 'create-release']]
+      Description: Create release
+      ServiceRole: arn:aws:iam::376169159073:role/service-role/codebuild-starsona-service-role
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/ubuntu-base:14.04
+        PrivilegedMode: false
+        EnvironmentVariables:
+        - { Name: GIT_BRANCH, Value: !Ref 'GitBranch' }
+
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: aws/codebuild/buildspec-release.yml
+      TimeoutInMinutes: 15
+
   Pipeline:
     Type: "AWS::CodePipeline::Pipeline"
     Properties:
@@ -206,6 +227,21 @@ Resources:
                 NotificationArn: arn:aws:sns:us-east-1:376169159073:ProductionDeploymentApproval
                 CustomData: Approve production deployment.
               RunOrder: 1
+        -
+          Name: Release
+          Actions:
+          -
+            Name: release
+            InputArtifacts:
+            - Name: source
+            ActionTypeId:
+              Category: Build
+              Owner: AWS
+              Version: 1
+              Provider: CodeBuild
+            Configuration:
+              ProjectName: !Ref 'CreateRelease'
+            RunOrder: 1
         -
           Name: Production
           Actions:

@@ -315,11 +315,13 @@ Resources:
       - PublicLoadBalancerCertificate1
       - PublicLoadBalancerCertificate2
       - PublicLoadBalancerCertificate3
+      - PublicLoadBalancerCertificate4
     Properties:
       Certificates:
         - CertificateArn: !Ref 'PublicLoadBalancerCertificate1'
         - CertificateArn: !Ref 'PublicLoadBalancerCertificate2'
         - CertificateArn: !Ref 'PublicLoadBalancerCertificate3'
+        - CertificateArn: !Ref 'PublicLoadBalancerCertificate4'
       ListenerArn: !Ref 'PublicLoadBalancerListenerHTTPS'
 
   PublicLoadBalancerCertificate:
@@ -356,6 +358,14 @@ Resources:
       - 'www.staging.starsona.com'
       DomainValidationOptions:
       - DomainName: 'staging.starsona.com'
+        ValidationDomain: !Ref 'ValidationDomain'
+
+  PublicLoadBalancerCertificate4:
+    Type: "AWS::CertificateManager::Certificate"
+    Properties:
+      DomainName: 'app.hotfix.starsona.com'
+      DomainValidationOptions:
+      - DomainName: 'app.hotfix.starsona.com'
         ValidationDomain: !Ref 'ValidationDomain'
 
   # This is an IAM role which authorizes ECS to manage resources on your
