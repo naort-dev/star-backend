@@ -6,7 +6,7 @@ from users.authenticate_views import UserRegister, UserLogin, EmailValidate, Soc
     ValidateSocialSignup, FilterProfessions, UpdateBookingCount, GetAWSSignedUrl, GetAWSSignedPostUrl, SocialMediaUrls, \
     ValidateMobile, VerifyMobile
 from users.group_views import GroupAccountList, GroupAccountsView, GroupTypesView, JoinGroupView, \
-    GroupAccountProfileFollow, GetMembersList
+    GroupAccountProfileFollow, GetMembersList, GroupTypesListing
 from .fan_views import CelebrityList, ApproveFan, CelebrityRate, CelebrityProfileFollow, CelebrityFanAbuse, \
     CelebritySuggestionList, FanFavouriteStars
 from .celebrity_views import CelebrityManagement, NotifyAdmin, ReferralRequest, ReferralList, ReferralValidate, \
@@ -48,6 +48,7 @@ urlpatterns = [
     url(r'^get_signed_url/$', GetAWSSignedUrl.as_view(), name='signed-aws-get-url'),
     url(r'^group_account/$', GroupAccountsView.as_view(), name='group-account'),
     url(r'^group_types/$', GroupTypesView.as_view(), name='group-types'),
+    url(r'^active_group_types/$', GroupTypesListing.as_view(), name='group-types-list'),
     url(r'^join_group/$', JoinGroupView.as_view(), name='join-group'),
     url(r'^social_links/$', SocialMediaUrls.as_view(), name='social-links'),
     url(r'^fan/group_follow/$', GroupAccountProfileFollow.as_view(), name='group-follow'),
