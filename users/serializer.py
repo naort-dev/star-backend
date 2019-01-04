@@ -968,20 +968,27 @@ class JoinGroupSerializer(serializers.ModelSerializer):
         fields = ('account', 'user', 'celebrity_invite')
 
     def validate(self, data):
-        accounts_name = data.get('account')
+        accounts_list = data.get('account')
         try:
-            data['account'] = get_user_id(accounts_name)
+            if accounts_list:
+                accounts_list = accounts_list.split(',')
+            data['account'] = [get_user_id(accounts.lstrip()) for accounts in accounts_list]
         except Exception:
             raise serializers.ValidationError({"error": "Invalid Group account"})
         return data
 
     def create(self, validated_data):
-        celebrity_account, created = CelebrityGroupAccount.objects.update_or_create(
-            user=validated_data.get('user'),
-            account=validated_data.get('account'),
-            defaults=validated_data
-        )
-        return celebrity_account
+        accounts = validated_data.get('account')
+        del validated_data['account']
+        celebrity_accounts = []
+        for account in accounts:
+            celebrity_account, created = CelebrityGroupAccount.objects.update_or_create(
+                user=validated_data.get('user'),
+                account=account,
+                defaults=validated_data
+            )
+            celebrity_accounts.append(celebrity_account)
+        return celebrity_accounts
 
 
 class JoinGroupCelebritySerializer(serializers.ModelSerializer):
@@ -993,20 +1000,27 @@ class JoinGroupCelebritySerializer(serializers.ModelSerializer):
         fields = ('account', 'user', 'approved')
 
     def validate(self, data):
-        celebrity_name = data.get('user')
+        celebrity_list = data.get('user')
         try:
-            data['user'] = get_user_id(celebrity_name)
+            if celebrity_list:
+                celebrity_list = celebrity_list.split(',')
+            data['user'] = [get_user_id(celebrity.lstrip()) for celebrity in celebrity_list]
         except Exception:
             raise serializers.ValidationError({"error": "Invalid Group account"})
         return data
 
     def create(self, validated_data):
-        celebrity_account, created = CelebrityGroupAccount.objects.update_or_create(
-            user=validated_data.get('user'),
-            account=validated_data.get('account'),
-            defaults=validated_data
-        )
-        return celebrity_account
+        celebrity_list = validated_data.get('user')
+        del validated_data['user']
+        celebrities = []
+        for celebrity in celebrity_list:
+            celebrity_account, created = CelebrityGroupAccount.objects.update_or_create(
+                user=celebrity,
+                account=validated_data.get('account'),
+                defaults=validated_data
+            )
+            celebrities.append(celebrity_account)
+        return celebrities
 
 
 class SocialMediaSerializer(serializers.Serializer):
@@ -1029,9 +1043,22 @@ class SocialMediaLinkSerializer(serializers.ModelSerializer):
 
 class CelebrityGroupAccountSerializer(serializers.ModelSerializer):
 
+    account = serializers.SerializerMethodField(read_only=True)
+    celebrity = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = CelebrityGroupAccount
-        fields = ('approved', 'celebrity_invite')
+        fields = ('account', 'celebrity', 'approved', 'celebrity_invite')
+
+    def get_account(self, obj):
+        try:
+            vanity = VanityUrl.objects.get(user=obj.account).name
+            return vanity
+        except Exception:
+            return None
+
+    def get_celebrity(self, obj):
+        return obj.user.get_short_name()
 
 
 class GroupFollowSerializer(serializers.Serializer):

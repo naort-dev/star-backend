@@ -5,13 +5,14 @@ from rest_framework.viewsets import GenericViewSet
 from utilities.permissions import CustomPermission
 from utilities.mixins import ResponseViewMixin
 from utilities.pagination import CustomOffsetPagination
-from utilities.utils import ROLES, get_user_id, decode_pk, group_notify, invite_celebrity_notify
+from utilities.utils import ROLES, get_user_id, decode_pk
 from users.models import StargramzUser, GroupAccount, GroupType, CelebrityGroupAccount, CelebrityFollow
 from users.serializer import GroupListSerializer, GroupAccountSerializer, \
     GroupTypeSerializer, JoinGroupSerializer, GroupFollowSerializer, MemberListSerializer,\
     JoinGroupCelebritySerializer, GroupTypeListSerializer, CelebrityGroupAccountSerializer
 from django.db.models import Q
 from .utils import search_name
+from job.tasks import group_notify, invite_celebrity_notify
 
 
 class GroupAccountsView(APIView, ResponseViewMixin):
@@ -118,8 +119,9 @@ class JoinGroupView(APIView, ResponseViewMixin):
                 validator = JoinGroupSerializer(data=request.data)
                 if validator.is_valid():
                     group_details = validator.save()
-                    serialized = CelebrityGroupAccountSerializer(group_details).data
-                    group_notify(user, account)
+                    serialized = CelebrityGroupAccountSerializer(group_details, many=True).data
+                    group_details = [group.id for group in group_details]
+                    group_notify.delay(group_details)
                     return self.jp_response(s_code='HTTP_200_OK', data=serialized)
                 else:
                     return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', data=validator.errors)
@@ -130,8 +132,9 @@ class JoinGroupView(APIView, ResponseViewMixin):
                 validator = JoinGroupCelebritySerializer(data=request.data)
                 if validator.is_valid():
                     group_details = validator.save()
-                    serialized = CelebrityGroupAccountSerializer(group_details).data
-                    invite_celebrity_notify(user, validator.validated_data.get('user'))
+                    serialized = CelebrityGroupAccountSerializer(group_details, many=True).data
+                    group_details = [group.id for group in group_details]
+                    invite_celebrity_notify.delay(group_details)
                     return self.jp_response(s_code='HTTP_200_OK', data=serialized)
                 else:
                     return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', data=validator.errors)
