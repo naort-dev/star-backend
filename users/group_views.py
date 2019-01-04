@@ -67,6 +67,20 @@ class GroupTypesView(APIView, ResponseViewMixin):
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
 
 
+class GroupTypesListing(APIView, ResponseViewMixin):
+
+    def get(self, request):
+        self.permission_classes = (CustomPermission,)
+        try:
+            groups = GroupAccount.objects.filter(admin_approval=True).values_list('group_type', flat=True).distinct()
+            group_types_list = [group for group in groups]
+            group_types_list = GroupType.objects.filter(id__in=group_types_list, active=True).order_by('order')
+            serializer = GroupTypeSerializer(group_types_list, many=True)
+            return self.jp_response(s_code='HTTP_200_OK', data={'group_types': serializer.data})
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
+
+
 class GroupAccountList(GenericViewSet, ResponseViewMixin):
     authentication_classes = ()
     permission_classes = (CustomPermission,)
