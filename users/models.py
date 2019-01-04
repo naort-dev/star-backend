@@ -170,13 +170,14 @@ class StargramzUser(AbstractBaseUser, PermissionsMixin):
 def pre_save_generate_referral_code(sender, instance, *args, **kwargs):
     try:
         campaign = Campaign.objects.get(pk=2)
+        if not instance.referral_code:
+            instance.referral_code = generate_referral_unique_code(instance)
+            instance.referral_campaign = campaign
+            instance.has_requested_referral = True
+            instance.referral_active = True
     except Exception:
-        campaign = 1
-    if not instance.referral_code:
-        instance.referral_code = generate_referral_unique_code(instance)
-        instance.referral_campaign = campaign
-        instance.has_requested_referral = True
-        instance.referral_active = True
+        pass
+
 
 
 pre_save.connect(pre_save_generate_referral_code, sender=StargramzUser)
