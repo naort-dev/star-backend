@@ -239,22 +239,6 @@ Resources:
               Configuration:
                 ProjectName: !Ref 'RunMigrationsProduction'
               RunOrder: 3
-#        -
-#          Name: Cleanup
-#          Actions:
-#          -
-#            Name: app
-#            ActionTypeId:
-#              Category: Deploy
-#              Owner: AWS
-#              Version: 1
-#              Provider: CloudFormation
-#            Configuration:
-#              ActionMode: DELETE_ONLY
-#              RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
-#              Capabilities: CAPABILITY_IAM
-#              StackName: hotfix-backend-app
-#            RunOrder: 1
 
       ArtifactStore:
         Type: S3

@@ -19,9 +19,9 @@ if [ "$commit_id" != "${CODEBUILD_RESOLVED_SOURCE_VERSION}" ]; then
 fi
 
 version=$(echo $last_tag | grep -o '[^-]*$')
-let major_max=$(echo $version | cut -d. -f1)
-let minor_max=$(echo $version | cut -d. -f2)
-let patch_max=$(echo $version | cut -d. -f3)
+major_max=$(echo $version | cut -d. -f1)
+minor_max=$(echo $version | cut -d. -f2)
+patch_max=$(echo $version | cut -d. -f3)
 
 echo 'Latest version:' $major_max'.'$minor_max'.'$patch_max
 echo 'Hotfix branch:' $major_max'.'$minor_max off $major_max'.'$minor_max'.'$patch_max
@@ -35,7 +35,7 @@ aws --region $AWS_DEFAULT_REGION cloudformation update-stack --stack-name backen
 
 git checkout $GIT_BRANCH
 
-let minor_max=(minor_max+1)
+let minor_max=($minor_max+1)
 patch_max=0
 
 echo 'Switching to new version:' $major_max'.'$minor_max'.'$patch_max
