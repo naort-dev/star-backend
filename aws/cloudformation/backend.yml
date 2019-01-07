@@ -90,6 +90,18 @@ Parameters:
   BranchIOKey:
     Type: String
 
+  TwilioAccountSID:
+    Type: String
+
+  TwilioAuthToken:
+    Type: String
+
+  TwilioPhoneNumber:
+    Type: String
+
+  AuthyAPIKey:
+    Type: String
+
   DBInstanceClass:
     Type: String
     Default: 'db.t2.micro'
@@ -418,6 +430,10 @@ Resources:
           - { Name: STRIPE_CLIENT_ID, Value: !Ref 'StripeClientId' }
           - { Name: STRIPE_SECRET_KEY, Value: !Ref 'StripeSecretKey' }
           - { Name: BRANCH_IO_KEY, Value: !Ref 'BranchIOKey' }
+          - { Name: TWILIO_ACCOUNT_SID, Value: !Ref 'TwilioAccountSID' }
+          - { Name: TWILIO_AUTH_TOKEN, Value: !Ref 'TwilioAuthToken' }
+          - { Name: TWILIO_PHONE_NUMBER, Value: !Ref 'TwilioPhoneNumber' }
+          - { Name: AUTHY_API_KEY, Value: !Ref 'AuthyAPIKey' }
 
   BackendService:
     Type: AWS::ECS::Service
@@ -560,6 +576,10 @@ Resources:
           - { Name: STRIPE_CLIENT_ID, Value: !Ref 'StripeClientId' }
           - { Name: STRIPE_SECRET_KEY, Value: !Ref 'StripeSecretKey' }
           - { Name: BRANCH_IO_KEY, Value: !Ref 'BranchIOKey' }
+          - { Name: TWILIO_ACCOUNT_SID, Value: !Ref 'TwilioAccountSID' }
+          - { Name: TWILIO_AUTH_TOKEN, Value: !Ref 'TwilioAuthToken' }
+          - { Name: TWILIO_PHONE_NUMBER, Value: !Ref 'TwilioPhoneNumber' }
+          - { Name: AUTHY_API_KEY, Value: !Ref 'AuthyAPIKey' }
 
   CeleryBeatService:
     Type: AWS::ECS::Service
@@ -630,6 +650,10 @@ Resources:
           - { Name: STRIPE_CLIENT_ID, Value: !Ref 'StripeClientId' }
           - { Name: STRIPE_SECRET_KEY, Value: !Ref 'StripeSecretKey' }
           - { Name: BRANCH_IO_KEY, Value: !Ref 'BranchIOKey' }
+          - { Name: TWILIO_ACCOUNT_SID, Value: !Ref 'TwilioAccountSID' }
+          - { Name: TWILIO_AUTH_TOKEN, Value: !Ref 'TwilioAuthToken' }
+          - { Name: TWILIO_PHONE_NUMBER, Value: !Ref 'TwilioPhoneNumber' }
+          - { Name: AUTHY_API_KEY, Value: !Ref 'AuthyAPIKey' }
 
   CeleryWorkerService:
     Type: AWS::ECS::Service
@@ -700,6 +724,10 @@ Resources:
            - { Name: STRIPE_CLIENT_ID, Value: !Ref 'StripeClientId' }
            - { Name: STRIPE_SECRET_KEY, Value: !Ref 'StripeSecretKey' }
            - { Name: BRANCH_IO_KEY, Value: !Ref 'BranchIOKey' }
+           - { Name: TWILIO_ACCOUNT_SID, Value: !Ref 'TwilioAccountSID' }
+           - { Name: TWILIO_AUTH_TOKEN, Value: !Ref 'TwilioAuthToken' }
+           - { Name: TWILIO_PHONE_NUMBER, Value: !Ref 'TwilioPhoneNumber' }
+           - { Name: AUTHY_API_KEY, Value: !Ref 'AuthyAPIKey' }
            - { Name: MAX_IDLE, Value: 300 }
            - { Name: MIN_COUNT, Value: 0 }
            - Name: ECS_CLUSTER
