@@ -3,14 +3,16 @@ from .constants import NOTIFICATION_REQUEST_SUCCESS_TITLE, NOTIFICATION_REQUEST_
 from utilities.konstants import NOTIFICATION_TYPES
 from notification.tasks import send_notification
 from stargramz.models import Stargramrequest, STATUS_TYPES
-from users.models import StargramzUser
+from users.models import StargramzUser, SettingsNotifications, Representative
 from django.db.models import Q, F
 from utilities.konstants import ROLES
 from payments.models import TRANSACTION_STATUS, StarsonaTransaction, TipPayment, TIP_STATUS
 import stripe
 import json
 from payments.constants import SECRET_KEY
-from utilities.utils import check_user_role
+from utilities.utils import check_user_role, encode_pk, generate_branch_io_url
+from job.tasks import send_sms
+from utilities.constants import BASE_URL
 
 
 @app.task
@@ -28,6 +30,7 @@ def change_request_status_to_pending(request_id):
 
         starsona.request_status = STATUS_TYPES.pending
         starsona.save()
+        send_sms_notification(starsona)
         pending_request_count = Stargramrequest.objects.filter(
             request_status=STATUS_TYPES.pending,
             celebrity=starsona.celebrity.id
@@ -52,6 +55,37 @@ def change_request_status_to_pending(request_id):
         print('Booking doesnt exist with payment completed.')
         return True
 
+
+def send_sms_notification(starsona):
+    """
+    Function will send notification SMS to the celebrity and his representatives informing about the new booking
+    :param starsona:
+    :return:
+    """
+    try:
+        phone = SettingsNotifications.objects.get(user=starsona.celebrity, mobile_notification=True)
+        if phone:
+            if phone.mobile_number and phone.mobile_country_code:
+                mob_link = 'request/?request_id=%s&role=R1002' % encode_pk(starsona.id)
+                desktop_link = '%s/applinks/request/R1002/%s' % (BASE_URL, encode_pk(starsona.id))
+                phone_number = "+%s%s" % (phone.mobile_country_code, phone.mobile_number)
+                response_link = generate_branch_io_url(
+                    title="New Stasona Request",
+                    desc="New Stasona Request",
+                    mob_url=mob_link,
+                    desktop_url=desktop_link,
+                    image_url='%smedia/web-images/starsona_logo.png' % BASE_URL,
+                )
+                message = "Hi, You have a new booking in Starsona. Click Here %s" % response_link
+                send_sms.delay(message, phone_number)
+        message = "Hi, %s have a new booking. Please Inform" % starsona.celebrity.get_short_name()
+        representatives = Representative.objects.filter(celebrity=starsona.celebrity, sms_notify=True)
+        for representative in representatives:
+            phone_number = "+%s%s" % (representative.country_code, representative.phone)
+            send_sms.delay(message, phone_number)
+    except Exception:
+        return False
+    return True
 
 @app.task
 def create_request_refund():
