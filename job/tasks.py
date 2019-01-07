@@ -27,6 +27,7 @@ from hashids import Hashids
 from utilities.constants import BASE_URL
 from utilities.konstants import NOTIFICATION_TYPES, ROLES
 from django.db.models import Sum
+from twilio.rest import Client
 imageio.plugins.ffmpeg.download()
 
 hashids = Hashids(min_length=8)
@@ -1482,3 +1483,28 @@ def invite_celebrity_notify(group_details):
             sent_email(group.user.email, 'Group Invite', 'group_invite_notify', ctx)
         except Exception:
             pass
+
+
+@app.task
+def send_sms(message, to):
+    """
+     The function send a text message to any number in international format
+    :param message:
+    :param to:
+    :return:
+    """
+    account_sid = 'AC70b689c6a483aae82edeff2152df0d39'
+    auth_token = '6fa04573f2e3ca04b6fd576bb8c85c3d'
+    from_number = '+447403923513'
+
+    try:
+        client = Client(account_sid, auth_token)
+
+        message = client.messages.create(
+            body=message,
+            from_=from_number,
+            to=to
+        )
+    except Exception:
+        return False
+    return True
