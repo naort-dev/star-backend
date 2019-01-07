@@ -22,16 +22,14 @@ version=$(echo $last_tag | grep -o '[^-]*$')
 major_max=$(echo $version | cut -d. -f1)
 minor_max=$(echo $version | cut -d. -f2)
 patch_max=$(echo $version | cut -d. -f3)
+release=$major_max'.'$minor_max
 
 echo 'Latest version:' $major_max'.'$minor_max'.'$patch_max
-echo 'Hotfix branch:' $major_max'.'$minor_max off $major_max'.'$minor_max'.'$patch_max
-git checkout -b $major_max'.'$minor_max $major_max'.'$minor_max'.'$patch_max
+echo 'Hotfix branch:' $release off $major_max'.'$minor_max'.'$patch_max
+git checkout -b $release $major_max'.'$minor_max'.'$patch_max
 
 echo 'Push new branch to remote'
-git push origin $major_max'.'$minor_max
-
-echo 'Update backend-hotfix stack'
-aws --region $AWS_DEFAULT_REGION cloudformation update-stack --stack-name backend-hotfix --template-body file://$cwd/aws/cloudformation/hotfix.yml --parameters ParameterKey=GitBranch,ParameterValue=$major_max'.'$minor_max
+git push origin $release
 
 git checkout $GIT_BRANCH
 
@@ -46,3 +44,6 @@ git push origin $major_max.$minor_max.$patch_max
 
 rm -rf $(pwd)
 cd -
+
+echo Writing .release file in current directory
+echo $release > .release

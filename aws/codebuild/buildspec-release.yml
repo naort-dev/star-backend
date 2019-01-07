@@ -11,7 +11,17 @@ phases:
       - mkdir -p ~/.ssh/ && chmod 700 ~/.ssh/
       - aws ssm get-parameter --name /codebuild/github/backend/key.pem | jq -r .Parameter.Value > ~/.ssh/id_rsa
       - chmod 600 ~/.ssh/id_rsa
-      - chmod +x aws/scripts/release.sh
   build:
     commands:
+      - chmod +x aws/scripts/release.sh
       - aws/scripts/release.sh 'git@github.com:Starsona/backend.git'
+      - export RELEASE=`cat .release`
+      - echo New hotfix branch $RELEASE
+  post_build:
+    commands:
+    - echo Writing artifacts...
+    - 'echo "{\"Parameters\": {\"GitBranch\":\"$RELEASE\"}}" > release.json'
+artifacts:
+  files:
+  - release.json
+  discard-paths: yes

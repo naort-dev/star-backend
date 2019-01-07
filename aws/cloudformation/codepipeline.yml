@@ -239,9 +239,28 @@ Resources:
               Owner: AWS
               Version: 1
               Provider: CodeBuild
+            OutputArtifacts:
+            - Name: release
             Configuration:
               ProjectName: !Ref 'CreateRelease'
             RunOrder: 1
+          - Name: hotfix
+            InputArtifacts:
+            - Name: source
+            - Name: release
+            ActionTypeId:
+              Category: Deploy
+              Owner: AWS
+              Version: 1
+              Provider: CloudFormation
+            Configuration:
+              ActionMode: CREATE_UPDATE
+              RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
+              StackName: web-hotfix
+              TemplateConfiguration: release::release.json
+              TemplatePath: source::aws/cloudformation/hotfix.yml
+            RunOrder: 2
+
         -
           Name: Production
           Actions:
