@@ -336,7 +336,7 @@ Resources:
           - Fn::ImportValue:
               !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
 
-  CacheParameters:
+  CacheParameters15:
       Type: AWS::ElastiCache::ParameterGroup
       Properties:
         Description: !Ref 'AWS::StackName'
@@ -347,7 +347,7 @@ Resources:
   CacheCluster:
       Type: AWS::ElastiCache::CacheCluster
       Properties:
-        CacheParameterGroupName: !Ref 'CacheParameters'
+        CacheParameterGroupName: !Ref 'CacheParameters15'
         CacheSubnetGroupName: !Ref 'CacheSubnetGroup'
         CacheNodeType: !Ref 'CacheNodeType'
         VpcSecurityGroupIds:
