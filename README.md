@@ -13,4 +13,3 @@ celebrities, which can then be sent as gifts to their friends.
 <!--## Authors-->
 
 <!--* **Akhilraj N S** [Github](https://github.com/akhilrajns)-->
-<!--* **Kanish M**-->
