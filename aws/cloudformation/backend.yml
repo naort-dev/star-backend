@@ -344,7 +344,7 @@ Resources:
         Properties:
           cas_disabled: 1
 
-  CacheCluster:
+  CacheCluster15:
       Type: AWS::ElastiCache::CacheCluster
       Properties:
         CacheParameterGroupName: !Ref 'CacheParameters15'
@@ -400,7 +400,7 @@ Resources:
           Environment:
           - { Name: ENV, Value: !Ref 'Env' }
           - { Name: QUEUE_BROKER_URL, Value: 'sqs://' }
-          - { Name: QUEUE_BACKEND, Value: !Join ['', ['cache+memcached://', !GetAtt 'CacheCluster.ConfigurationEndpoint.Address', ':', !GetAtt 'CacheCluster.ConfigurationEndpoint.Port', '/']] }
+          - { Name: QUEUE_BACKEND, Value: !Join ['', ['cache+memcached://', !GetAtt 'CacheCluster15.ConfigurationEndpoint.Address', ':', !GetAtt 'CacheCluster15.ConfigurationEndpoint.Port', '/']] }
           - { Name: QUEUE_REGION, Value: !Ref 'AWS::Region' }
           - { Name: QUEUE_NAME_PREFIX, Value: !Join ['', [!Ref 'AWS::StackName', '-']] }
           - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
@@ -542,7 +542,7 @@ Resources:
           Environment:
           - { Name: ENV, Value: !Ref 'Env' }
           - { Name: QUEUE_BROKER_URL, Value: 'sqs://' }
-          - { Name: QUEUE_BACKEND, Value: !Join ['', ['cache+memcached://', !GetAtt 'CacheCluster.ConfigurationEndpoint.Address', ':', !GetAtt 'CacheCluster.ConfigurationEndpoint.Port', '/']] }
+          - { Name: QUEUE_BACKEND, Value: !Join ['', ['cache+memcached://', !GetAtt 'CacheCluster15.ConfigurationEndpoint.Address', ':', !GetAtt 'CacheCluster15.ConfigurationEndpoint.Port', '/']] }
           - { Name: QUEUE_REGION, Value: !Ref 'AWS::Region' }
           - { Name: QUEUE_NAME_PREFIX, Value: !Join ['', [!Ref 'AWS::StackName', '-']] }
           - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
@@ -612,7 +612,7 @@ Resources:
           Environment:
           - { Name: ENV, Value: !Ref 'Env' }
           - { Name: QUEUE_BROKER_URL, Value: 'sqs://' }
-          - { Name: QUEUE_BACKEND, Value: !Join ['', ['cache+memcached://', !GetAtt 'CacheCluster.ConfigurationEndpoint.Address', ':', !GetAtt 'CacheCluster.ConfigurationEndpoint.Port', '/']] }
+          - { Name: QUEUE_BACKEND, Value: !Join ['', ['cache+memcached://', !GetAtt 'CacheCluster15.ConfigurationEndpoint.Address', ':', !GetAtt 'CacheCluster15.ConfigurationEndpoint.Port', '/']] }
           - { Name: QUEUE_REGION, Value: !Ref 'AWS::Region' }
           - { Name: QUEUE_NAME_PREFIX, Value: !Join ['', [!Ref 'AWS::StackName', '-']] }
           - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
@@ -682,7 +682,7 @@ Resources:
            Environment:
            - { Name: ENV, Value: !Ref 'Env' }
            - { Name: QUEUE_BROKER_URL, Value: 'sqs://' }
-           - { Name: QUEUE_BACKEND, Value: !Join ['', ['cache+memcached://', !GetAtt 'CacheCluster.ConfigurationEndpoint.Address', ':', !GetAtt 'CacheCluster.ConfigurationEndpoint.Port', '/']] }
+           - { Name: QUEUE_BACKEND, Value: !Join ['', ['cache+memcached://', !GetAtt 'CacheCluster15.ConfigurationEndpoint.Address', ':', !GetAtt 'CacheCluster15.ConfigurationEndpoint.Port', '/']] }
            - { Name: QUEUE_REGION, Value: !Ref 'AWS::Region' }
            - { Name: QUEUE_NAME_PREFIX, Value: !Join ['', [!Ref 'AWS::StackName', '-']] }
            - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
