@@ -309,17 +309,27 @@ Resources:
       Certificates:
       - CertificateArn: !Ref 'PublicLoadBalancerCertificate'
 
+  #
+  # NOTE!!!
+  # Because of a bug in AWS Cloudformation need to manually configure EC2 ALB listener after executing this template
+  # Otherwise only main and new certificate will be attached to the Listener
+  # EC2->Load Balancers->Listeners->View/edit certificates->Add/Save
+  #
   ListenerCertificate:
     Type: AWS::ElasticLoadBalancingV2::ListenerCertificate
     DependsOn:
       - PublicLoadBalancerCertificate1
       - PublicLoadBalancerCertificate2
       - PublicLoadBalancerCertificate3
+      - PublicLoadBalancerCertificate4
+      - PublicLoadBalancerCertificate5
     Properties:
       Certificates:
         - CertificateArn: !Ref 'PublicLoadBalancerCertificate1'
         - CertificateArn: !Ref 'PublicLoadBalancerCertificate2'
         - CertificateArn: !Ref 'PublicLoadBalancerCertificate3'
+        - CertificateArn: !Ref 'PublicLoadBalancerCertificate4'
+        - CertificateArn: !Ref 'PublicLoadBalancerCertificate5'
       ListenerArn: !Ref 'PublicLoadBalancerListenerHTTPS'
 
   PublicLoadBalancerCertificate:
@@ -356,6 +366,22 @@ Resources:
       - 'www.staging.starsona.com'
       DomainValidationOptions:
       - DomainName: 'staging.starsona.com'
+        ValidationDomain: !Ref 'ValidationDomain'
+
+  PublicLoadBalancerCertificate4:
+    Type: "AWS::CertificateManager::Certificate"
+    Properties:
+      DomainName: 'app.hotfix.starsona.com'
+      DomainValidationOptions:
+      - DomainName: 'app.hotfix.starsona.com'
+        ValidationDomain: !Ref 'ValidationDomain'
+
+  PublicLoadBalancerCertificate5:
+    Type: "AWS::CertificateManager::Certificate"
+    Properties:
+      DomainName: 'hotfix.starsona.com'
+      DomainValidationOptions:
+      - DomainName: 'hotfix.starsona.com'
         ValidationDomain: !Ref 'ValidationDomain'
 
   # This is an IAM role which authorizes ECS to manage resources on your

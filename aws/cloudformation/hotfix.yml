@@ -19,7 +19,7 @@ Parameters:
   GitBranch:
     Type: String
     Description: Git branch
-    Default: master
+    Default: '1.0'
 
   GithubToken:
     Type: String
@@ -89,7 +89,7 @@ Resources:
         Image: aws/codebuild/ubuntu-base:14.04
         PrivilegedMode: false
         EnvironmentVariables:
-          - { Name: ENV, Value: staging }
+          - { Name: ENV, Value: hotfix }
 
       Source:
         Type: CODEPIPELINE
@@ -115,27 +115,6 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: aws/codebuild/buildspec-migrations.yml
-      TimeoutInMinutes: 15
-
-  CreateRelease:
-    Type: AWS::CodeBuild::Project
-    Properties:
-      Name: !Join ['-', [!Ref 'AWS::StackName', 'create-release']]
-      Description: Create release
-      ServiceRole: arn:aws:iam::376169159073:role/service-role/codebuild-starsona-service-role
-      Artifacts:
-        Type: CODEPIPELINE
-      Environment:
-        Type: LINUX_CONTAINER
-        ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/ubuntu-base:14.04
-        PrivilegedMode: false
-        EnvironmentVariables:
-        - { Name: GIT_BRANCH, Value: !Ref 'GitBranch' }
-
-      Source:
-        Type: CODEPIPELINE
-        BuildSpec: aws/codebuild/buildspec-release.yml
       TimeoutInMinutes: 15
 
   Pipeline:
@@ -197,8 +176,8 @@ Resources:
                 ActionMode: CREATE_UPDATE
                 RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
                 Capabilities: CAPABILITY_IAM
-                StackName: staging-backend-app
-                TemplateConfiguration: build::staging-backend.json
+                StackName: hotfix-backend-app
+                TemplateConfiguration: build::hotfix-backend.json
                 TemplatePath: source::aws/cloudformation/backend.yml
               RunOrder: 1
             -
@@ -225,42 +204,8 @@ Resources:
                 Provider: Manual
               Configuration:
                 NotificationArn: arn:aws:sns:us-east-1:376169159073:ProductionDeploymentApproval
-                CustomData: Approve production deployment.
+                CustomData: Approve hotfix deployment.
               RunOrder: 1
-        -
-          Name: Release
-          Actions:
-          -
-            Name: release
-            InputArtifacts:
-            - Name: source
-            ActionTypeId:
-              Category: Build
-              Owner: AWS
-              Version: 1
-              Provider: CodeBuild
-            OutputArtifacts:
-            - Name: release
-            Configuration:
-              ProjectName: !Ref 'CreateRelease'
-            RunOrder: 1
-          - Name: hotfix
-            InputArtifacts:
-            - Name: source
-            - Name: release
-            ActionTypeId:
-              Category: Deploy
-              Owner: AWS
-              Version: 1
-              Provider: CloudFormation
-            Configuration:
-              ActionMode: CREATE_UPDATE
-              RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
-              StackName: web-hotfix
-              TemplateConfiguration: release::release.json
-              TemplatePath: source::aws/cloudformation/hotfix.yml
-            RunOrder: 2
-
         -
           Name: Production
           Actions:

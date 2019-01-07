@@ -17,6 +17,7 @@ Parameters:
     Type: String
     AllowedValues:
     - dev
+    - hot
     - live
     Description: Environment type
 
@@ -48,6 +49,7 @@ Parameters:
     AllowedValues:
     - starsona-stb-usea1
     - starsona-prb-usea1
+    - starsona-htb-usea1
     - starsona
     Description: S3 Bucket name
 
@@ -338,7 +340,7 @@ Resources:
       Type: AWS::ElastiCache::ParameterGroup
       Properties:
         Description: !Ref 'AWS::StackName'
-        CacheParameterGroupFamily: 'memcached1.4'
+        CacheParameterGroupFamily: 'memcached1.5'
         Properties:
           cas_disabled: 1
 
