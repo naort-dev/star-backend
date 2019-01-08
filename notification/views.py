@@ -35,6 +35,6 @@ class MailAdmin(APIView, ResponseViewMixin):
             subject = "New Group Request"
             template = "admin_notification"
             send_admin_mail.delay(subject, template, data)
-            return self.jp_response('HTTP_200_OK', data={'message': "Email Sent"})
+            return self.jp_response('HTTP_200_OK', data={'message': "Your request to add the group has been sent."})
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Data Invalid')
