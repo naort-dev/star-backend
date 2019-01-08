@@ -1510,3 +1510,20 @@ def send_sms(message, to):
     except Exception:
         return False
     return True
+
+
+@app.task
+def send_admin_mail(subject, template, ctx):
+    """
+    The function will send the template with given context to the admin
+    :param subject:
+    :param template:
+    :param ctx:
+    :return:
+    """
+    try:
+        to_email = Config.objects.get(key="admin_email").value
+        sent_email(to_email, subject, template, ctx)
+        return True
+    except Exception:
+        return False
