@@ -32,6 +32,7 @@ import ast
 from difflib import get_close_matches
 from .constants import *
 from job.tasks import generate_video_thumbnail, combine_video_clips, convert_audio
+from .tasks import booking_feedback_celebrity_notification
 from payments.models import StarsonaTransaction, TRANSACTION_STATUS, TipPayment
 from django.utils import timezone
 from hashids import Hashids
@@ -1012,6 +1013,7 @@ class BookingFeedbackView(APIView, ResponseViewMixin):
             rating_record, created = FanRating.objects.update_or_create(
                 fan_id=user.id, celebrity_id=celebrity, starsona_id=booking,
                 defaults=fields)
+            booking_feedback_celebrity_notification.delay(user, celebrity, fields)
             data = CelebrityRatingSerializer(rating_record).data
             return self.jp_response('HTTP_200_OK', data={"feedback": data})
         else:
