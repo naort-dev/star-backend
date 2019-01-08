@@ -1,0 +1,16 @@
+{% include "emails/header.html" %}
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Hi Admin,</p>
+
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">
+There is a new group request from {{ user_name }}. Details below.
+</p>
+<table style="text-align:left">
+    {% if group_name %}<tr><th>Group</th><td>{{ group_name }}</td></tr>{% endif %}
+    {% if group_type_name %}<tr><th>Group type</th><td>{{group_type_name}}</td></tr>{% endif %}
+    {% if content %}<tr><th>Content</th><td>{{content}}</td></tr>{% endif %}
+</table>
+<p>
+Thanks, <br/>
+The Starsona Team
+</p>
+{% include "emails/footer.html" %}
