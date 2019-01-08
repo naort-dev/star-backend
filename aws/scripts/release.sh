@@ -9,7 +9,7 @@ cd $(mktemp -d)
 git clone -n -b $GIT_BRANCH $1 .
 git fetch --tags
 
-last_tag=$(git describe --abbrev=0 --tags 2>/dev/null || true)
+last_tag=$(git tag --sort=-version:refname | head -1)
 commit_id=$(git rev-list -n 1 $last_tag)
 echo 'Latest commit: ' $commit_id
 echo 'Codebuild commit: ' ${CODEBUILD_RESOLVED_SOURCE_VERSION}
