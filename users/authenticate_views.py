@@ -35,6 +35,7 @@ from distutils.version import StrictVersion
 import time
 import requests
 import json
+import os
 from urllib.parse import urlencode
 hashids = Hashids(min_length=8)
 
@@ -857,7 +858,7 @@ class ValidateMobile(APIView, ResponseViewMixin):
                 response = requests.post(
                     url="https://api.authy.com/protected/json/phones/verification/start",
                     data=payload,
-                    headers={"X-Authy-API-Key": "eZTgCj55Ip5F5pol0a8ouoIeBKRr6nRv", "Content-Type": "application/json"}
+                    headers={"X-Authy-API-Key": os.environ.get('AUTHY_API_KEY'), "Content-Type": "application/json"}
                 )
 
                 if response.status_code == 200:
@@ -891,7 +892,7 @@ class VerifyMobile(APIView, ResponseViewMixin):
             try:
                 response = requests.get(
                     url="https://api.authy.com/protected/json/phones/verification/check?%s" % urlencode(data),
-                    headers={"X-Authy-API-Key": "eZTgCj55Ip5F5pol0a8ouoIeBKRr6nRv", "Content-Type": "application/json"}
+                    headers={"X-Authy-API-Key": os.environ.get('AUTHY_API_KEY'), "Content-Type": "application/json"}
                 )
                 if response.status_code == 200:
                     return self.jp_response(s_code='HTTP_200_OK', data=response.json())

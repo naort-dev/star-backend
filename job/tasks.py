@@ -1495,9 +1495,9 @@ def send_sms(message, to):
     :param to:
     :return:
     """
-    account_sid = 'AC70b689c6a483aae82edeff2152df0d39'
-    auth_token = '6fa04573f2e3ca04b6fd576bb8c85c3d'
-    from_number = '+447403923513'
+    account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+    auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+    from_number = os.environ.get('TWILIO_PHONE_NUMBER')
 
     try:
         client = Client(account_sid, auth_token)
