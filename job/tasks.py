@@ -1439,6 +1439,7 @@ def group_notify(group_details):
     :param group_details:
     :return:
     """
+    web_url = Config.objects.get(key='web_url').value
     for group in group_details:
         try:
             group = CelebrityGroupAccount.objects.get(id=group)
@@ -1446,7 +1447,7 @@ def group_notify(group_details):
                 'account_name': group.account.get_short_name(),
                 'celebrity_name': group.user.get_short_name(),
                 'redirect_link': generate_branch_io_url(
-                    desktop_url='%ssettings' % BASE_URL,
+                    desktop_url='%ssettings' % web_url,
                     mob_url='%ssettings' % BASE_URL,
                     image_url='%smedia/web-images/starsona_logo.png' % BASE_URL,
                     title='Group Joining Request',
@@ -1465,6 +1466,7 @@ def invite_celebrity_notify(group_details):
     :param group_details:
     :return:
     """
+    web_url = Config.objects.get(key='web_url').value
     for group in group_details:
         try:
             group = CelebrityGroupAccount.objects.get(id=group)
@@ -1472,7 +1474,7 @@ def invite_celebrity_notify(group_details):
                 'account_name': group.account.get_short_name(),
                 'celebrity_name': group.user.get_short_name(),
                 'redirect_link': generate_branch_io_url(
-                    desktop_url='%ssettings' % BASE_URL,
+                    desktop_url='%ssettings' % web_url,
                     mob_url='%ssettings' % BASE_URL,
                     image_url='%smedia/web-images/starsona_logo.png' % BASE_URL,
                     title='Group Invite',
