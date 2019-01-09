@@ -1,0 +1,7 @@
+{% include "emails/header.html" %}
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Hi, {{celebrity_name}}</p>
+
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">
+{{ fan_name }} Reacted to your Starsona video.<br><br>Rating : {{fan_rating}}<br>Comments : {{comments}}
+</p>
+{% include "emails/footer.html" %}

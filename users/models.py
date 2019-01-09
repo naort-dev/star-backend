@@ -153,9 +153,11 @@ class StargramzUser(AbstractBaseUser, PermissionsMixin):
         """
             Returns the full name for the user.
         """
+        name = ' '
         if self.show_nick_name and self.nick_name:
-            return self.nick_name
-        return ' '.join(filter(None, [self.first_name, self.last_name]))
+            name = self.nick_name
+        name = name.join(filter(None, [self.first_name, self.last_name]))
+        return name.capitalize()
 
     def save(self, *args, **kwargs):
         # Updating the model with username and email
