@@ -1013,7 +1013,7 @@ class BookingFeedbackView(APIView, ResponseViewMixin):
             rating_record, created = FanRating.objects.update_or_create(
                 fan_id=user.id, celebrity_id=celebrity, starsona_id=booking,
                 defaults=fields)
-            booking_feedback_celebrity_notification.delay(user, celebrity, fields)
+            booking_feedback_celebrity_notification.delay(booking, fields)
             data = CelebrityRatingSerializer(rating_record).data
             return self.jp_response('HTTP_200_OK', data={"feedback": data})
         else:

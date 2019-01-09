@@ -163,17 +163,18 @@ def request_limit_notification(celebrity):
 
 
 @app.task
-def booking_feedback_celebrity_notification(fan, celebrity, fields):
+def booking_feedback_celebrity_notification(booking_id, fields):
     try:
+        booking = Stargramrequest.objects.get(id=booking_id)
         ctx = {
-            "fan_name": fan.get_short_name(),
-            "celebrity_name": celebrity.get_short_name(),
+            "fan_name": booking.fan.get_short_name(),
+            "celebrity_name": booking.celebrity.get_short_name(),
             "fan_rating": fields.get("fan_rate", 0.0),
             "comments": fields.get("comments", None)
         }
         template = "feedback_notification"
-        to_email = celebrity.email
-        subject = "New Reaction from %s" % fan.get_short_name()
+        to_email = booking.celebrity.email
+        subject = "New Reaction from %s" % booking.fan.get_short_name()
         sent_email(to_email, subject, template, ctx)
         return True
     except Exception:
