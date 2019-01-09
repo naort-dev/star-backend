@@ -995,34 +995,38 @@ class BookingFeedbackView(APIView, ResponseViewMixin):
             booking, celebrity = Stargramrequest.objects.values_list('id', 'celebrity').get(id=request.data.get('booking'))
         except Stargramrequest.DoesNotExist as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
-
-        request.data['user'] = user.id
-        request.data['fan'] = user.id
-        request.data['starsona'] = booking
-        request.data['celebrity'] = celebrity
-        rating = CelebrityRatingSerializer(data=request.data)
-        reaction = ReactionSerializer(data=request.data)
-
-        if reaction.is_valid() and rating.is_valid():
-            reaction.save()
-            fields = {
-                'fan_rate': rating.validated_data.get('fan_rate'),
-                'comments': rating.validated_data.get('comments', ''),
-                'reason': rating.validated_data.get('reason', ''),
-            }
-            rating_record, created = FanRating.objects.update_or_create(
-                fan_id=user.id, celebrity_id=celebrity, starsona_id=booking,
-                defaults=fields)
-            booking_feedback_celebrity_notification.delay(booking, fields)
-            data = CelebrityRatingSerializer(rating_record).data
+        try:
+            fan_rated = FanRating.objects.get(starsona=booking)
+            data = CelebrityRatingSerializer(fan_rated).data
             return self.jp_response('HTTP_200_OK', data={"feedback": data})
-        else:
-            errors = reaction.errors if reaction.errors else rating.errors
-            return self.jp_error_response(
-                'HTTP_400_BAD_REQUEST',
-                'INVALID_LOGIN',
-                self.error_msg_string(errors)
-            )
+        except Exception:
+            request.data['user'] = user.id
+            request.data['fan'] = user.id
+            request.data['starsona'] = booking
+            request.data['celebrity'] = celebrity
+            rating = CelebrityRatingSerializer(data=request.data)
+            reaction = ReactionSerializer(data=request.data)
+
+            if reaction.is_valid() and rating.is_valid():
+                reaction.save()
+                fields = {
+                    'fan_rate': rating.validated_data.get('fan_rate'),
+                    'comments': rating.validated_data.get('comments', ''),
+                    'reason': rating.validated_data.get('reason', ''),
+                }
+                rating_record, created = FanRating.objects.update_or_create(
+                    fan_id=user.id, celebrity_id=celebrity, starsona_id=booking,
+                    defaults=fields)
+                booking_feedback_celebrity_notification.delay(booking, fields)
+                data = CelebrityRatingSerializer(rating_record).data
+                return self.jp_response('HTTP_200_OK', data={"feedback": data})
+            else:
+                errors = reaction.errors if reaction.errors else rating.errors
+                return self.jp_error_response(
+                    'HTTP_400_BAD_REQUEST',
+                    'INVALID_LOGIN',
+                    self.error_msg_string(errors)
+                )
 
 
 class RequesterWatchedVideo(APIView, ResponseViewMixin):
@@ -1094,7 +1098,7 @@ class ReactionsListing(APIView, ResponseViewMixin):
     def get(self, request, pk):
         try:
             booking_id = decode_pk(pk)
-            reactions = Reaction.objects.filter(booking_id=booking_id)
+            reactions = Reaction.objects.filter(booking_id=booking_id, file_thumbnail__isnull=False)
             tip_serializer = {'amount': 0.00, 'comments': ''}
             try:
                 tip_amount = TipPayment.objects.get(
