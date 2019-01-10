@@ -11,7 +11,7 @@ from .constants import *
 from payments.tasks import create_request_refund
 from config.models import Config
 from config.constants import *
-from utilities.utils import SendMail, generate_branch_io_url, sent_email
+from utilities.utils import SendMail, generate_branch_io_url, sent_email, encode_pk
 from django.template.loader import get_template
 from hashids import Hashids
 import pytz
@@ -164,18 +164,35 @@ def request_limit_notification(celebrity):
 
 @app.task
 def booking_feedback_celebrity_notification(booking_id, fields):
+    from job.tasks import send_sms_celebrity
+
     try:
+        base_url = Config.objects.get(key='base_url').value
+        web_url = Config.objects.get(key='web_url').value
         booking = Stargramrequest.objects.get(id=booking_id)
+        mob_link = 'request/?request_id=%s&role=R1002' % encode_pk(booking.id)
         ctx = {
             "fan_name": booking.fan.get_short_name(),
             "celebrity_name": booking.celebrity.get_short_name(),
             "fan_rating": fields.get("fan_rate", 0.0),
-            "comments": fields.get("comments", None)
+            "comments": fields.get("comments", None),
+            "app_url": generate_branch_io_url(
+                title="New reaction received",
+                desc="Fan %s Reacted to your Starsona video." % booking.fan.get_short_name(),
+                mob_url=mob_link,
+                desktop_url='%suser/myVideos?request_id=%s' % (web_url, encode_pk(booking.id)),
+                image_url='%smedia/web-images/starsona_logo.png' % base_url,
+            )
         }
         template = "feedback_notification"
         to_email = booking.celebrity.email
         subject = "New Reaction from %s" % booking.fan.get_short_name()
         sent_email(to_email, subject, template, ctx)
+
+        message = "%s has reacted to your video. To view the rating and comments click: %s" % (
+            booking.fan.get_short_name(), ctx.get("app_url")
+        )
+        send_sms_celebrity.delay(message, booking.celebrity.id)
         return True
     except Exception:
         return False
