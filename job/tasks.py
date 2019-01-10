@@ -1490,7 +1490,7 @@ def invite_celebrity_notify(group_details):
 def send_sms_celebrity(message, celebrity_id):
     try:
         celebrity = StargramzUser.objects.get(id=celebrity_id)
-        phone = SettingsNotifications.objects.get(user=celebrity.id)
+        phone = SettingsNotifications.objects.get(user=celebrity.id, mobile_notification=True)
         if phone.mobile_country_code and phone.mobile_number:
             phone_number = "+%s%s" % (phone.mobile_country_code, phone.mobile_number)
             send_sms.delay(message, phone_number)
