@@ -128,7 +128,7 @@ def create_request_refund():
                     print(str(e))
 
 
-@app.task(bind=True, max_retries=0, name='tip_payments_payout')
+@app.task(name='tip_payments_payout')
 def tip_payments_payout(tip_id):
     """
     Send tip payments to celebrity accounts
