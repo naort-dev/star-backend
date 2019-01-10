@@ -555,7 +555,7 @@ class TipPayments(APIView, ResponseViewMixin):
                     tip_transaction.transaction_status = TIP_STATUS.captured
                     tip_transaction.save()
                     # Transfer tip amount to celbrity account
-                    tip_payments_payout.delay(tip_transaction.id, countdown=30)
+                    tip_payments_payout.delay(tip_transaction.id)
                     return self.jp_response(data={"tip_status": "Tip payment was successful"})
                 except Exception as e:
                     tip_transaction.transaction_status = TIP_STATUS.failed
