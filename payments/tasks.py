@@ -128,7 +128,7 @@ def create_request_refund():
                     print(str(e))
 
 
-@app.task(bind=True, max_retries=0, name='tip_payments_payout')
+@app.task(name='tip_payments_payout')
 def tip_payments_payout(tip_id):
     """
     Send tip payments to celebrity accounts
@@ -162,10 +162,15 @@ def tip_payments_payout(tip_id):
                     tip_details.save()
                     print('Successfully transferred amount to celebrity account')
                 except Exception as e:
+                    tip_details.status = TIP_STATUS.failed
+                    tip_details.comments = str(e)
+                    tip_details.save()
                     print("Tip not payed: %s" % str(e))
             else:
-                print('Insufficient balance. or stripe ID empty.')
-
+                tip_details.status = TIP_STATUS.failed
+                tip_details.comments = 'Insufficient balance. or stripe ID empty.'
+                tip_details.save()
+                print('Insufficient balance. or stripe user_id not linked.')
         except Exception as e:
             print("No TipPayment records: %s" % str(e))
     except Exception as e:
