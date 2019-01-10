@@ -13,7 +13,7 @@ import os
 from PIL import Image, ExifTags, ImageOps
 from django.conf import settings
 from django.template.loader import get_template
-from users.models import ProfileImage, Celebrity, StargramzUser, Campaign, CelebrityGroupAccount
+from users.models import ProfileImage, Celebrity, StargramzUser, Campaign, CelebrityGroupAccount, SettingsNotifications
 from config.models import Config
 from config.constants import *
 from utilities.utils import get_pre_signed_get_url, upload_image_s3, SendMail, verify_user_for_notifications,\
@@ -1485,6 +1485,21 @@ def invite_celebrity_notify(group_details):
             sent_email(group.user.email, 'Group Invite', 'group_invite_notify', ctx)
         except Exception:
             pass
+
+@app.task
+def send_sms_celebrity(message, celebrity_id):
+    try:
+        celebrity = StargramzUser.objects.get(id=celebrity_id)
+        phone = SettingsNotifications.objects.get(user=celebrity.id)
+        if phone.mobile_country_code and phone.mobile_number:
+            phone_number = "+%s%s" % (phone.mobile_country_code, phone.mobile_number)
+            send_sms.delay(message, phone_number)
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(str(e))
+        return False
 
 
 @app.task
