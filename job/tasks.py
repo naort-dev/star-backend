@@ -833,8 +833,9 @@ def send_email_notification(request_id):
             except Exception:
                 pass
 
+        web_url = Config.objects.get(key='web_url').value
         urls = {
-            2: '%s/applinks/request/R1002/%s' % (BASE_URL, hashids.encode(request.id)),
+            2: '%suser/bookings' % web_url,
             5: BASE_URL,
             6: video_url
         }
