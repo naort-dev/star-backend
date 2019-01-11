@@ -168,6 +168,7 @@ def tip_payments_payout(tip_id):
                 tip_details.transaction_status = TIP_STATUS.failed
                 tip_details.comments = 'Insufficient balance. or stripe ID empty.'
                 tip_details.save()
+                tip_payment_celebrity_notification.delay(tip_details.id)
                 print('Insufficient balance. or stripe user_id not linked.')
         except Exception as e:
             print("No TipPayment records: %s" % str(e))
