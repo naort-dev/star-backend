@@ -10,8 +10,8 @@ from payments.models import TRANSACTION_STATUS, StarsonaTransaction, TipPayment,
 import stripe
 import json
 from payments.constants import SECRET_KEY
-from utilities.utils import check_user_role, encode_pk, generate_branch_io_url
-from job.tasks import send_sms
+from utilities.utils import check_user_role, encode_pk, generate_branch_io_url, sent_email
+from job.tasks import send_sms, send_sms_celebrity
 from utilities.constants import BASE_URL
 
 
@@ -63,21 +63,17 @@ def send_sms_notification(starsona):
     :return:
     """
     try:
-        phone = SettingsNotifications.objects.get(user=starsona.celebrity, mobile_notification=True)
-        if phone:
-            if phone.mobile_number and phone.mobile_country_code:
-                mob_link = 'request/?request_id=%s&role=R1002' % encode_pk(starsona.id)
-                desktop_link = '%s/applinks/request/R1002/%s' % (BASE_URL, encode_pk(starsona.id))
-                phone_number = "+%s%s" % (phone.mobile_country_code, phone.mobile_number)
-                response_link = generate_branch_io_url(
-                    title="New Stasona Request",
-                    desc="New Stasona Request",
-                    mob_url=mob_link,
-                    desktop_url=desktop_link,
-                    image_url='%smedia/web-images/starsona_logo.png' % BASE_URL,
-                )
-                message = "Hi, You have a new booking in Starsona. Click Here %s" % response_link
-                send_sms.delay(message, phone_number)
+        mob_link = 'request/?request_id=%s&role=R1002' % encode_pk(starsona.id)
+        desktop_link = '%s/applinks/request/R1002/%s' % (BASE_URL, encode_pk(starsona.id))
+        response_link = generate_branch_io_url(
+            title="New Stasona Request",
+            desc="New Stasona Request",
+            mob_url=mob_link,
+            desktop_url=desktop_link,
+            image_url='%smedia/web-images/starsona_logo.png' % BASE_URL,
+        )
+        message = "Hi, You have a new booking in Starsona. Click Here %s" % response_link
+        send_sms_celebrity.delay(message, starsona.celebrity.id)
         message = "Hi, %s have a new booking. Please Inform" % starsona.celebrity.get_short_name()
         representatives = Representative.objects.filter(celebrity=starsona.celebrity, sms_notify=True)
         for representative in representatives:
@@ -155,19 +151,21 @@ def tip_payments_payout(tip_id):
                         description="Tip payment for booking %d" % int(tip_details.booking_id)
                     )
 
-                    tip_details.status = TIP_STATUS.tip_payed_out
+                    tip_details.transaction_status = TIP_STATUS.tip_payed_out
                     tip_details.tip_payed_out = float(celebrity_tip_amount/100)
                     tip_details.payed_out_transaction_id = transfer.id
                     tip_details.payed_out_response = json.dumps(transfer)
                     tip_details.save()
+                    tip_payment_celebrity_notification.delay(tip_details.id)
                     print('Successfully transferred amount to celebrity account')
                 except Exception as e:
-                    tip_details.status = TIP_STATUS.failed
+                    tip_details.transaction_status = TIP_STATUS.failed
                     tip_details.comments = str(e)
                     tip_details.save()
+                    tip_payment_celebrity_notification.delay(tip_details.id)
                     print("Tip not payed: %s" % str(e))
             else:
-                tip_details.status = TIP_STATUS.failed
+                tip_details.transaction_status = TIP_STATUS.failed
                 tip_details.comments = 'Insufficient balance. or stripe ID empty.'
                 tip_details.save()
                 print('Insufficient balance. or stripe user_id not linked.')
@@ -175,3 +173,36 @@ def tip_payments_payout(tip_id):
             print("No TipPayment records: %s" % str(e))
     except Exception as e:
         print('Tip payment not valid. %s', str(e))
+
+
+@app.task
+def tip_payment_celebrity_notification(tip_id):
+    try:
+        tip_details = TipPayment.objects.get(id=tip_id)
+        if tip_details.transaction_status == TIP_STATUS.tip_payed_out:
+            template = "tip_payment_notification_payed_out"
+            subject = "Tip has been transferred"
+            ctx = {
+                "celebrity_name": tip_details.celebrity.get_short_name(),
+                "fan_name": tip_details.fan.get_short_name(),
+                "tip_amount": tip_details.amount,
+                "tip_amount_credited": tip_details.tip_payed_out,
+                "booking_title": tip_details.booking.booking_title,
+                "occasion": tip_details.booking.occasion.title
+            }
+
+        else:
+            template = "tip_payment_notification_failed"
+            subject = "Tip transfer failed"
+            ctx = {
+                "celebrity_name": tip_details.celebrity.get_short_name(),
+                "fan_name": tip_details.fan.get_short_name(),
+                "booking_title": tip_details.booking.booking_title,
+            }
+        to_email = tip_details.celebrity.email
+        sent_email(to_email, subject, template, ctx)
+        return True
+    except Exception as e:
+        print(str(e))
+        return False
+
