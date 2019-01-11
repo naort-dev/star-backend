@@ -1206,8 +1206,8 @@ def reprocess_pending_video_approval():
     return True
 
 
-@app.task(bind=True, max_retries=0)
-def notify_fan_reaction_videos_and_feedback(self, booking_id):
+@app.task
+def notify_fan_reaction_videos_and_feedback(booking_id):
     from notification.tasks import send_notification
     """
     Triggering Push/email notifications to fan to add review and share there reaction
