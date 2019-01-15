@@ -1481,7 +1481,6 @@ def invite_celebrity_notify(group_details):
                     title='Group Invite',
                     desc='Group Invite',
                 ),
-                'joining_link': '%ssettings' % BASE_URL
             }
             sent_email(group.user.email, 'Group Invite', 'group_invite_notify', ctx)
         except Exception:
