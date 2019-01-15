@@ -213,13 +213,17 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
         search_query = StargramzUser.objects.select_related('avatar_photo', 'featured_photo') \
             .prefetch_related('images', 'celebrity_profession__profession', 'celebrity_account', 'vanity_urls')
 
-        filter_condition = {'celebrity_user__admin_approval': True}
         exclude_condition = {}
         option = request.GET.get('member', None)
         status = request.GET.get('status', None)
+        celebrity = request.GET.get('celebrity', None)
+        filter_condition = {} if celebrity else {'celebrity_user__admin_approval': True}
         filter_by_name = request.GET.get('name', None)
         if option:
-            filter_condition.update({'celebrity_account__account_id': user_id})
+            if celebrity:
+                filter_condition.update({'account_user__user_id': user_id})
+            else:
+                filter_condition.update({'celebrity_account__account_id': user_id})
             if status and status == 'true':
                 filter_condition.update(
                     {'celebrity_account__approved': True, 'celebrity_account__celebrity_invite': True}
