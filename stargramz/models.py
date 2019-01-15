@@ -217,6 +217,8 @@ class StargramVideo(models.Model):
     width = models.IntegerField('Width', blank=True, null=True)
     height = models.IntegerField('Height', blank=True, null=True)
     comments_count = models.IntegerField('Comments count', blank=True, null=True, default=0)
+    fan_view_count = models.IntegerField('Fan view count', blank=True, null=True, default=0)
+    public_view_count = models.IntegerField('Public view count', blank=True, null=True, default=0)
 
     def __str__(self):
         return 'Starsona Video - %s' % str(self.pk)

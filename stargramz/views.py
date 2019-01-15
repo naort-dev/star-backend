@@ -41,6 +41,7 @@ from payments.tasks import create_request_refund
 from payments.constants import SECRET_KEY
 from django.http import HttpResponseRedirect
 import stripe
+from django.db.models import F
 hashids = Hashids(min_length=8)
 
 API_KEY = SECRET_KEY
@@ -1048,11 +1049,21 @@ class RequesterWatchedVideo(APIView, ResponseViewMixin):
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
 
         try:
-            video = StargramVideo.objects.get(id=video_id, stragramz_request__fan=user.id, read_status=False)
+            video = StargramVideo.objects.get(id=video_id, stragramz_request__fan=user.id)
+            rating = FanRating.objects.filter(starsona=video.stragramz_request)
+            comments_status = True
+            fan_count = video.fan_view_count
+            if not rating:
+                video.fan_view_count = F("fan_view_count") + 1
+                fan_count = fan_count+1
+                comments_status = False
             video.read_status = True
             video.save()
-            return self.jp_response('HTTP_200_OK', data={"video_read": 'Updated the video'})
-        except StargramVideo.DoesNotExist as e:
+            return self.jp_response(
+                'HTTP_200_OK',
+                data={"video_read": 'Updated the video', "has_comments": comments_status, "count": fan_count}
+            )
+        except Exception as e:
             return self.jp_response('HTTP_200_OK', data={"video_read": str(e)})
 
 
