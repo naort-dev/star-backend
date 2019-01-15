@@ -237,9 +237,8 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
                 'nick_name'
             ]
             result_query = search_name(filter_by_name, result_query, filter_fields)
-        result_query = result_query.order_by('first_name', 'nick_name', '-celebrity_account__id', 'id')
-        result_query = result_query.distinct()
-        page = self.paginate_queryset(result_query)
+        result_query = result_query.order_by('first_name', 'nick_name', 'id')
+        page = self.paginate_queryset(result_query.distinct())
         serializer = self.get_serializer(page, many=True)
 
         return self.paginator.get_paginated_response(
