@@ -97,9 +97,13 @@ class GroupAccountList(GenericViewSet, ResponseViewMixin):
             search_query = search_query.filter(group_account__group_type=group_type)
 
         account = request.GET.get('account')
+        member = request.GET.get('member')
         if account:
             user = get_user_id(account)
-            search_query = search_query.filter(celebrity_account__account=user, celebrity_account__approved=True)
+            filter_condition = {"celebrity_account__account": user, "celebrity_account__approved": True}
+            if member:
+                filter_condition.update({"celebrity_account__celebrity_invite": True})
+            search_query = search_query.filter(**filter_condition)
 
         celebrity = request.GET.get('celebrity')
         if celebrity:
