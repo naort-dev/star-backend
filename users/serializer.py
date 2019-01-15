@@ -1090,8 +1090,15 @@ class MemberListSerializer(serializers.ModelSerializer):
                   'celebrity_profession', 'has_group_account', 'group_type')
 
     def get_celebrity_account(self, obj):
-        celebrity_account = CelebrityGroupAccount.objects.values('id', 'approved', 'celebrity_invite')\
-            .filter(user=obj, account=self.context.get('request').user)
+        celebrity = self.context.get('request').GET.get("celebrity", None)
+        # serialize groups of the current celebrity
+        if celebrity:
+            celebrity_account = CelebrityGroupAccount.objects.values('id', 'approved', 'celebrity_invite') \
+                .filter(user=self.context.get('request').user, account=obj)
+        # serialize celebrities of the current group
+        else:
+            celebrity_account = CelebrityGroupAccount.objects.values('id', 'approved', 'celebrity_invite')\
+                .filter(user=obj, account=self.context.get('request').user)
         if celebrity_account:
             celebrity_account[0].update(id=hashids.encode(celebrity_account[0].get('id')))
         return celebrity_account

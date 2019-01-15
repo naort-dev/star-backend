@@ -217,27 +217,57 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
         option = request.GET.get('member', None)
         status = request.GET.get('status', None)
         celebrity = request.GET.get('celebrity', None)
-        filter_condition = {} if celebrity else {'celebrity_user__admin_approval': True}
         filter_by_name = request.GET.get('name', None)
-        if option:
-            if celebrity:
+        # the celebrity parameter is used for listing groups of a celebrity, authenticated user is celebrity
+        # in the else part it will list the celebrity in a group, authenticated user is group
+        if celebrity:
+            filter_condition = {}
+            # option will list the groups in which the celebrity is invited or supported or a member
+            if option:
                 filter_condition.update({'account_user__user_id': user_id})
+                # the status = true will list the groups in which the celebrity is a member
+                if status and status == 'true':
+                    filter_condition.update(
+                        {'account_user__approved': True, 'account_user__celebrity_invite': True}
+                    )
             else:
+                # here it will list the groups which is not the group of this celebrity there is no invitation nor
+                # support
+                exclude_condition.update({'account_user__user_id': user_id})
+
+            result_query = search_query.exclude(**exclude_condition).filter(**filter_condition)
+            # It will list the groups in which the celebrity is invited or the celebrity supports
+            if status and status == 'false':
+                filter_condition.update(
+                    {'account_user__approved': True, 'account_user__celebrity_invite': True}
+                )
+                with_approved = search_query.exclude(**exclude_condition).filter(**filter_condition)
+                result_query = result_query.difference(with_approved)
+        else:
+            filter_condition = {'celebrity_user__admin_approval': True}
+            # option will list the admin_approved celebrities in which the celebrity is invited or supported or
+            # a member of the group
+            if option:
                 filter_condition.update({'celebrity_account__account_id': user_id})
-            if status and status == 'true':
+                # the status = true will list the members of the group
+                if status and status == 'true':
+                    filter_condition.update(
+                        {'celebrity_account__approved': True, 'celebrity_account__celebrity_invite': True}
+                    )
+            else:
+                # here it will list the non members of the group
+                exclude_condition.update({'celebrity_account__account_id': user_id})
+
+            result_query = search_query.exclude(**exclude_condition).filter(**filter_condition)
+            # It will list the celebrities who are invited or supports the group but they are not the members of
+            # the group
+            if status and status == 'false':
                 filter_condition.update(
                     {'celebrity_account__approved': True, 'celebrity_account__celebrity_invite': True}
                 )
-        else:
-            exclude_condition.update({'celebrity_account__account_id': user_id})
-
-        result_query = search_query.exclude(**exclude_condition).filter(**filter_condition)
-        if status and status == 'false':
-            filter_condition.update(
-                {'celebrity_account__approved': True, 'celebrity_account__celebrity_invite': True}
-            )
-            with_approved = search_query.exclude(**exclude_condition).filter(**filter_condition)
-            result_query = result_query.difference(with_approved)
+                with_approved = search_query.exclude(**exclude_condition).filter(**filter_condition)
+                result_query = result_query.difference(with_approved)
+        # it is not used features in Jan 15, 2019. it is created for search celebrity or group with the name
         if filter_by_name:
             filter_fields = [
                 'first_name',
