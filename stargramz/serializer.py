@@ -85,7 +85,7 @@ class StargramzVideoSerializer(CustomModelSerializer):
         return hashids.encode(obj.id)
 
     def get_video_url(self, obj):
-        web_url = Config.objects.get(key="web_url").value
+        web_url = Config.objects.get(key="short_web_url").value
         return web_url + obj.stragramz_request.celebrity.vanity_urls.name+'?video_id=' + hashids.encode(obj.id)
 
     def get_status(self, obj):
