@@ -368,7 +368,7 @@ class RequestList(GenericViewSet, ResponseViewMixin):
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
         mappings = UserRoleMapping.objects.get(user=user)
 
-        role_list = {ROLES.celebrity: 'celebrity_id', ROLES.fan: 'fan_id'}
+        role_list = {ROLES.celebrity: 'celebrity_id', ROLES.fan: 'fan_id', ROLES.group_account: 'fan_id'}
 
         user_role = request.GET['role'] if 'role' in request.GET else None
         role = user_role if user_role and user_role in ['fan_id', 'celebrity_id'] else role_list[mappings.role.code]
@@ -406,8 +406,7 @@ class RequestList(GenericViewSet, ResponseViewMixin):
                 status = [status] if type(status) is not list else status
                 all_requests = Stargramrequest.objects.filter(
                     Q(request_status__in=status) & Q(**custom_filter)
-                ).select_related('occasion', 'fan', 'celebrity')\
-                                   .prefetch_related('request_video', 'request_transaction')\
+                ).select_related('occasion', 'fan', 'celebrity').prefetch_related('request_video', 'request_transaction')\
                                    .order_by('-created_date')[:5]
                 result[STATUS_TYPES.get_label(status[0])] = self.get_serializer(all_requests, many=True).data
                 if role == 'fan_id' and STATUS_TYPES.completed in status:
