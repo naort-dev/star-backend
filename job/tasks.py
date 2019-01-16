@@ -829,7 +829,8 @@ def send_email_notification(request_id):
         if request.request_status == 6:
             try:
                 video_id = StargramVideo.objects.values_list('id', flat=True).get(stragramz_request_id=request.id, status=1)
-                video_url = '%svideo/%s' % (BASE_URL, hashids.encode(video_id))
+                web_url = Config.objects.get(key="web_url").value
+                video_url = web_url + request.celebrity.vanity_urls.name + '?video_id=' + hashids.encode(video_id)
             except Exception:
                 pass
 
@@ -843,7 +844,7 @@ def send_email_notification(request_id):
         app_urls = {
             2: 'request/?request_id=%s&role=R1002' % hashids.encode(request.id),
             5: 'home/',
-            6: video_url  # 'video/?video_id=%s' % hashids.encode(video_id) if video_id else None
+            6: 'video/?video_id=%s' % hashids.encode(video_id) if video_id else None
         }
 
         ctx['app_url'] = video_url if request.request_status == 6 else generate_branch_io_url(
