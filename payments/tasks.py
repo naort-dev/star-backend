@@ -72,9 +72,9 @@ def send_sms_notification(starsona):
             desktop_url=desktop_link,
             image_url='%smedia/web-images/starsona_logo.png' % BASE_URL,
         )
-        message = "Hi, You have a new booking in Starsona. Click Here %s" % response_link
+        message = "Hi, You have a new booking in Starsona. Click here %s" % response_link
         send_sms_celebrity.delay(message, starsona.celebrity.id)
-        message = "Hi, %s have a new booking. Please Inform" % starsona.celebrity.get_short_name()
+        message = "Hi, %s have a new booking. Please inform" % starsona.celebrity.get_short_name()
         representatives = Representative.objects.filter(celebrity=starsona.celebrity, sms_notify=True)
         for representative in representatives:
             phone_number = "+%s%s" % (representative.country_code, representative.phone)
