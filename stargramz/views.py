@@ -1064,7 +1064,7 @@ class RequesterWatchedVideo(APIView, ResponseViewMixin):
                 data={"read_video_status": read_video_status}
             )
         except Exception as e:
-            return self.jp_response('HTTP_200_OK', data={"video_read": str(e)})
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
 
 
 def get_bucket_private_url(request, vname):

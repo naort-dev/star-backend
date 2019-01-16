@@ -151,7 +151,7 @@ class StargramzSerializer(serializers.ModelSerializer):
     to_audio_file = serializers.FileField(required=False)
     request_video = StargramzVideoSerializer(read_only=True, many=True, fields=[
         's3_thumbnail_url', 's3_video_url', 'video_url', 'status', 'video_status', 'width', 'height', 'video_id',
-        'comments_count', 'read_status'
+        'comments_count', 'read_status', 'fan_view_count'
     ])
     avatar_photo = serializers.SerializerMethodField(read_only=True)
     fan_photo = serializers.SerializerMethodField(read_only=True)
