@@ -1059,9 +1059,10 @@ class RequesterWatchedVideo(APIView, ResponseViewMixin):
                 comments_status = False
             video.read_status = True
             video.save()
+            read_video_status = {"video_read": 'Updated the video', "has_comments": comments_status, "count": fan_count}
             return self.jp_response(
                 'HTTP_200_OK',
-                data={"video_read": 'Updated the video', "has_comments": comments_status, "count": fan_count}
+                data={"read_video_status": read_video_status}
             )
         except Exception as e:
             return self.jp_response('HTTP_200_OK', data={"video_read": str(e)})

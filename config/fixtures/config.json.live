@@ -268,5 +268,15 @@
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }
+  },
+  {
+    "model": "config.config",
+    "pk": 28,
+    "fields": {
+      "key": "short_web_url",
+      "value": "starsona.com/",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
   }
 ]
