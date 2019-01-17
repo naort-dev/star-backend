@@ -221,7 +221,7 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
         # the celebrity parameter is used for listing groups of a celebrity, authenticated user is celebrity
         # in the else part it will list the celebrity in a group, authenticated user is group
         if celebrity:
-            filter_condition = {}
+            filter_condition = {'group_account__admin_approval': True}
             # option will list the groups in which the celebrity is invited or supported or a member
             if option:
                 filter_condition.update({'account_user__user_id': user_id})
@@ -290,7 +290,10 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
         if member_id:
             try:
                 member_id = decode_pk(member_id)
-                CelebrityGroupAccount.objects.get(id=member_id, account=request.user).delete()
+                account = CelebrityGroupAccount.objects.filter(id=member_id).filter(
+                    Q(account=request.user) | Q(user=request.user)
+                )
+                account.delete()
             except Exception:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_USER', 'Group member not found')
             return self.jp_response(s_code='HTTP_200_OK',
