@@ -434,6 +434,8 @@ class SettingsNotifications(models.Model):
     mobile_country_code = models.CharField(blank=True, null=True, max_length=5)
     mobile_number = models.CharField(blank=True, null=True, max_length=15)
     mobile_notification = models.BooleanField(default=False)
+    mobile_verified = models.BooleanField(default=False)
+    verification_uuid = models.CharField(blank=True, null=True, max_length=120)
 
 
 class CelebrityAvailableAlert(models.Model):
