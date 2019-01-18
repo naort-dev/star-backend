@@ -392,6 +392,14 @@ class NotificationSettings(APIView, ResponseViewMixin):
             for field in fields:
                 field_defaults[field] = serializer.validated_data.get(field)
             try:
+                settings = SettingsNotifications.objects.get(user_id=user.id)
+                if settings.mobile_verified:
+                    field_defaults.update(
+                        {
+                            "mobile_number": settings.mobile_number,
+                            "mobile_country_code": settings.mobile_country_code
+                        }
+                    )
                 notifications, created = SettingsNotifications.objects.update_or_create(user_id=user.id,
                                                                                         defaults=field_defaults)
             except Exception:
@@ -844,6 +852,11 @@ class ValidateMobile(APIView, ResponseViewMixin):
 
     def post(self, request):
 
+        try:
+            user = StargramzUser.objects.get(id=request.user.id)
+        except Exception:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', "incorrect_user")
+
         phone_validate = ValidatePhoneNumberSerializer(data=request.data)
         if phone_validate.is_valid():
             data = {
@@ -862,6 +875,10 @@ class ValidateMobile(APIView, ResponseViewMixin):
                 )
 
                 if response.status_code == 200:
+                    settings = SettingsNotifications.objects.get(user_id=user.id)
+                    settings.verification_uuid = response.json().get('uuid')
+                    settings.mobile_verified = False
+                    settings.save()
                     return self.jp_response(s_code='HTTP_200_OK', data=response.json())
                 else:
                     return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', data=response.json()['errors']['message'])
@@ -882,6 +899,11 @@ class VerifyMobile(APIView, ResponseViewMixin):
 
     def post(self, request):
 
+        try:
+            user = StargramzUser.objects.get(id=request.user.id)
+        except Exception:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', "incorrect_user")
+
         phone_verify = VerifyPhoneNumberSerializer(data=request.data)
         if phone_verify.is_valid():
             data = {
@@ -895,6 +917,11 @@ class VerifyMobile(APIView, ResponseViewMixin):
                     headers={"X-Authy-API-Key": os.environ.get('AUTHY_API_KEY'), "Content-Type": "application/json"}
                 )
                 if response.status_code == 200:
+                    settings = SettingsNotifications.objects.get(user_id=user.id)
+                    settings.mobile_verified = True
+                    settings.mobile_number = phone_verify.validated_data.get('phone_number')
+                    settings.mobile_country_code = phone_verify.validated_data.get('country_code')
+                    settings.save()
                     return self.jp_response(s_code='HTTP_200_OK', data=response.json())
                 else:
                     return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', data=response.json()['errors']['message'])
