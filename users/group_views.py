@@ -46,10 +46,14 @@ class GroupAccountsView(APIView, ResponseViewMixin):
 
     def get(self, request):
         self.permission_classes = (CustomPermission,)
-
+        try:
+            user = None
+            user = StargramzUser.objects.get(id=request.user.id)
+        except Exception:
+            pass
         try:
             group = GroupType.objects.all()
-            serializer = GroupTypeListSerializer(group, many=True)
+            serializer = GroupTypeListSerializer(group, many=True, context={"user": user})
             return self.jp_response(s_code='HTTP_200_OK', data={'group_accounts': serializer.data})
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))

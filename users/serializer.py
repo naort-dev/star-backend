@@ -904,6 +904,14 @@ class GroupAccountDataSerializer(serializers.ModelSerializer):
 
 class GroupTypeListSerializer(serializers.ModelSerializer):
 
+    exclude_condition = {}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        user = self.context.get("user")
+        if user:
+            self.exclude_condition = {'account_user__user_id': user.id}
+
     groups = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -912,9 +920,9 @@ class GroupTypeListSerializer(serializers.ModelSerializer):
 
     def get_groups(self, obj):
         user = StargramzUser.objects.select_related(
-            'avatar_photo').prefetch_related('vanity_urls', 'group_account').filter(
+            'avatar_photo').prefetch_related('vanity_urls', 'group_account', 'account_user').filter(
             group_account__admin_approval=True, group_account__group_type=obj
-        )
+        ).exclude(**self.exclude_condition)
         serializers_data = GroupAccountDataSerializer(user, many=True).data
         return serializers_data
 
