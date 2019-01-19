@@ -1,6 +1,6 @@
 import os
 
-DEBUG = False
+DEBUG = os.environ.get('DEBUG', 'False').lower() in ("yes", "true", "1")
 ALLOWED_HOSTS = ['*',]
 ENV_DIR = ''
 
@@ -18,3 +18,21 @@ DATABASES = {
         'PORT': '',
     }
 }
+
+if DEBUG:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'console': {
+                'level': 'DEBUG',
+                'class': 'logging.StreamHandler',
+            }
+        },
+        'loggers': {
+            'django.db.backends': {
+                'handlers': ['console'],
+                'level': 'DEBUG',
+            },
+        }
+    }

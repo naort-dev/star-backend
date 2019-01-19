@@ -23,6 +23,8 @@ from stargramz.views import play_video, profile_detail, request_detail, page_not
     invite_referral, play_reaction_video
 from health.views import health
 from users.celebrity_views import celebrity_representative_email_verification
+from django.contrib.sitemaps import views as sitemaps_views
+from .sitemaps import VanityUrlSitemap
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -52,6 +54,8 @@ urlpatterns = [
     url(r'^download/(?P<id>[0-9a-zA-Z]{5,8})$', utils.download_video),
     url(r'^download_reactions/(?P<id>[0-9a-zA-Z]{5,8})$', utils.download_reaction_file),
     url(r'^health', health),
+    url(r'^sitemap\.xml$', sitemaps_views.index, {'sitemaps' : {'section': VanityUrlSitemap}, 'sitemap_url_name': 'sitemaps' }),
+    url(r'^sitemap-(?P<section>.+)\.xml$', sitemaps_views.sitemap, {'sitemaps': {'section': VanityUrlSitemap}}, name='sitemaps'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
