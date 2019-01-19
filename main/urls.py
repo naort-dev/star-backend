@@ -46,6 +46,8 @@ urlpatterns = [
     url(r'^api/v1/request/', include('stargramz.urls')),
     url(r'^api/v1/payments/', include('payments.urls')),
     url(r'^api/v1/notification/', include('notification.urls')),
+    url(r'^api/v1/sitemap\.xml$', sitemaps_views.index, {'sitemaps' : {'section': VanityUrlSitemap}, 'sitemap_url_name': 'sitemaps' }),
+    url(r'^api/v1/sitemap-(?P<section>.+)\.xml$', sitemaps_views.sitemap, {'sitemaps': {'section': VanityUrlSitemap}}, name='sitemaps'),
     url(r'^apple-app-site-association$', utils.download_file, {'path': constants.IOS_UNIVERSAL_FILE_PATH}),
     url(r'^.well-known/assetlinks.json$', utils.download_file, {
         'path': constants.ANDROID_UNIVERSAL_FILE_PATH,
@@ -54,8 +56,6 @@ urlpatterns = [
     url(r'^download/(?P<id>[0-9a-zA-Z]{5,8})$', utils.download_video),
     url(r'^download_reactions/(?P<id>[0-9a-zA-Z]{5,8})$', utils.download_reaction_file),
     url(r'^health', health),
-    url(r'^sitemap\.xml$', sitemaps_views.index, {'sitemaps' : {'section': VanityUrlSitemap}, 'sitemap_url_name': 'sitemaps' }),
-    url(r'^sitemap-(?P<section>.+)\.xml$', sitemaps_views.sitemap, {'sitemaps': {'section': VanityUrlSitemap}}, name='sitemaps'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
