@@ -24,7 +24,7 @@ from stargramz.views import play_video, profile_detail, request_detail, page_not
 from health.views import health
 from users.celebrity_views import celebrity_representative_email_verification
 from django.contrib.sitemaps import views as sitemaps_views
-from .sitemaps import VanityUrlSitemap
+from .sitemaps import index as sitemap_index, VanityUrlSitemap
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -46,7 +46,7 @@ urlpatterns = [
     url(r'^api/v1/request/', include('stargramz.urls')),
     url(r'^api/v1/payments/', include('payments.urls')),
     url(r'^api/v1/notification/', include('notification.urls')),
-    url(r'^api/v1/sitemap\.xml$', sitemaps_views.index, {'sitemaps' : {'section': VanityUrlSitemap}, 'sitemap_url_name': 'sitemaps' }),
+    url(r'^api/v1/sitemap\.xml$', sitemap_index, {'sitemaps' : {'section': VanityUrlSitemap}, 'sitemap_url_name': 'sitemaps' }),
     url(r'^api/v1/sitemap-(?P<section>.+)\.xml$', sitemaps_views.sitemap, {'sitemaps': {'section': VanityUrlSitemap}}, name='sitemaps'),
     url(r'^apple-app-site-association$', utils.download_file, {'path': constants.IOS_UNIVERSAL_FILE_PATH}),
     url(r'^.well-known/assetlinks.json$', utils.download_file, {
