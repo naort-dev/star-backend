@@ -481,6 +481,7 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
             celebrity_representatives = Representative.objects.filter(celebrity=pk)
             celebrity_data = CelebrityRepresentativeViewSerializer(celebrity_representatives, many=True).data
             data['celebrity_representatives'] = celebrity_data
+            data['group_notification_count'] = user.group_notification
         else:
             data.pop('email', None)
         if data['celebrity']:

@@ -288,6 +288,8 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
         page = self.paginate_queryset(result_query.distinct())
         serializer = self.get_serializer(page, many=True)
 
+        request.user.group_notification = 0
+        request.user.save()
         return self.paginator.get_paginated_response(
             data={'group_user': serializer.data},
             key_name='group_follow_members'

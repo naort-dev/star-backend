@@ -131,6 +131,7 @@ class StargramzUser(AbstractBaseUser, PermissionsMixin):
     has_requested_referral = models.BooleanField('Referral requested', default=False)
     stripe_user_id = models.CharField('Stripe User ID', max_length=150, blank=True, null=True)
     check_payments = models.BooleanField('Check Payment', default=False)
+    group_notification = models.IntegerField('Group invite/support count', default=0)
 
     objects = StargramzUserManager()
 
@@ -559,6 +560,17 @@ class CelebrityGroupAccount(models.Model):
 
     def __str__(self):
         return self.user.get_short_name()
+
+
+@receiver(post_save, sender=CelebrityGroupAccount)
+def group_notification_updater(sender, instance, created, **kwargs):
+    if created:
+        if instance.approved:
+            instance.user.group_notification = F('group_notification') + 1
+            instance.user.save()
+        elif instance.celebrity_invite:
+            instance.account.group_notification = F('group_notification') + 1
+            instance.account.save()
 
 
 class SocialMediaLinks(models.Model):
