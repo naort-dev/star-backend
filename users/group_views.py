@@ -10,7 +10,7 @@ from users.models import StargramzUser, GroupAccount, GroupType, CelebrityGroupA
 from users.serializer import GroupListSerializer, GroupAccountSerializer, \
     GroupTypeSerializer, JoinGroupSerializer, GroupFollowSerializer, MemberListSerializer,\
     JoinGroupCelebritySerializer, GroupTypeListSerializer, CelebrityGroupAccountSerializer
-from django.db.models import Q
+from django.db.models import Q, When, F, Case
 from .utils import search_name
 from job.tasks import group_notify, invite_celebrity_notify
 
@@ -279,7 +279,12 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
                 'nick_name'
             ]
             result_query = search_name(filter_by_name, result_query, filter_fields)
-        result_query = result_query.order_by('first_name', 'nick_name', 'id')
+        if celebrity:
+            result_query = result_query.order_by('first_name', 'nick_name', 'id')
+        else:
+            result_query = result_query.annotate(sort_name=Case(
+                When(Q(show_nick_name=True) & Q(nick_name__isnull=False) & ~Q(nick_name=''), then=F('nick_name')),
+                When(Q(show_nick_name=False), then=F('first_name')))).order_by('sort_name')
         page = self.paginate_queryset(result_query.distinct())
         serializer = self.get_serializer(page, many=True)
 
