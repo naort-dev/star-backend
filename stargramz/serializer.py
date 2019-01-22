@@ -49,6 +49,7 @@ class StargramzVideoSerializer(CustomModelSerializer):
 
     def __init__(self, *args, **kwargs):
         self.bucket_url = get_bucket_url()
+        self.web_url = Config.objects.get(key="short_web_url").value
         super().__init__(*args, **kwargs)
 
     first_name = serializers.CharField(read_only=True, source="stragramz_request.celebrity.first_name")
@@ -85,8 +86,7 @@ class StargramzVideoSerializer(CustomModelSerializer):
         return hashids.encode(obj.id)
 
     def get_video_url(self, obj):
-        web_url = Config.objects.get(key="short_web_url").value
-        return web_url + obj.stragramz_request.celebrity.vanity_urls.name+'?video_id=' + hashids.encode(obj.id)
+        return self.web_url + obj.stragramz_request.celebrity.vanity_urls.name+'?video_id=' + hashids.encode(obj.id)
 
     def get_status(self, obj):
         return False if obj.status == 3 else True
@@ -128,13 +128,9 @@ class StargramzVideoSerializer(CustomModelSerializer):
     def get_following(self, obj):
         if self.context['request'].user.is_authenticated:
             try:
-                user = StargramzUser.objects.get(username=self.context['request'].user)
-                try:
-                    CelebrityFollow.objects.get(fan=user, celebrity_id=obj.stragramz_request.celebrity_id)
-                    return True
-                except CelebrityFollow.DoesNotExist:
-                    return False
-            except StargramzUser.DoesNotExist:
+                CelebrityFollow.objects.get(fan=self.context['request'].user, celebrity_id=obj.stragramz_request.celebrity_id)
+                return True
+            except CelebrityFollow.DoesNotExist:
                 return False
         return False
 
