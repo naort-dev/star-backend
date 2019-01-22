@@ -42,12 +42,12 @@ class VanityUrlSitemap(Sitemap):
         return self._urls(page, self.protocol, self.domain)
 
     def items(self):
-        return StargramzUser.objects.select_related('vanity_urls').filter(
+        return StargramzUser.objects.select_related('vanity_urls').values('modified_date', 'vanity_urls__name').filter(
             Q(celebrity_user__admin_approval=True) & Q(vanity_urls__isnull=False))
 
     def lastmod(self, obj):
-        return obj.vanity_urls.user.modified_date
+        return obj['modified_date']
 
     def location(self, obj):
-        return '/' + obj.vanity_urls.name
+        return '/' + obj['vanity_urls__name']
 
