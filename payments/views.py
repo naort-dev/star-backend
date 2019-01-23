@@ -21,7 +21,7 @@ from utilities.pagination import CustomOffsetPagination
 import uuid
 import requests
 from django.db.models import Sum
-from .tasks import change_request_status_to_pending, tip_payments_payout
+from .tasks import change_request_status_to_pending, tip_payments_payout, transaction_completed_notification
 from datetime import datetime, timedelta
 from config.constants import *
 
@@ -144,6 +144,7 @@ class CreateChargeFan(APIView, ResponseViewMixin):
                 transaction.delete()
                 return self.exception_response(charge_id["Exception"])
             save_transaction_details(transaction, stargram_request, charge_id)
+            transaction_completed_notification.delay(stargram_request.id)
             try:
                 edit_time = int(Config.objects.get(key='booking_edit_time').value)
             except Exception:
