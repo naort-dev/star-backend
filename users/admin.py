@@ -92,7 +92,8 @@ class VanityUrlInline(ReadOnlyStackedInline):
 class NotificationSettingInline(ReadOnlyStackedInline):
     model = SettingsNotifications
     fields = ('celebrity_starsona_request', 'celebrity_starsona_message', 'celebrity_account_updates',
-              'fan_account_updates', 'fan_starsona_messages', 'fan_starsona_videos', 'fan_email_starsona_videos')
+              'fan_account_updates', 'fan_starsona_messages', 'fan_starsona_videos', 'fan_email_starsona_videos',
+              'mobile_number', 'mobile_country_code', 'mobile_notification', 'mobile_verified')
     max_num = 1
     verbose_name_plural = 'Notification Settings'
     can_delete = False
@@ -206,7 +207,7 @@ class StargramzUserAdmin(UserAdmin, ReadOnlyModelAdmin):
 
     fieldsets = (
         (None, {'fields': ('email', 'username', 'password')}),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'phone', 'date_of_birth')}),
+        (_('Personal info'), {'fields': ('first_name', 'last_name', 'date_of_birth')}),
         (_('Status info'), {'fields': ('status',)}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', )}),
         (_('Important dates'), {'fields': ('last_login', 'created_date', 'modified_date', )})
@@ -237,7 +238,7 @@ class AdminUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
 
     fieldsets = (
         (None, {'fields': ('email', 'username', 'password')}),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'phone', 'date_of_birth')}),
+        (_('Personal info'), {'fields': ('first_name', 'last_name', 'date_of_birth')}),
         (_('Status info'), {'fields': ('status',)}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', )}),
         (_('Important dates'), {'fields': ('last_login', 'created_date', 'modified_date', )})
@@ -271,7 +272,7 @@ class FanUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
 
     fieldsets = (
         (None, {'fields': ('email', 'username', 'password')}),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'phone', 'date_of_birth')}),
+        (_('Personal info'), {'fields': ('first_name', 'last_name', 'date_of_birth')}),
         (_('Important dates'), {'fields': ('last_login', 'created_date', 'modified_date',)}),
         (_('Payments'), {'fields': ('stripe_customer_id', 'stripe_user_id', 'check_payments')}),
         (_('Referral Details'), {'fields': ('referral_active', 'referral_code', 'referral_campaign',
@@ -316,8 +317,7 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
 
     fieldsets = (
         (None, {'fields': ('email', 'username', 'password')}),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'nick_name', 'phone', 'date_of_birth',
-                                         'show_nick_name', 'order')}),
+        (_('Personal info'), {'fields': ('first_name', 'last_name', 'nick_name', 'date_of_birth', 'order')}),
         (_('Referral Details'), {'fields': ('referral_active', 'referral_code', 'referral_campaign',
                                             'has_requested_referral')}),
         (_('Important dates'), {'fields': ('last_login', 'created_date', 'modified_date',)}),

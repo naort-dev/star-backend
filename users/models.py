@@ -154,7 +154,7 @@ class StargramzUser(AbstractBaseUser, PermissionsMixin):
         """
             Returns the full name for the user.
         """
-        if self.show_nick_name and self.nick_name:
+        if self.nick_name:
             return self.nick_name.title()
         return ' '.join(filter(None, [self.first_name, self.last_name])).title()
 
