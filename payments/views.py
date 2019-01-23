@@ -21,7 +21,8 @@ from utilities.pagination import CustomOffsetPagination
 import uuid
 import requests
 from django.db.models import Sum
-from .tasks import change_request_status_to_pending, tip_payments_payout, transaction_completed_notification
+from .tasks import change_request_status_to_pending, tip_payments_payout, transaction_completed_notification,\
+    credit_card_maintenance_notification
 from datetime import datetime, timedelta
 from config.constants import *
 
@@ -265,12 +266,14 @@ class AttachDetachSource(APIView, ResponseViewMixin):
                 try:
                     cu.sources.create(source=request.data['source'])
                     text = "attached"
+                    credit_card_maintenance_notification.delay(request.user.id, True)
                 except Exception as e:
                     return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', str(e))
             else:
                 try:
                     cu.sources.retrieve(request.data['source']).detach()
                     text = "detached"
+                    credit_card_maintenance_notification.delay(request.user.id, False)
                 except Exception as e:
                     return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', str(e))
             cu.save()
@@ -573,3 +576,20 @@ class TipPayments(APIView, ResponseViewMixin):
                 'UNKNOWN_QUERY',
                 self.error_msg_string(serializer.errors)
             )
+
+
+class CreditCardNotification(APIView, ResponseViewMixin):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def get(self, request):
+        try:
+            user = StargramzUser.objects.get(id=request.user.id)
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', str(e))
+
+        attach = True if request.GET.get('attach') else False
+
+        credit_card_maintenance_notification.delay(user.id, attach)
+
+        return self.jp_response(data={"message": "Notification sent Successfully"})

@@ -1,6 +1,6 @@
 from django.conf.urls import url
 from .views import GenerateEphemeralKey, CreateChargeFan, EventLog, AttachDetachSource, stripe_connect,\
-    CreateAccount, EarningsList, StripeDashboard, CardsList, TipPayments
+    CreateAccount, EarningsList, StripeDashboard, CardsList, TipPayments, CreditCardNotification
 from rest_framework.routers import DefaultRouter
 
 
@@ -14,6 +14,7 @@ urlpatterns = [
     url(r'^stripe_dashboard/$', StripeDashboard.as_view(), name='stripe-dashboard'),
     url(r'^stripe_cards/$', CardsList.as_view(), name='stripe-cards'),
     url(r'^paytip/$', TipPayments.as_view(), name='pay-tip'),
+    url(r'^card_notification/$', CreditCardNotification.as_view(), name='credit-card-notify'),
 ]
 
 router = DefaultRouter()

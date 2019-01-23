@@ -245,3 +245,27 @@ def transaction_completed_notification(starsona_id):
         return True
     except Exception:
         return False
+
+@app.task
+def credit_card_maintenance_notification(fan_id, attach):
+    """
+    The function will send the notification email to the fan informing about credit card addition or deletion
+    :param fan_id:
+    :param attach:
+    :return:
+    """
+    try:
+        fan = StargramzUser.objects.get(id=fan_id)
+        to_email = fan.email
+        template = "credit_card_notification"
+        ctx = {"fan_name": fan.get_short_name()}
+        if attach:
+            subject = "Credit Card Added"
+            ctx.update({"message": "A new credit card is added to your starsona account"})
+        else:
+            subject = "Credit Card Removed"
+            ctx.update({"message": "The credit card is removed from your starsona account"})
+        sent_email(to_email, subject, template, ctx)
+        return True
+    except Exception:
+        return False
