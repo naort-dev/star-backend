@@ -13,6 +13,8 @@ from payments.constants import SECRET_KEY
 from utilities.utils import check_user_role, encode_pk, generate_branch_io_url, sent_email
 from job.tasks import send_sms, send_sms_celebrity
 from utilities.constants import BASE_URL
+from config.models import Config
+import datetime
 
 
 @app.task
@@ -64,7 +66,7 @@ def send_sms_notification(starsona):
     """
     try:
         mob_link = 'request/?request_id=%s&role=R1002' % encode_pk(starsona.id)
-        desktop_link = '%s/applinks/request/R1002/%s' % (BASE_URL, encode_pk(starsona.id))
+        desktop_link = '%sapplinks/request/R1002/%s' % (BASE_URL, encode_pk(starsona.id))
         response_link = generate_branch_io_url(
             title="New Stasona Request",
             desc="New Stasona Request",
@@ -207,3 +209,39 @@ def tip_payment_celebrity_notification(tip_id):
         print(str(e))
         return False
 
+
+@app.task
+def transaction_completed_notification(starsona_id):
+    """
+     The function will send transaction notification e-mail with details, to the fan
+    :param starsona_id:
+    :return:
+    """
+    try:
+        web_url = Config.objects.get(key='web_url').value
+        mob_link = 'request/?request_id=%s&role=R1001' % encode_pk(starsona_id)
+        desktop_link = '%suser/myVideos' % web_url   # new desktop URL is needed
+        date = datetime.datetime.now().strftime("%d/%m/%Y")
+        booking = Stargramrequest.objects.get(id=starsona_id)
+        to_email = booking.fan.email
+        template = "transaction_status_to_fan"
+        subject = "Starsona Transaction Status"
+        ctx = {
+            "fan_name": booking.fan.get_short_name(),
+            "celebrity_name": booking.celebrity.get_short_name(),
+            "occasion": booking.occasion.title,
+            "booking_title": booking.booking_title,
+            "date": date,
+            "amount": str(booking.celebrity.celebrity_user.rate),
+            "app_url": generate_branch_io_url(
+                title="New Stasona Request",
+                desc="New Stasona Request",
+                mob_url=mob_link,
+                desktop_url=desktop_link,
+                image_url='%smedia/web-images/starsona_logo.png' % BASE_URL
+            )
+        }
+        sent_email(to_email, subject, template, ctx)
+        return True
+    except Exception:
+        return False

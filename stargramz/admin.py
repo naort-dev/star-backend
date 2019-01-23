@@ -2,7 +2,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib import admin
 from .models import Occasion, Stargramrequest, StargramVideo, OccasionRelationship, ReportAbuse, OrderRelationship,\
     Comment, Reaction, BookingAdminAdd, ReactionAbuse
-from payments.models import StarsonaTransaction
+from payments.models import StarsonaTransaction, TipPayment
 from config.models import Config
 from django.utils.safestring import mark_safe
 from utilities.utils import get_pre_signed_get_url, get_audio, get_s3_public_url
@@ -27,7 +27,7 @@ class AbuseInline(ReadOnlyStackedInline):
 
 class TransactionsInline(ReadOnlyStackedInline):
     model = StarsonaTransaction
-    fields = ('starsona', 'fan', 'celebrity', 'transaction_status', 'source_id',
+    fields = ('starsona', 'order_id', 'fan', 'celebrity', 'transaction_status', 'source_id',
               'stripe_transaction_id', 'stripe_refund_id', 'amount', 'comments', 'created_date', 'modified_date')
 
     min_num = 0
@@ -35,11 +35,14 @@ class TransactionsInline(ReadOnlyStackedInline):
     extra = 0
     verbose_name_plural = 'Transaction Details'
     can_delete = True
-    readonly_fields = ('fan', 'celebrity', 'transaction_status', 'source_id', 'stripe_transaction_id',
+    readonly_fields = ('order_id', 'fan', 'celebrity', 'transaction_status', 'source_id', 'stripe_transaction_id',
                        'stripe_refund_id', 'amount', 'comments', 'created_date', 'modified_date')
 
     def has_add_permission(self, request):
         return False
+
+    def order_id(self, instance):
+        return instance.order_id()
 
 
 class StargramVideosInline(ReadOnlyStackedInline):
@@ -213,6 +216,21 @@ class OccasionAdmin(ReadOnlyModelAdmin):
     inlines = (OrderRelationshipInline,)
 
 
+class TipPaymentAdmin(ReadOnlyTabularInline):
+    model = TipPayment
+    fields = ('id', 'amount', 'booking', 'fan', 'celebrity', 'created_date')
+    readonly_fields = ('id', 'amount', 'booking', 'fan', 'celebrity', 'created_date')
+    extra = 0
+    min_num = 0
+    verbose_name_plural = 'Tip Details'
+    fk_name = 'booking'
+    can_delete = False
+
+    def has_add_permission(self, request):
+
+        return False
+
+
 class StargramrequestAdmin(ReadOnlyModelAdmin):
 
     actions = ['make_complete']
@@ -228,7 +246,7 @@ class StargramrequestAdmin(ReadOnlyModelAdmin):
     readonly_fields = ('due_date', 'request_data', 'booking_from_audio', 'comment',
                        'booking_to_audio', 'created_date', 'modified_date',)
     search_fields = ('celebrity__username', 'fan__username', 'occasion__title', 'request_status')
-    inlines = [StargramVideosInline, TransactionsInline, AbuseInline, ReactionStackedInline]
+    inlines = [StargramVideosInline, TransactionsInline, AbuseInline, ReactionStackedInline, TipPaymentAdmin]
 
     def make_complete(self, request, queryset):
         queryset.update(request_status=6)
