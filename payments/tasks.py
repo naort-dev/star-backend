@@ -79,7 +79,8 @@ def send_sms_notification(starsona):
         message = "Hi, %s have a new booking. Please inform" % starsona.celebrity.get_short_name()
         representatives = Representative.objects.filter(celebrity=starsona.celebrity, sms_notify=True)
         for representative in representatives:
-            phone_number = "+%s%s" % (representative.country_code, representative.phone)
+            country_code = representative.country_code[1:] if representative.country_code[0] == '+' else representative.country_code
+            phone_number = "+%s%s" % (country_code, representative.phone)
             send_sms.delay(message, phone_number)
     except Exception:
         return False
