@@ -57,3 +57,7 @@ class TipPaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipPayment
         fields = ('booking', 'amount', 'source', 'celebrity', 'fan')
+
+
+class CreditCardNotificationSerializer(serializers.Serializer):
+    attach = serializers.BooleanField(required=True)
