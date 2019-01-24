@@ -22,6 +22,7 @@ app = Celery(
 )
 
 app.config_from_object('django.conf:settings', namespace='CELERY')
+app.conf.broker_transport_options = {'visibility_timeout': 3600}  # 1 hour.
 
 app.conf.beat_schedule = {
     'schedule-1': {
