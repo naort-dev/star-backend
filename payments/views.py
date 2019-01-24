@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from utilities.permissions import CustomPermission
 from users.models import StargramzUser, Celebrity
 from .serializer import EphemeralKeySerializer, ChargeSerializer, AttachDetachSourceSerializer, \
-    StarsonaTransactionSerializer, TipPaymentSerializer, BookingValidate
+    StarsonaTransactionSerializer, TipPaymentSerializer, BookingValidate, CreditCardNotificationSerializer
 import stripe
 from .models import StarsonaTransaction, LogEvent, TRANSACTION_STATUS, PAYOUT_STATUS, StripeAccount, PaymentPayout,\
     TipPayment, TIP_STATUS
@@ -588,8 +588,12 @@ class CreditCardNotification(APIView, ResponseViewMixin):
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', str(e))
 
-        attach = True if request.GET.get('attach') else False
+        serializer = CreditCardNotificationSerializer(data=request.GET)
+        if serializer.is_valid():
+            attach = serializer.validated_data.get('attach')
+            credit_card_maintenance_notification.delay(user.id, attach)
 
-        credit_card_maintenance_notification.delay(user.id, attach)
-
-        return self.jp_response(data={"message": "Notification sent Successfully"})
+            return self.jp_response(data={"message": "Notification sent Successfully"})
+        else:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN',
+                                          self.error_msg_string(serializer.errors))
