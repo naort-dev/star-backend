@@ -143,7 +143,7 @@ class CreateChargeFan(APIView, ResponseViewMixin):
 
             if type(charge_id) is dict:
                 transaction.delete()
-                return self.exception_response(charge_id["Exception"])
+                return self.stripe_exception_response(charge_id["Exception"])
             save_transaction_details(transaction, stargram_request, charge_id)
             transaction_completed_notification.delay(stargram_request.id)
             try:
@@ -173,7 +173,7 @@ def createcharge(customer_id, source_id, starsona_id, amount):
         )
         return request_charge.id
     except stripe.error.StripeError as e:
-        return {"Exception": 'Card is not chargeable, Please try with another card'}
+        return {"Exception": ':Card is not chargeable, Please try with another card'}
 
 
 def save_transaction_details(transaction, stargram_request, charge_id):
