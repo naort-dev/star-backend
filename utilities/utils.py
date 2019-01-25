@@ -11,7 +11,7 @@ import json
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 from django.core.mail import send_mail
-from .constants import PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, BASE_URL
+from .constants import PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, BASE_URL, WEB_URL
 from rest_framework import serializers
 from django.http import HttpResponse
 from django.utils.encoding import smart_str
@@ -461,7 +461,7 @@ def sent_email(to_email, subject, template, ctx):
         Sent email
     """
     sender_email = Config.objects.get(key='sender_email').value
-    ctx.update({'base_url': BASE_URL})
+    ctx.update({'base_url': BASE_URL, 'web_url': WEB_URL})
 
     html_template = get_template('../templates/emails/%s.html' % template)
     html_content = html_template.render(ctx)
