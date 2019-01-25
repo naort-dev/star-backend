@@ -566,7 +566,8 @@ class TipPayments(APIView, ResponseViewMixin):
                     tip_transaction.transaction_status = TIP_STATUS.failed
                     tip_transaction.comments = str(e)
                     tip_transaction.save()
-                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', str(e))
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY',
+                                                  'Card is not chargeable, Try with another card.')
 
 
             else:
