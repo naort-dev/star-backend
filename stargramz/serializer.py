@@ -260,7 +260,7 @@ class StargramzSerializer(serializers.ModelSerializer):
             try:
                 query = FanRating.objects.filter(Q(fan_id=obj.fan_id) &
                                                  Q(celebrity_id=obj.celebrity_id) &
-                                                 Q(starsona_id=obj.id))[-1]
+                                                 Q(starsona_id=obj.id))[0]
                 serializer = CelebrityRatingSerializer(query)
                 return serializer.data
             except FanRating.DoesNotExist:
