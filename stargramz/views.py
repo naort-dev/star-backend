@@ -366,58 +366,61 @@ class RequestList(GenericViewSet, ResponseViewMixin):
             user = StargramzUser.objects.get(username=request.user)
         except StargramzUser.DoesNotExist:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
-        mappings = UserRoleMapping.objects.get(user=user)
+        try:
+            mappings = UserRoleMapping.objects.get(user=user)
 
-        role_list = {ROLES.celebrity: 'celebrity_id', ROLES.fan: 'fan_id', ROLES.group_account: 'fan_id'}
+            role_list = {ROLES.celebrity: 'celebrity_id', ROLES.fan: 'fan_id', ROLES.group_account: 'fan_id'}
 
-        user_role = request.GET['role'] if 'role' in request.GET else None
-        role = user_role if user_role and user_role in ['fan_id', 'celebrity_id'] else role_list[mappings.role.code]
+            user_role = request.GET['role'] if 'role' in request.GET else None
+            role = user_role if user_role and user_role in ['fan_id', 'celebrity_id'] else role_list[mappings.role.code]
 
-        status_list = [[2, 3], [5], [6]] if role == 'celebrity_id' else [[2, 3, 1], [5], [6]]
-        # role = 'celebrity_id' if mappings.role.code == ROLES.celebrity else 'fan_id'
-        # status_list = [[2, 3], [5], [6]] if mappings.role.code == ROLES.celebrity else [[2, 3, 1], [5], [6]]
+            status_list = [[2, 3], [5], [6]] if role == 'celebrity_id' else [[2, 3, 1], [5], [6]]
+            # role = 'celebrity_id' if mappings.role.code == ROLES.celebrity else 'fan_id'
+            # status_list = [[2, 3], [5], [6]] if mappings.role.code == ROLES.celebrity else [[2, 3, 1], [5], [6]]
 
-        if mappings.role.code == ROLES.celebrity:
-            user.unseen_bookings = 0
-            user.save()
-
-        # status_list = [[2, 3], [5], [6]]
-        custom_filter = {role: user.id}
-        query_set = Stargramrequest.objects.filter(**custom_filter)\
-            .select_related('occasion', 'fan', 'celebrity')\
-            .prefetch_related('request_video', 'request_transaction')
-
-        filter_by_status = request.GET.get("status")
-        if filter_by_status:
-            if filter_by_status == 'all':
-                filter_by_status = '2, 3, 4, 5, 6' if role == 'celebrity_id' else '2, 3, 1, 5, 6'
-            try:
-                filter_by_status = ast.literal_eval(filter_by_status+',')
-            except Exception as e:
-                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', str(e))
-            if role == 'fan_id' and STATUS_TYPES.completed in filter_by_status:
-                user.completed_view_count = 0
+            if mappings.role.code == ROLES.celebrity:
+                user.unseen_bookings = 0
                 user.save()
-            query_set = query_set.filter(request_status__in=filter_by_status)
-        else:
-            # Code block to be removed after the next sprint release
-            result = {}
-            for status in status_list:
-                status = [status] if type(status) is not list else status
-                all_requests = Stargramrequest.objects.filter(
-                    Q(request_status__in=status) & Q(**custom_filter)
-                ).select_related('occasion', 'fan', 'celebrity').prefetch_related('request_video', 'request_transaction')\
-                                   .order_by('-created_date')[:5]
-                result[STATUS_TYPES.get_label(status[0])] = self.get_serializer(all_requests, many=True).data
-                if role == 'fan_id' and STATUS_TYPES.completed in status:
+
+            # status_list = [[2, 3], [5], [6]]
+            custom_filter = {role: user.id}
+            query_set = Stargramrequest.objects.filter(**custom_filter)\
+                .select_related('occasion', 'fan', 'celebrity')\
+                .prefetch_related('request_video', 'request_transaction')
+
+            filter_by_status = request.GET.get("status")
+            if filter_by_status:
+                if filter_by_status == 'all':
+                    filter_by_status = '2, 3, 4, 5, 6' if role == 'celebrity_id' else '2, 3, 1, 5, 6'
+                try:
+                    filter_by_status = ast.literal_eval(filter_by_status+',')
+                except Exception as e:
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', str(e))
+                if role == 'fan_id' and STATUS_TYPES.completed in filter_by_status:
                     user.completed_view_count = 0
                     user.save()
-            return self.jp_response('HTTP_200_OK', data=result)
-            # Code block to be removed after the next sprint release
-        query_set = query_set.order_by('-modified_date', 'celebrity__first_name')
-        page = self.paginate_queryset(query_set.distinct())
-        serializer = self.get_serializer(page, many=True)
-        return self.paginator.get_paginated_response(serializer.data, key_name='request_list')
+                query_set = query_set.filter(request_status__in=filter_by_status)
+            else:
+                # Code block to be removed after the next sprint release
+                result = {}
+                for status in status_list:
+                    status = [status] if type(status) is not list else status
+                    all_requests = Stargramrequest.objects.filter(
+                        Q(request_status__in=status) & Q(**custom_filter)
+                    ).select_related('occasion', 'fan', 'celebrity').prefetch_related('request_video', 'request_transaction')\
+                                       .order_by('-created_date')[:5]
+                    result[STATUS_TYPES.get_label(status[0])] = self.get_serializer(all_requests, many=True).data
+                    if role == 'fan_id' and STATUS_TYPES.completed in status:
+                        user.completed_view_count = 0
+                        user.save()
+                return self.jp_response('HTTP_200_OK', data=result)
+                # Code block to be removed after the next sprint release
+            query_set = query_set.order_by('-modified_date', 'celebrity__first_name')
+            page = self.paginate_queryset(query_set.distinct())
+            serializer = self.get_serializer(page, many=True)
+            return self.paginator.get_paginated_response(serializer.data, key_name='request_list')
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
 
 
 class OtherRelationship(APIView, ResponseViewMixin):
