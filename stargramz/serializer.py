@@ -263,7 +263,7 @@ class StargramzSerializer(serializers.ModelSerializer):
                                                  Q(starsona_id=obj.id))[0]
                 serializer = CelebrityRatingSerializer(query)
                 return serializer.data
-            except FanRating.DoesNotExist:
+            except Exception:
                 return None
         return None
 
