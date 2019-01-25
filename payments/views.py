@@ -173,7 +173,7 @@ def createcharge(customer_id, source_id, starsona_id, amount):
         )
         return request_charge.id
     except stripe.error.StripeError as e:
-        return {"Exception": str(e)}
+        return {"Exception": 'Card is not chargeable, Please try with another card'}
 
 
 def save_transaction_details(transaction, stargram_request, charge_id):
