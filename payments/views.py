@@ -525,7 +525,8 @@ class TipPayments(APIView, ResponseViewMixin):
                 try:
                     request_charge = stripe.Source.retrieve(request.data['source'], api_key=API_KEY)
                 except Exception as e:
-                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', str(e))
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY',
+                                                  'Card is not chargeable, try with another card.')
                 tip_transaction = TipPayment.objects.create(
                     booking_id=booking,
                     fan_id=customer.id,
