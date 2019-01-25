@@ -258,9 +258,9 @@ class StargramzSerializer(serializers.ModelSerializer):
     def get_fan_rating(self, obj):
         if obj.request_status == 6:
             try:
-                query = FanRating.objects.get(Q(fan_id=obj.fan_id) &
-                                              Q(celebrity_id=obj.celebrity_id) &
-                                              Q(starsona_id=obj.id))
+                query = FanRating.objects.filter(Q(fan_id=obj.fan_id) &
+                                                 Q(celebrity_id=obj.celebrity_id) &
+                                                 Q(starsona_id=obj.id))[-1]
                 serializer = CelebrityRatingSerializer(query)
                 return serializer.data
             except FanRating.DoesNotExist:

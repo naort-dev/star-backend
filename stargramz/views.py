@@ -999,7 +999,7 @@ class BookingFeedbackView(APIView, ResponseViewMixin):
         except Stargramrequest.DoesNotExist as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
         try:
-            fan_rated = FanRating.objects.get(starsona=booking)
+            fan_rated = FanRating.objects.filter(starsona=booking)[-1]
             data = CelebrityRatingSerializer(fan_rated).data
             return self.jp_response('HTTP_200_OK', data={"feedback": data})
         except Exception:
