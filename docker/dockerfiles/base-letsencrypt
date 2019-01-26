@@ -2,7 +2,7 @@ ARG REGISTRY=''
 ARG IMAGE_TAG=''
 FROM ${REGISTRY}base-nginx${IMAGE_TAG}
 RUN apt-get update &&\
-    apt-get install -y software-properties-common python-software-properties &&\
+    apt-get install -y software-properties-common &&\
     apt-get clean all
 
 RUN add-apt-repository -y ppa:certbot/certbot &&\

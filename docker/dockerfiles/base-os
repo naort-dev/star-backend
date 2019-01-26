@@ -1,8 +1,7 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 RUN apt-get update &&\
-    apt-get install -y software-properties-common python-software-properties &&\
-    add-apt-repository -y ppa:jonathonf/ffmpeg-3 &&\
+    apt-get install -y software-properties-common &&\
     apt-get update &&\
     apt-get clean all
 
