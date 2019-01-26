@@ -143,7 +143,7 @@ class CreateChargeFan(APIView, ResponseViewMixin):
 
             if type(charge_id) is dict:
                 transaction.delete()
-                return self.exception_response(charge_id["Exception"])
+                return self.stripe_exception_response(charge_id["Exception"])
             save_transaction_details(transaction, stargram_request, charge_id)
             transaction_completed_notification.delay(stargram_request.id)
             try:
@@ -173,7 +173,7 @@ def createcharge(customer_id, source_id, starsona_id, amount):
         )
         return request_charge.id
     except stripe.error.StripeError as e:
-        return {"Exception": str(e)}
+        return {"Exception": ':Card is not chargeable, Please try with another card'}
 
 
 def save_transaction_details(transaction, stargram_request, charge_id):
@@ -525,7 +525,8 @@ class TipPayments(APIView, ResponseViewMixin):
                 try:
                     request_charge = stripe.Source.retrieve(request.data['source'], api_key=API_KEY)
                 except Exception as e:
-                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', str(e))
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY',
+                                                  'Card is not chargeable, try with another card.')
                 tip_transaction = TipPayment.objects.create(
                     booking_id=booking,
                     fan_id=customer.id,
@@ -565,7 +566,8 @@ class TipPayments(APIView, ResponseViewMixin):
                     tip_transaction.transaction_status = TIP_STATUS.failed
                     tip_transaction.comments = str(e)
                     tip_transaction.save()
-                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', str(e))
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY',
+                                                  'Card is not chargeable, Try with another card.')
 
 
             else:

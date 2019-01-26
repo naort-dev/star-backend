@@ -6,7 +6,7 @@ from config.constants import *
 import json
 from utilities.utils import CustomModelSerializer, get_pre_signed_get_url, get_s3_public_url, get_bucket_url
 from .constants import REQUEST_STATUS_CHOICES, REQUEST_EDIT_ALLOWED_TIME
-from utilities.constants import BASE_URL, SHORT_BASE_URL
+from utilities.constants import BASE_URL, SHORT_BASE_URL, SHORT_WEB_URL
 from payments.models import StarsonaTransaction
 from django.utils import timezone
 import datetime
@@ -49,7 +49,7 @@ class StargramzVideoSerializer(CustomModelSerializer):
 
     def __init__(self, *args, **kwargs):
         self.bucket_url = get_bucket_url()
-        self.web_url = Config.objects.get(key="short_web_url").value
+        self.web_url = SHORT_WEB_URL
         super().__init__(*args, **kwargs)
 
     first_name = serializers.CharField(read_only=True, source="stragramz_request.celebrity.first_name")
@@ -258,12 +258,12 @@ class StargramzSerializer(serializers.ModelSerializer):
     def get_fan_rating(self, obj):
         if obj.request_status == 6:
             try:
-                query = FanRating.objects.get(Q(fan_id=obj.fan_id) &
-                                              Q(celebrity_id=obj.celebrity_id) &
-                                              Q(starsona_id=obj.id))
+                query = FanRating.objects.filter(Q(fan_id=obj.fan_id) &
+                                                 Q(celebrity_id=obj.celebrity_id) &
+                                                 Q(starsona_id=obj.id))[0]
                 serializer = CelebrityRatingSerializer(query)
                 return serializer.data
-            except FanRating.DoesNotExist:
+            except Exception:
                 return None
         return None
 

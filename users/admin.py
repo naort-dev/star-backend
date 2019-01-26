@@ -488,6 +488,7 @@ class GroupAccountUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
                                          'show_nick_name', 'order')}),
         (_('Referral Details'), {'fields': ('referral_active', 'referral_code', 'referral_campaign',
                                             'has_requested_referral')}),
+        (_('Payments'), {'fields': ('stripe_customer_id', 'stripe_user_id', 'check_payments')}),
         (_('Important dates'), {'fields': ('last_login', 'created_date', 'modified_date',)}),
         (_('Images'), {'fields': ('profile_images',)}),
         (_('Featured Image'), {'fields': ('featured_image',)}),
@@ -500,7 +501,8 @@ class GroupAccountUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
         }),
     )
     ordering = ('email',)
-    readonly_fields = ('created_date', 'modified_date', 'profile_images', 'featured_image')
+    readonly_fields = ('created_date', 'modified_date', 'profile_images', 'featured_image', 'stripe_customer_id',
+                       'stripe_user_id')
     list_per_page = 10
     inlines = [GroupAccountInline, ReferralInline, VanityUrlInline, RoleInline, CelebrityGroupAccountTabular]
     ordering = ['-id', ]
