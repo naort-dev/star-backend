@@ -43,6 +43,7 @@ SIGN_UP_SOURCE_CHOICES = Konstants(
     K(facebook=2, label='Facebook Sign-up'),
     K(google=3, label='Google Sign-up'),
     K(instagram=4, label='Instagram Sign-up'),
+    K(twitter=5, label='Twitter Sign-up'),
 )
 
 NOTIFICATION_TYPES = Konstants(
@@ -119,6 +120,7 @@ class StargramzUser(AbstractBaseUser, PermissionsMixin):
     fb_id = models.CharField('Facebook id', max_length=260, blank=True, null=True)
     in_id = models.CharField('Instagram id', max_length=260, blank=True, null=True)
     gp_id = models.CharField('Google Plus id', max_length=260, blank=True, null=True)
+    tw_id = models.CharField('Twitter id', max_length=260, blank=True, null=True)
     stripe_customer_id = models.CharField('Stripe Customer ID', max_length=150, blank=True, null=True)
     notification_badge_count = models.IntegerField('Update fcm notification count', default=0)
     show_nick_name = models.BooleanField('Show Stage Name over legal name', default=False)
