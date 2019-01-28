@@ -724,6 +724,8 @@ class ValidateSocialSignup(APIView, ResponseViewMixin):
                     user = StargramzUser.objects.get(Q(in_id=social_id) | Q(username=email))
                 elif sign_up_source == SIGN_UP_SOURCE_CHOICES.google:
                     user = StargramzUser.objects.get(Q(gp_id=social_id) | Q(username=email))
+                elif sign_up_source == SIGN_UP_SOURCE_CHOICES.twitter:
+                    user = StargramzUser.objects.get(Q(tw_id=social_id) | Q(username=email))
 
                 return self.jp_response(s_code='HTTP_200_OK', data={'message': 'User is already registered'})
             except Exception:

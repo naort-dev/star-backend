@@ -268,8 +268,8 @@ class SocialSignupSerializer(serializers.ModelSerializer):
     class Meta:
         model = StargramzUser
         fields = ('first_name', 'last_name', 'id', 'email', 'username', 'date_of_birth', 'authentication_token',
-                  'sign_up_source', 'role_details', 'profile_photo', 'nick_name', 'fb_id', 'gp_id', 'in_id', 'role',
-                  'avatar_photo', 'show_nick_name', 'completed_fan_unseen_count', 'referral_code')
+                  'sign_up_source', 'role_details', 'profile_photo', 'nick_name', 'fb_id', 'gp_id', 'in_id', 'tw_id',
+                  'role', 'avatar_photo', 'show_nick_name', 'completed_fan_unseen_count', 'referral_code')
 
     def validate_username(self, value):
         return value.lower()
@@ -297,6 +297,7 @@ class SocialSignupSerializer(serializers.ModelSerializer):
         fb_id = validated_data.get('fb_id')
         gp_id = validated_data.get('gp_id')
         in_id = validated_data.get('in_id')
+        tw_id = validated_data.get('tw_id')
         roles = validated_data.get('role', '')
         referral_code = validated_data.get('referral_code', '')
         try:
@@ -309,6 +310,9 @@ class SocialSignupSerializer(serializers.ModelSerializer):
             elif sign_up_source == SIGN_UP_SOURCE_CHOICES.google and gp_id:
                 user = StargramzUser.objects.get(Q(gp_id=gp_id) | Q(username=email))
                 user.gp_id = gp_id
+            elif sign_up_source == SIGN_UP_SOURCE_CHOICES.twitter and tw_id:
+                user = StargramzUser.objects.get(Q(tw_id=tw_id) | Q(username=email))
+                user.tw_id = tw_id
             else:
                 user = StargramzUser.objects.get(username=email)
             if user.profile_photo != PROFILE_PHOTO_REMOVED:
@@ -327,11 +331,10 @@ class SocialSignupSerializer(serializers.ModelSerializer):
                 if not first_name:
                     return {'code': FIRST_NAME_ERROR_CODE, 'message': 'Please enter first name'}
 
-
                 user = StargramzUser.objects.create(username=email, email=email, first_name=first_name,
                                                     last_name=last_name, sign_up_source=sign_up_source,
                                                     profile_photo=profile_photo, nick_name=nick_name,
-                                                    fb_id=fb_id, gp_id=gp_id, in_id=in_id)
+                                                    fb_id=fb_id, gp_id=gp_id, in_id=in_id, tw_id=tw_id)
                 if dob:
                     user.date_of_birth = dob
                 user.show_nick_name = True if nick_name else False
