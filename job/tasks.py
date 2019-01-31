@@ -1449,7 +1449,7 @@ def group_notify(group_details):
                 'account_name': group.account.get_short_name(),
                 'celebrity_name': group.user.get_short_name(),
                 'redirect_link': generate_branch_io_url(
-                    desktop_url='%ssettings' % web_url,
+                    desktop_url='%suser/star-supporters' % web_url,
                     mob_url='%ssettings' % BASE_URL,
                     image_url='%smedia/web-images/starsona_logo.png' % BASE_URL,
                     title='Group Joining Request',
@@ -1476,7 +1476,7 @@ def invite_celebrity_notify(group_details):
                 'account_name': group.account.get_short_name(),
                 'celebrity_name': group.user.get_short_name(),
                 'redirect_link': generate_branch_io_url(
-                    desktop_url='%ssettings' % web_url,
+                    desktop_url='%suser/my-groups' % web_url,
                     mob_url='%ssettings' % BASE_URL,
                     image_url='%smedia/web-images/starsona_logo.png' % BASE_URL,
                     title='Group Invite',
