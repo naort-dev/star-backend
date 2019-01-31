@@ -281,12 +281,7 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
                     'nick_name'
                 ]
                 result_query = search_name(filter_by_name, result_query, filter_fields)
-            if celebrity:
-                result_query = result_query.order_by('first_name', 'nick_name', 'id')
-            else:
-                result_query = result_query.annotate(sort_name=Case(
-                    When(Q(show_nick_name=True) & Q(nick_name__isnull=False) & ~Q(nick_name=''), then=F('nick_name')),
-                    When(Q(show_nick_name=False), then=F('first_name')))).order_by('sort_name')
+            result_query = result_query.order_by('first_name', 'nick_name', 'id')
             page = self.paginate_queryset(result_query.distinct())
             serializer = self.get_serializer(page, many=True)
 
