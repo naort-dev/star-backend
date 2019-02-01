@@ -162,6 +162,7 @@ class StargramzSerializer(serializers.ModelSerializer):
     booking_title = serializers.CharField(required=True)
     created_date = serializers.SerializerMethodField(read_only=True)
     booking_id = serializers.SerializerMethodField(read_only=True)
+    request_status = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Stargramrequest
