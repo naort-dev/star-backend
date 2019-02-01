@@ -184,6 +184,12 @@ class StargramzSerializer(serializers.ModelSerializer):
         stargramrequest.save()
         return stargramrequest
 
+    def get_request_status(self, obj):
+        """
+            Return processing state if the booking is in Reprocessed
+        """
+        return 2 if obj.request_status == 7 else obj.request_status
+
     def get_booking_id(self, obj):
         """
             Return hashed booking ID
