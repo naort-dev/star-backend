@@ -1,0 +1,12 @@
+{% include "emails/header.html" %}
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Hi {{ fan_name }},</p>
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">
+We hope you're excited, because {{ celebrity_name }} has completed your personalized {{ occasion }} request! Your video is now ready for viewing and sharing.
+</p>
+<p>You are not charged for this video, Hope you have received your payments</p>
+<p style="text-align:center">
+    <a href="{{ app_url }}" class="button">View Starsona video</a>
+</p>
+<br/>
+<p>Enjoy, <br/> The Starsona Team</p>
+{% include "emails/footer.html" %}

@@ -374,7 +374,7 @@ class RequestList(GenericViewSet, ResponseViewMixin):
             user_role = request.GET['role'] if 'role' in request.GET else None
             role = user_role if user_role and user_role in ['fan_id', 'celebrity_id'] else role_list[mappings.role.code]
 
-            status_list = [[2, 3], [5], [6]] if role == 'celebrity_id' else [[2, 3, 1], [5], [6]]
+            status_list = [[2, 3, 7], [5], [6]] if role == 'celebrity_id' else [[2, 3, 1, 7], [5], [6]]
             # role = 'celebrity_id' if mappings.role.code == ROLES.celebrity else 'fan_id'
             # status_list = [[2, 3], [5], [6]] if mappings.role.code == ROLES.celebrity else [[2, 3, 1], [5], [6]]
 
@@ -547,7 +547,7 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
                 stargramz_request = Stargramrequest.objects.get(
                     id=request.data['stragramz_request'],
                     celebrity_id=user.id,
-                    request_status__in=[STATUS_TYPES.pending, STATUS_TYPES.processing]
+                    request_status__in=[STATUS_TYPES.pending, STATUS_TYPES.processing, STATUS_TYPES.reprocessing]
                 )
             except Stargramrequest.DoesNotExist:
                 return self.jp_error_response(
@@ -568,6 +568,9 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
                         'INVALID_SIGNUP',
                         'Invalid transaction'
                     )
+                if stargramz_request.request_status == STATUS_TYPES.reprocessing:
+                    data = self.video_complete(serializer, stargramz_request, transaction)
+                    return self.jp_response('HTTP_200_OK', data={'request_video': data})
 
                 # If the charge is not captured and not refunded
                 if not charge.captured and not charge.refunded:

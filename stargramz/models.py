@@ -23,7 +23,8 @@ STATUS_TYPES = Konstants(
     K(processing=3, label='Processing'),
     K(video_approval=4, label='Video Approval'),
     K(cancelled=5, label='Cancelled'),
-    K(completed=6, label='Completed')
+    K(completed=6, label='Completed'),
+    K(reprocessing=7, label='Reprocessing'),
 )
 
 VIDEO_STATUS = Konstants(
@@ -128,6 +129,7 @@ class Stargramrequest(models.Model):
         choices=REQUEST_TYPES.choices(),
         default=REQUEST_TYPES.personalised_video
     )
+    reprocessed = models.BooleanField('Reprocessing', default=False)
     __original_request_status = None
 
     def __init__(self, *args, **kwargs):
@@ -150,6 +152,10 @@ class Stargramrequest(models.Model):
                 (booking_id,),
                 eta=datetime.datetime.utcnow() + datetime.timedelta(seconds=5)
             )
+            # Reprocessing the request to add video and bypassing payment
+            if self.request_status == STATUS_TYPES.reprocessing:
+                self.reprocessed = True
+
             if self.request_status == STATUS_TYPES.cancelled:
                 create_request_refund.delay()
             if self.request_status == STATUS_TYPES.completed:
