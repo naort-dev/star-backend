@@ -1,0 +1,21 @@
+{% include "emails/header.html" %}
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Hi {{ celebrity_name }},</p>
+
+<p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">
+You have the booking request from {{ fan_name }} for a {{ occasion }} shout-out is now in reprocessing state. You can now create video with these details below.
+</p>
+<p style="text-align:center">
+    &nbsp;<a href="{{app_url}}" class="button-app">View request</a>
+</p>
+<p>
+    {% if date %}Request date: {{ date }}<br/>{% endif %}
+    {% if occasion %}Occasion: {{ occasion }}<br/>{% endif %}
+    {% if to_name %}To: {{to_name}}<br/>{% endif %}
+    {% if from_name %}From: {{from_name}}<br/>{% endif %}
+    {% if important_info %}Additional Info: {{important_info}} <br/>{% endif %}
+</p>
+<p>
+Thanks, <br/>
+The Starsona Team
+</p>
+{% include "emails/footer.html" %}

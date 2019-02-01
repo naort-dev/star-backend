@@ -104,9 +104,13 @@ class GroupAccountList(GenericViewSet, ResponseViewMixin):
         member = request.GET.get('member')
         if account:
             user = get_user_id(account)
-            filter_condition = {"celebrity_account__account": user, "celebrity_account__approved": True}
+            filter_condition = {
+                "celebrity_account__account": user,
+                "celebrity_account__approved": True,
+                "celebrity_account__celebrity_invite": True
+            }
             if member:
-                filter_condition.update({"celebrity_account__celebrity_invite": True})
+                filter_condition = {"celebrity_account__account": user}
             search_query = search_query.filter(**filter_condition)
 
         celebrity = request.GET.get('celebrity')
@@ -211,89 +215,84 @@ class GetMembersList(GenericViewSet, ResponseViewMixin):
 
         try:
             user_id = StargramzUser.objects.get(username=request.user).id
-        except StargramzUser.DoesNotExist:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
 
-        search_query = StargramzUser.objects.select_related('avatar_photo', 'featured_photo') \
-            .prefetch_related('images', 'celebrity_profession__profession', 'celebrity_account', 'vanity_urls')
+            search_query = StargramzUser.objects.select_related('avatar_photo', 'featured_photo') \
+                .prefetch_related('images', 'celebrity_profession__profession', 'celebrity_account', 'vanity_urls')
 
-        exclude_condition = {}
-        option = request.GET.get('member', None)
-        status = request.GET.get('status', None)
-        celebrity = request.GET.get('celebrity', None)
-        filter_by_name = request.GET.get('name', None)
-        # the celebrity parameter is used for listing groups of a celebrity, authenticated user is celebrity
-        # in the else part it will list the celebrity in a group, authenticated user is group
-        if celebrity:
-            filter_condition = {'group_account__admin_approval': True}
-            # option will list the groups in which the celebrity is invited or supported or a member
-            if option:
-                filter_condition.update({'account_user__user_id': user_id})
-                # the status = true will list the groups in which the celebrity is a member
-                if status and status == 'true':
+            exclude_condition = {}
+            option = request.GET.get('member', None)
+            status = request.GET.get('status', None)
+            celebrity = request.GET.get('celebrity', None)
+            filter_by_name = request.GET.get('name', None)
+            # the celebrity parameter is used for listing groups of a celebrity, authenticated user is celebrity
+            # in the else part it will list the celebrity in a group, authenticated user is group
+            if celebrity:
+                filter_condition = {'group_account__admin_approval': True}
+                # option will list the groups in which the celebrity is invited or supported or a member
+                if option:
+                    filter_condition.update({'account_user__user_id': user_id})
+                    # the status = true will list the groups in which the celebrity is a member
+                    if status and status == 'true':
+                        filter_condition.update(
+                            {'account_user__approved': True, 'account_user__celebrity_invite': True}
+                        )
+                else:
+                    # here it will list the groups which is not the group of this celebrity there is no invitation nor
+                    # support
+                    exclude_condition.update({'account_user__user_id': user_id})
+
+                result_query = search_query.exclude(**exclude_condition).filter(**filter_condition)
+                # It will list the groups in which the celebrity is invited or the celebrity supports
+                if status and status == 'false':
                     filter_condition.update(
                         {'account_user__approved': True, 'account_user__celebrity_invite': True}
                     )
+                    with_approved = search_query.exclude(**exclude_condition).filter(**filter_condition)
+                    result_query = result_query.difference(with_approved)
             else:
-                # here it will list the groups which is not the group of this celebrity there is no invitation nor
-                # support
-                exclude_condition.update({'account_user__user_id': user_id})
+                filter_condition = {'celebrity_user__admin_approval': True}
+                # option will list the admin_approved celebrities in which the celebrity is invited or supported or
+                # a member of the group
+                if option:
+                    filter_condition.update({'celebrity_account__account_id': user_id})
+                    # the status = true will list the members of the group
+                    if status and status == 'true':
+                        filter_condition.update(
+                            {'celebrity_account__approved': True, 'celebrity_account__celebrity_invite': True}
+                        )
+                else:
+                    # here it will list the non members of the group
+                    exclude_condition.update({'celebrity_account__account_id': user_id})
 
-            result_query = search_query.exclude(**exclude_condition).filter(**filter_condition)
-            # It will list the groups in which the celebrity is invited or the celebrity supports
-            if status and status == 'false':
-                filter_condition.update(
-                    {'account_user__approved': True, 'account_user__celebrity_invite': True}
-                )
-                with_approved = search_query.exclude(**exclude_condition).filter(**filter_condition)
-                result_query = result_query.difference(with_approved)
-        else:
-            filter_condition = {'celebrity_user__admin_approval': True}
-            # option will list the admin_approved celebrities in which the celebrity is invited or supported or
-            # a member of the group
-            if option:
-                filter_condition.update({'celebrity_account__account_id': user_id})
-                # the status = true will list the members of the group
-                if status and status == 'true':
+                result_query = search_query.exclude(**exclude_condition).filter(**filter_condition)
+                # It will list the celebrities who are invited or supports the group but they are not the members of
+                # the group
+                if status and status == 'false':
                     filter_condition.update(
                         {'celebrity_account__approved': True, 'celebrity_account__celebrity_invite': True}
                     )
-            else:
-                # here it will list the non members of the group
-                exclude_condition.update({'celebrity_account__account_id': user_id})
-
-            result_query = search_query.exclude(**exclude_condition).filter(**filter_condition)
-            # It will list the celebrities who are invited or supports the group but they are not the members of
-            # the group
-            if status and status == 'false':
-                filter_condition.update(
-                    {'celebrity_account__approved': True, 'celebrity_account__celebrity_invite': True}
-                )
-                with_approved = search_query.exclude(**exclude_condition).filter(**filter_condition)
-                result_query = result_query.difference(with_approved)
-        # it is not used features in Jan 15, 2019. it is created for search celebrity or group with the name
-        if filter_by_name:
-            filter_fields = [
-                'first_name',
-                'last_name',
-                'nick_name'
-            ]
-            result_query = search_name(filter_by_name, result_query, filter_fields)
-        if celebrity:
+                    with_approved = search_query.exclude(**exclude_condition).filter(**filter_condition)
+                    result_query = result_query.difference(with_approved)
+            # it is not used features in Jan 15, 2019. it is created for search celebrity or group with the name
+            if filter_by_name:
+                filter_fields = [
+                    'first_name',
+                    'last_name',
+                    'nick_name'
+                ]
+                result_query = search_name(filter_by_name, result_query, filter_fields)
             result_query = result_query.order_by('first_name', 'nick_name', 'id')
-        else:
-            result_query = result_query.annotate(sort_name=Case(
-                When(Q(show_nick_name=True) & Q(nick_name__isnull=False) & ~Q(nick_name=''), then=F('nick_name')),
-                When(Q(show_nick_name=False), then=F('first_name')))).order_by('sort_name')
-        page = self.paginate_queryset(result_query.distinct())
-        serializer = self.get_serializer(page, many=True)
+            page = self.paginate_queryset(result_query.distinct())
+            serializer = self.get_serializer(page, many=True)
 
-        request.user.group_notification = 0
-        request.user.save()
-        return self.paginator.get_paginated_response(
-            data={'group_user': serializer.data},
-            key_name='group_follow_members'
-        )
+            request.user.group_notification = 0
+            request.user.save()
+            return self.paginator.get_paginated_response(
+                data={'group_user': serializer.data},
+                key_name='group_follow_members'
+            )
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_USER', str(e))
 
     def delete(self, request, pk):
 

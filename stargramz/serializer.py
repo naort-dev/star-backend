@@ -162,6 +162,7 @@ class StargramzSerializer(serializers.ModelSerializer):
     booking_title = serializers.CharField(required=True)
     created_date = serializers.SerializerMethodField(read_only=True)
     booking_id = serializers.SerializerMethodField(read_only=True)
+    request_status = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Stargramrequest
@@ -183,6 +184,12 @@ class StargramzSerializer(serializers.ModelSerializer):
                                                          request_type=request_type, public_request=public_request)
         stargramrequest.save()
         return stargramrequest
+
+    def get_request_status(self, obj):
+        """
+            Return processing state if the booking is in Reprocessed
+        """
+        return 2 if obj.request_status == 7 else obj.request_status
 
     def get_booking_id(self, obj):
         """

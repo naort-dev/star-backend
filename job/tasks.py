@@ -781,7 +781,7 @@ def send_email_notification(request_id):
         print('Email notification is disabled for the user.')
         return True
 
-    if request.request_status in [2, 5, 6]:
+    if request.request_status in [2, 5, 6, 7]:
         details = {
             'subject_2': 'New Starsona %s Request' % occasion,
             'template_2': 'request_confirmation',
@@ -790,8 +790,11 @@ def send_email_notification(request_id):
             'template_5': 'request_cancelled',
             'email_5': fan.email,
             'subject_6': 'Your Starsona video is ready',
-            'template_6': 'video_completed',
+            'template_6': 'video_completed_with_reprocessing' if request.reprocessed else 'video_completed',
             'email_6': fan.email,
+            'subject_7': 'Starsona booking is ready for reprocessing',
+            'template_7': 'booking_reprocessing',
+            'email_7': celebrity.email,
         }
 
         subject = details['subject_%d' % request.request_status]
