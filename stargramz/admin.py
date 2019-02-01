@@ -239,12 +239,12 @@ class StargramrequestAdmin(ReadOnlyModelAdmin):
     fieldsets = (
         (_('Basic info'), {'fields': ('booking_title', 'fan', 'celebrity', 'occasion', 'request_data', 'request_type')}),
         (_('Audios'), {'fields': ('booking_from_audio', 'booking_to_audio',)}),
-        (_('Info'), {'fields': ('share_check', 'request_status', 'public_request', 'priorty',)}),
+        (_('Info'), {'fields': ('share_check', 'request_status', 'public_request', 'priorty', 'reprocessed')}),
         (_('Cancellation reason'), {'fields': ('comment',)}),
         (_('Dates'), {'fields': ('created_date', 'modified_date')}),
     )
     readonly_fields = ('due_date', 'request_data', 'booking_from_audio', 'comment',
-                       'booking_to_audio', 'created_date', 'modified_date',)
+                       'booking_to_audio', 'created_date', 'modified_date', 'reprocessed')
     search_fields = ('celebrity__username', 'fan__username', 'occasion__title', 'request_status')
     inlines = [StargramVideosInline, TransactionsInline, AbuseInline, ReactionStackedInline, TipPaymentAdmin]
 
