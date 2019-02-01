@@ -393,6 +393,8 @@ class RequestList(GenericViewSet, ResponseViewMixin):
                 if filter_by_status == 'all':
                     filter_by_status = '2, 3, 4, 5, 6' if role == 'celebrity_id' else '2, 3, 1, 5, 6'
                 try:
+                    if '2' in filter_by_status:
+                        filter_by_status = filter_by_status + ', 7'
                     filter_by_status = ast.literal_eval(filter_by_status+',')
                 except Exception as e:
                     return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', str(e))
