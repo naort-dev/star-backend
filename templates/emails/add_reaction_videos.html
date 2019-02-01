@@ -5,14 +5,11 @@
 {{ fan_name }}, Do you have a moment? We'd love to know how everything worked out. Please take a moment to share your reactions with {{celebrity_name}} and with us.
 </p>
 
-<table>
-    <tr>
-        <td width="30%"><img src="{{video_thumb}}" alt="{{booking_title}}" width="100%"></td>
-        <td width="70%">
-            <p style="padding-left: 20px;"><h3>{{booking_title}}</h3><br/>
-                <a href="{{app_url}}" style="margin-left: 20px;" class="button-app">Add Reactions</a></p>
-        </td>
-    </tr>
-</table>
+<div style="width: 100%; display: inline-block;">
+    <img class="imgborder" align="left" src="{{video_thumb}}" alt="{{booking_title}}" width="100%">
+<p align="left">&nbsp;&nbsp;&nbsp;<b>{{booking_title}}</b></p>
+<a href="{{app_url}}" style="margin-left: 20px;" class="button-app">Add Reactions</a>
+</div>
+
 <br/><br/>
 {% include "emails/footer.html" %}
