@@ -9,4 +9,4 @@ docker/
 .idea
 aws
 Makefile
-
+venv*
