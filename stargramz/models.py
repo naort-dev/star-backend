@@ -169,20 +169,20 @@ class Stargramrequest(models.Model):
                 later = datetime.datetime.utcnow() + datetime.timedelta(minutes=59)
                 notify_fan_reaction_videos_and_feedback.apply_async(args=(booking_id,), eta=later)
 
-                body_content = NOTIFICATION_Q_A % self.celebrity.get_short_name() if self.request_type == 3 else \
-                    NOTIFICATION_REQUEST_COMPLETE_BODY
-
-                kw = {'field': 'fan_starsona_videos'}
-                data = {'id': self.pk, 'type': NOTIFICATION_TYPES.fan_myvideos_completed_details,
-                        'role': ROLES.fan, 'completed_fan_unseen_count': user.completed_view_count}
-
-                send_notification.apply_async((
-                    self.fan.id,
-                    NOTIFICATION_REQUEST_COMPLETE_TITLE,
-                    body_content,
-                    data,
-                    kw
-                ), countdown=10)
+                # body_content = NOTIFICATION_Q_A % self.celebrity.get_short_name() if self.request_type == 3 else \
+                #     NOTIFICATION_REQUEST_COMPLETE_BODY
+                #
+                # kw = {'field': 'fan_starsona_videos'}
+                # data = {'id': self.pk, 'type': NOTIFICATION_TYPES.fan_myvideos_completed_details,
+                #         'role': ROLES.fan, 'completed_fan_unseen_count': user.completed_view_count}
+                #
+                # send_notification.apply_async((
+                #     self.fan.id,
+                #     NOTIFICATION_REQUEST_COMPLETE_TITLE,
+                #     body_content,
+                #     data,
+                #     kw
+                # ), countdown=10)
         super(Stargramrequest, self).save(*args, **kwargs)
         self.__original_request_status = self.request_status
 
