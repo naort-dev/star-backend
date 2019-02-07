@@ -4,7 +4,7 @@ from users.authenticate_views import UserRegister, UserLogin, EmailValidate, Soc
     ResetPassword, Professions, ProfileImages, UserDetails, UserLogout, RemoveProfileImage, ChangePassword, \
     DeviceToken, NotificationSettings, ContactSupport, RoleUpdate, UpdateNotificationBadge, AlertFan, \
     ValidateSocialSignup, FilterProfessions, UpdateBookingCount, GetAWSSignedUrl, GetAWSSignedPostUrl, SocialMediaUrls, \
-    ValidateMobile, VerifyMobile
+    ValidateMobile, VerifyMobile, TwitterIntegration, TwitterLogin
 from users.group_views import GroupAccountList, GroupAccountsView, GroupTypesView, JoinGroupView, \
     GroupAccountProfileFollow, GetMembersList, GroupTypesListing
 from .fan_views import CelebrityList, ApproveFan, CelebrityRate, CelebrityProfileFollow, CelebrityFanAbuse, \
@@ -55,6 +55,8 @@ urlpatterns = [
     url(r'^celebrity_representative/?(?P<pk>[0-9a-zA-Z]{0,8})', CelebrityRepresentative.as_view(), name='celebrity-representative'),
     url(r'^validate_mobile/$', ValidateMobile.as_view(), name='validate-mobile'),
     url(r'^verify_mobile/$', VerifyMobile.as_view(), name='verify-mobile'),
+    url(r'^twitter_login/$', TwitterLogin.as_view(), name='twitter-login'),
+    url(r'^twitter_integration/$', TwitterIntegration.as_view(), name='twitter-integration'),
 ]
 
 router = DefaultRouter()

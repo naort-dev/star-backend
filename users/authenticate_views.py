@@ -3,7 +3,7 @@ from rest_framework.generics import GenericAPIView
 from utilities.mixins import ResponseViewMixin
 from users.serializer import *
 from users.models import StargramzUser, Profession, CelebrityFollow, CelebrityView, DeviceTokens, \
-    CelebrityAvailableAlert, GroupType, SocialMediaLinks
+    CelebrityAvailableAlert, GroupType, SocialMediaLinks, TwitterKey
 from utilities.utils import SendMail, get_user_role_details, ROLES, check_user_role, change_fcm_device_status, \
     check_celebrity_profile_exist, generate_branch_io_url, get_pre_signed_post_url, check_group_account_profile_exist,\
     is_following_group_account
@@ -28,7 +28,7 @@ from .constants import CELEBRITY_CODE, ROLE_ERROR_CODE, EMAIL_ERROR_CODE, FIRST_
 from job.tasks import generate_thumbnail
 from rest_framework.decorators import detail_route
 from utilities.permissions import CustomPermission
-from utilities.constants import REDIRECT_LINK, BASE_URL
+from utilities.constants import REDIRECT_LINK, BASE_URL, WEB_URL
 from hashids import Hashids
 from .utils import generate_random_code
 from distutils.version import StrictVersion
@@ -37,6 +37,7 @@ import requests
 import json
 import os
 from urllib.parse import urlencode
+from requests_oauthlib import OAuth1Session
 hashids = Hashids(min_length=8)
 
 
@@ -932,3 +933,100 @@ class VerifyMobile(APIView, ResponseViewMixin):
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', str(e))
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', phone_verify.errors)
+
+class TwitterIntegration(APIView, ResponseViewMixin):
+
+    """
+    The API will return call for a request token with the provided consumer key, secret and callback_uri.
+    With that token the API will return a URL for redirecting to a twitter authentication page.
+    """
+
+    def get(self, request):
+        try:
+            url_for_authentication = "https://api.twitter.com/oauth/authenticate?oauth_token=%s"
+            url_for_token = 'https://api.twitter.com/oauth/request_token'
+
+            # consumer_key = os.environ.get('TWITTER_CONSUMER_KEY')
+            # consumer_secret = os.environ.get('TWITTER_CONSUMER_SECRET')
+            consumer_key = 'qRRHqaBGWxRBOZo27nxaPEu3f'
+            consumer_secret = 'exHWZg7nN5rQnTT8s4QQGCyYkvoIx2UXSkRVi3FsUOrfUYXLVk'
+
+            # creating a request token object specify the callback uri
+            request_token = OAuth1Session(
+                client_key=consumer_key,
+                client_secret=consumer_secret,
+                callback_uri=WEB_URL+'twitter-login'
+            )
+            data = request_token.get(url_for_token) # Requesting for a token for twitter API generation
+
+            data_token = str.split(data.text, '&')
+            ro_key = str.split(data_token[0], '=')
+            ro_secret = str.split(data_token[1], '=')
+
+            # Saving twitter resource owner key and secret for twitter login API
+            TwitterKey.objects.create(resource_owner_key=ro_key[1], resource_owner_secret=ro_secret[1])
+
+            return self.jp_response(
+                s_code='HTTP_200_OK', data={'twitter_link': url_for_authentication % ro_key[1]}
+            )
+        except Exception as e:
+            return self.jp_error_response('HTTP_500_INTERNAL_SERVER_ERROR', 'INVALID_CODE', str(e))
+
+
+class TwitterLogin(APIView, ResponseViewMixin):
+
+    """
+    This API will call for a twitter access token with the verifier token got from the successfull authentication of
+    the twitter authentication page. The access token will use for getting the twitter_id and email. If the email
+    is already registered the API will return login information otherwise it will return twitter_id, email and
+    profile_photo.
+    """
+
+    def get(self, request):
+        # consumer_key = os.environ.get('TWITTER_CONSUMER_KEY')
+        # consumer_secret = os.environ.get('TWITTER_CONSUMER_SECRET')
+        consumer_key = 'qRRHqaBGWxRBOZo27nxaPEu3f'
+        consumer_secret = 'exHWZg7nN5rQnTT8s4QQGCyYkvoIx2UXSkRVi3FsUOrfUYXLVk'
+        oauth_verifier = request.GET.get('oauth_verifier')
+        oauth_token_key = request.GET.get('oauth_token')
+        url_for_access_token = 'https://api.twitter.com/oauth/access_token'
+        url_user = 'https://api.twitter.com/1.1/account/verify_credentials.json'
+        try:
+            twitter = TwitterKey.objects.get(resource_owner_key=oauth_token_key)
+
+            oauth_token = OAuth1Session(client_key=consumer_key,
+                                        client_secret=consumer_secret,
+                                        resource_owner_key=twitter.resource_owner_key,
+                                        resource_owner_secret=twitter.resource_owner_secret)
+            twitter.delete()
+
+            data = {"oauth_verifier": oauth_verifier}
+
+            # When we got a verifier we can request for an access token
+            access_token_data = oauth_token.post(url_for_access_token, data=data)
+
+            access_token_list = str.split(access_token_data.text, '&')
+            access_token_key = str.split(access_token_list[0], '=')
+            access_token_secret = str.split(access_token_list[1], '=')
+
+            oauth_user = OAuth1Session(client_key=consumer_key,
+                                       client_secret=consumer_secret,
+                                       resource_owner_key=access_token_key[1],
+                                       resource_owner_secret=access_token_secret[1])
+
+            params = {"include_email": 'true'}
+
+            # This is the main API calling for getting the verify credentials("email", "twitter id")
+            user_data = oauth_user.get(url_user, params=params).json()
+            email = user_data.get("email", None)
+        except Exception:
+            return self.jp_error_response('HTTP_500_INTERNAL_SERVER_ERROR', 'INVALID_CODE', 'Token Expired')
+        try:
+            user = StargramzUser.objects.get(username=email)
+            serializer = LoginSerializer(user)
+            user_data = {'login_details': serializer.data}
+        except Exception:
+            fields = ['id', 'email', 'profile_image_url_https']
+            user_data= {'twitter_details': {field: user_data.get(field, None) for field in fields}}
+
+        return self.jp_response(s_code='HTTP_200_OK', data=user_data)
