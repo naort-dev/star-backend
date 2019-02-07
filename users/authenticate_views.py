@@ -51,11 +51,8 @@ class UserRegister(APIView, ResponseViewMixin):
             user = serializer.save()
             if user:
                 data = serializer.validated_data
-                user = StargramzUser.objects.get(username=data['email'])
                 role_details = get_user_role_details(user)
                 data = RegisterSerializer(user).data
-                (token, created) = Token.objects.get_or_create(user=user)
-                data['authentication_token'] = token.key
                 (notifications, created) = SettingsNotifications.objects.get_or_create(user_id=user.id)
                 data['notification_settings'] = NotificationSettingsSerializer(notifications).data
                 data['role_details'] = role_details
@@ -75,11 +72,10 @@ class UserLogin(APIView, ResponseViewMixin):
         """
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
-            data = serializer.data
-            user = StargramzUser.objects.get(email=data['email'])
-            user = StargramzUser.objects.get(username=data['email'])
+            user = serializer.validated_data
             role_details = get_user_role_details(user)
-            serializer = LoginSerializer(data)
+            serializer = LoginSerializer(user)
+            data = serializer.data
             response_data = {'user': data}
             data['role_details'] = role_details
             data['celebrity'] = check_celebrity_profile_exist(user)
@@ -135,12 +131,9 @@ class SocialSignup(APIView, ResponseViewMixin):
                     return self.jp_error_response('HTTP_200_OK', 'INVALID_CREATE',
                                                   user['message'], str(user['code']))
             if user:
-                user = StargramzUser.objects.get(username=user.username)
                 role_details = get_user_role_details(user)
                 data = RegisterSerializer(user).data
-                (token, created) = Token.objects.get_or_create(user=user)
                 response_data = {'user': data}
-                data['authentication_token'] = token.key
                 data['role_details'] = role_details
                 data['celebrity'] = check_celebrity_profile_exist(user)
                 (notifications, created) = SettingsNotifications.objects.get_or_create(user_id=user.id)
