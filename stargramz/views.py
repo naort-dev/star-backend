@@ -468,7 +468,7 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
                 video, fields=[
                     'duration', 'full_name', 'celebrity_id', 's3_video_url', 's3_thumbnail_url', 'avatar_photo',
                     'professions', 'created_date', 'booking_title', 'video_url', 'width', 'height', 'booking_id',
-                    'booking_type', 'video_status', 'comments_count', 'video_id', 'read_status', 'fan_rate'
+                    'booking_type', 'video_status', 'comments_count', 'video_id', 'read_status', 'fan_rate', 'occasion'
                 ],
                 many=True
             )
