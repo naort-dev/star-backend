@@ -38,6 +38,7 @@ import json
 import os
 from urllib.parse import urlencode
 from requests_oauthlib import OAuth1Session
+from .tasks import forgot_password_email
 hashids = Hashids(min_length=8)
 
 
@@ -184,51 +185,10 @@ class ForgotPassword(APIView, ResponseViewMixin):
             except StargramzUser.DoesNotExist:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_USER',
                                               'Email is not registered with Starsona.')
-            subject = 'Starsona Password Reset'
 
-            try:
-                config_email = Config.objects.get(key='sender_email').value
-            except Config.DoesNotExist:
-                config_email = EMAIL_HOST_USER
+            forgot_password_email.delay(user.id)
 
-            try:
-                reset_password_link = Config.objects.get(key='reset_password_link').value
-            except Config.DoesNotExist:
-                reset_password_link = REDIRECT_LINK
-
-            try:
-                website_link = Config.objects.get(key='web_url').value
-            except Config.DoesNotExist:
-                website_link = BASE_URL
-
-            try:
-                base_url = Config.objects.get(key='base_url').value
-            except Config.DoesNotExist:
-                base_url = BASE_URL
-
-            web_reset_url = "%s%s%s" % (website_link, 'resetpassword?reset_id=',str(user.reset_id))
-
-            ctx = {
-                'base_url': base_url,
-                'username': user.first_name + ' ' + user.last_name,
-                'reset_link': generate_branch_io_url(
-                    mob_url='reset/?reset_id=%s' % str(user.reset_id),
-                    title="Reset password for %s" % user.get_short_name(),
-                    desc="Reset password for %s" % user.get_short_name(),
-                    image_url='%smedia/web-images/starsona_logo.png' % base_url,
-                    desktop_url=web_reset_url,
-                    canonical_url=reset_password_link+str(user.reset_id),
-                )
-            }
-
-            html_template = get_template('../templates/emails/forgot_password.html')
-            html_content = html_template.render(ctx)
-            mail_status = SendMail(subject, html_content, sender_email=config_email, to=user.username)
-            if mail_status:
-                return self.jp_response(s_code='HTTP_200_OK', data='Mail has been sent to given email address')
-            else:
-                return self.jp_error_response('HTTP_502_BAD_GATEWAY', 'UNKNOWN_QUERY',
-                                              'Email was not send due to temperory errors')
+            return self.jp_response(s_code='HTTP_200_OK', data='Mail has been sent to given email address')
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', 'Invalid Email Address')
 
