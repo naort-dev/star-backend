@@ -33,13 +33,18 @@ git push origin $release
 
 git checkout $GIT_BRANCH
 
+echo "$major_max.$minor_max.$patch_max" >> release-history
+git add release-history
+git commit -m "$major_max.$minor_max.$patch_max"
+
 let minor_max=($minor_max+1)
 patch_max=0
 
 echo 'Switching to new version:' $major_max'.'$minor_max'.'$patch_max
-git tag -a $major_max.$minor_max.$patch_max $last_tag -m "Version $major_max.$minor_max.$patch_max"
+git tag -a $major_max.$minor_max.$patch_max -m "Version $major_max.$minor_max.$patch_max"
 
 echo 'Push tag to remote'
+git push
 git push origin $major_max.$minor_max.$patch_max
 
 rm -rf $(pwd)
