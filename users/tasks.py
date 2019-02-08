@@ -154,3 +154,38 @@ def representative_email(celebrity, representative):
     }
 
     return sent_email(representative.email, subject, template, ctx)
+
+
+@app.task
+def forgot_password_email(user_id):
+    """
+    The function will send a mail to the user with the reset link the reset link will redirect user to a password
+    reset web page.
+    :param user_id:
+    :return:
+    """
+    from utilities.utils import sent_email, generate_branch_io_url
+    from utilities.constants import BASE_URL, WEB_URL
+    from .models import StargramzUser
+
+    subject = 'Starsona Password Reset'
+    template = 'forgot_password'
+    try:
+        reset_password_link = Config.objects.get(key='reset_password_link').value
+        user = StargramzUser.objects.get(id=user_id)
+        web_reset_url = "%s%s%s" % (WEB_URL, 'resetpassword?reset_id=', str(user.reset_id))
+        ctx = {
+            'username': user.first_name + ' ' + user.last_name,
+            'reset_link': generate_branch_io_url(
+                mob_url='reset/?reset_id=%s' % str(user.reset_id),
+                title="Reset password for %s" % user.get_short_name(),
+                desc="Reset password for %s" % user.get_short_name(),
+                image_url='%smedia/web-images/starsona_logo.png' % BASE_URL,
+                desktop_url=web_reset_url,
+                canonical_url=reset_password_link + str(user.reset_id),
+            )
+        }
+        sent_email(user.email, subject, template, ctx)
+        return True
+    except Exception:
+        return False
