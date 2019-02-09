@@ -57,14 +57,6 @@ class OccasionList(APIView, ResponseViewMixin):
         serializer = OccasionSerializer(occasion, many=True)
         return self.jp_response('HTTP_200_OK', data={"occasion_list": serializer.data})
 
-    def post(self, request):
-        serializer = OccasionCreateSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(visibility=False, type=2)
-            return self.jp_response('HTTP_200_OK', data={"occasion": serializer.data})
-        return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', self.error_msg_string(serializer.errors))
-
-
 class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
@@ -437,11 +429,12 @@ class OtherRelationship(APIView, ResponseViewMixin):
                     occasion = OccasionRelationship.objects.create(title=request.data['other'])
                     return self.jp_response(s_code='HTTP_200_OK', data={"id": occasion.id,
                                                                         "title": occasion.title})
+                else:
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Field should be string.')
             else:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', 'Other Field is Required')
         except Exception as e:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION',
-                                          self.error_msg_string(str(e)))
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
 
 
 class StargramzVideo(ViewSet, ResponseViewMixin):
@@ -475,7 +468,7 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
                 video, fields=[
                     'duration', 'full_name', 'celebrity_id', 's3_video_url', 's3_thumbnail_url', 'avatar_photo',
                     'professions', 'created_date', 'booking_title', 'video_url', 'width', 'height', 'booking_id',
-                    'booking_type', 'video_status', 'comments_count', 'video_id', 'read_status', 'fan_rate'
+                    'booking_type', 'video_status', 'comments_count', 'video_id', 'read_status', 'fan_rate', 'occasion'
                 ],
                 many=True
             )

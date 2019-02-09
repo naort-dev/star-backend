@@ -15,7 +15,7 @@ minor_version=${MINOR_VERSION:-0}
 
 commit_id="${CODEBUILD_RESOLVED_SOURCE_VERSION}"
 $(git fetch --tags)
-last_tag=$(git tag --sort=-version:refname | head -1)
+last_tag=$(git describe --abbrev=0 --tags 2>/dev/null || true)
 
 if [[ $last_tag ]]; then
     version=$(echo $last_tag | grep -o '[^-]*$')

@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'fcm_django',
     'corsheaders',
     'metrics',
+    'django_nose',
 ]
 
 MIDDLEWARE = [
@@ -83,7 +84,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'main.wsgi.application'
-
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
 
@@ -107,6 +108,8 @@ AUTHENTICATION_BACKENDS = (
     'users.auth_backend.PasswordlessAuthBackend',
 )
 
+# Tell nose to measure coverage of apps
+NOSE_ARGS = ['--with-coverage', '--cover-html', '--cover-package=stargramz,users,payments']
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 

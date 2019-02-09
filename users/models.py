@@ -602,3 +602,9 @@ class Representative(models.Model):
 
     def __str__(self):
         return 'Celebrity Representative'
+
+
+class TwitterKey(models.Model):
+    resource_owner_key = models.CharField(max_length=128)
+    resource_owner_secret = models.CharField(max_length=128)
+    created_date = models.DateTimeField('Created date', auto_now_add=True)

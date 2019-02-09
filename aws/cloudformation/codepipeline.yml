@@ -14,7 +14,7 @@ Parameters:
   BaseImageTag:
     Type: String
     Description: Base image tag
-    Default: ":20190107"
+    Default: ":20190208"
 
   GitBranch:
     Type: String
@@ -256,7 +256,7 @@ Resources:
             Configuration:
               ActionMode: CREATE_UPDATE
               RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
-              StackName: web-hotfix
+              StackName: backend-hotfix
               TemplateConfiguration: release::release.json
               TemplatePath: source::aws/cloudformation/hotfix.yml
             RunOrder: 2
