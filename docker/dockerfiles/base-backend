@@ -5,5 +5,5 @@ COPY requirements.txt /starsona/
 RUN apt-get install -y postgresql-client libcurl4-openssl-dev libssl-dev libmemcached-dev zlib1g-dev &&\
     apt-get clean all
 RUN pip install -U -r /starsona/requirements.txt
-RUN sed -i -r 's#https://github.com/imageio/#https://github.com/Starsona/#g' /usr/local/lib/python3.5/dist-packages/imageio/core/fetching.py
+# RUN sed -i -r 's#https://github.com/imageio/#https://github.com/Starsona/#g' /usr/local/lib/python3.5/dist-packages/imageio/core/fetching.py
 RUN python -c 'import imageio; imageio.plugins.ffmpeg.download()'

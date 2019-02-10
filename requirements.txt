@@ -4,6 +4,8 @@ amqp==2.4.0
 billiard==3.5.0.5
 boto3==1.9.84
 botocore==1.12.84
+# boto3==1.4.6
+# botocore==1.6.3
 celery==4.2.1
 celery[sqs]==4.2.1
 certifi==2018.11.29
@@ -35,8 +37,13 @@ pytz==2018.9
 requests==2.21.0
 s3transfer==0.1.13
 six==1.11.0
-stripe==2.19.0
+# stripe==2.19.0 code changes needed to work with 2.x version
+stripe==1.75.0
 tqdm==4.29.1
 twilio==6.23.1
 urllib3==1.24.1
 vine==1.2.0
+oauthlib==3.0.1
+requests-oauthlib==1.2.0
+django-nose==1.4.6
+nose==1.3.7
