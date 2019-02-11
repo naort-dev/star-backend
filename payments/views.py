@@ -53,7 +53,7 @@ class GenerateEphemeralKey(APIView, ResponseViewMixin):
             try:
                 key = stripe.EphemeralKey.create(
                     customer=customer.stripe_customer_id,
-                    api_version=api_version
+                    stripe_version=api_version
                 )
             except stripe.error.InvalidRequestError:
                 customer.stripe_customer_id = self.createCustomer(email)
@@ -61,7 +61,7 @@ class GenerateEphemeralKey(APIView, ResponseViewMixin):
 
                 key = stripe.EphemeralKey.create(
                     customer=customer.stripe_customer_id,
-                    api_version=api_version
+                    stripe_version=api_version
                 )
             except stripe.error.StripeError as e:
                 return self.exception_response(data=str(e))
