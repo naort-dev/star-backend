@@ -227,14 +227,10 @@ class ChangePassword(APIView, ResponseViewMixin):
         """
             Change the password
         """
-        try:
-            user = StargramzUser.objects.get(username=request.user)
-        except StargramzUser.DoesNotExist:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE', ['User not found'])
-        serializer = ChangePasswordSerializer(data=request.data, context={'user': user})
+        serializer = ChangePasswordSerializer(data=request.data, context={'user': request.user})
         if serializer.is_valid():
-            user.set_password(request.data['new_password'])
-            user.save()
+            request.user.set_password(request.data['new_password'])
+            request.user.save()
             return self.jp_response(s_code='HTTP_200_OK', data='Password has been updated successfully')
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE',
