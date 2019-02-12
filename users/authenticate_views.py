@@ -952,7 +952,12 @@ class TwitterLogin(APIView, ResponseViewMixin):
             serializer = LoginSerializer(user)
             user_data = {'login_details': serializer.data}
         except Exception:
-            fields = ['id', 'email', 'profile_image_url_https']
-            user_data= {'twitter_details': {field: user_data.get(field, None) for field in fields}}
+            fields = ['id', 'name', 'email', 'profile_image_url_https']
+            name_change = {'profile_image_url_https': 'profile_photo'}
+            user_data= {
+                'twitter_details': {
+                    name_change.get(field, None) if name_change.get(field, None) else field: user_data.get(field, None) for field in fields
+                }
+            }
 
         return self.jp_response(s_code='HTTP_200_OK', data=user_data)
