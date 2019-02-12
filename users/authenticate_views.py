@@ -267,10 +267,7 @@ class ProfileImages(GenericAPIView, ResponseViewMixin):
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request, *args, **kwargs):
-        try:
-            user = request.data['user'] = StargramzUser.objects.get(username=request.user)
-        except Exception as e:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE', ['User not found'])
+        user = request.data['user'] = request.user
         images = request.data['images']
         avatar_image = featured_image = None
         default_avatar_image = request.data['images'][0]
@@ -301,18 +298,16 @@ class RemoveProfileImage(APIView, ResponseViewMixin):
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
-        try:
-            user = StargramzUser.objects.get(username=request.user)
-        except StargramzUser.DoesNotExist:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE', ['User not found'])
-
         serializer = ImageRemoveSerializer(data=request.data)
         if serializer.is_valid():
-            if str(user.avatar_photo_id) in request.data['id']:
-                user.avatar_photo_id = None
-                user.save()
-            ProfileImage.objects.filter(Q(user=user) & Q(id__in=request.data['id'])).delete()
-            return self.jp_response(s_code='HTTP_200_OK', data={'request': 'Successfully Removed images'})
+            try:
+                if str(request.user.avatar_photo_id) in request.data['id']:
+                    request.user.avatar_photo_id = None
+                    request.user.save()
+                ProfileImage.objects.filter(Q(user=request.user) & Q(id__in=request.data['id'])).delete()
+                return self.jp_response(s_code='HTTP_200_OK', data={'request': 'Successfully Removed images'})
+            except Exception as e:
+                return self.exception_response(str(e))
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE',
                                           self.error_msg_list(serializer.errors))
@@ -324,11 +319,8 @@ class NotificationSettings(APIView, ResponseViewMixin):
 
     def post(self, request):
         field_defaults = {}
-        try:
-            user = StargramzUser.objects.get(username=request.user)
-            request.data['user'] = user.id
-        except StargramzUser.DoesNotExist:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE', ['User not found'])
+        user = request.user
+        request.data['user'] = user.id
         notification_keys = NOTIFICATION_TYPES.get_keys()
         # For getting the fields to update
         fields = [list_item for list_item in notification_keys if list_item in request.data]
@@ -640,15 +632,14 @@ class AlertFan(APIView, ResponseViewMixin):
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
-        fan = StargramzUser.objects.get(username=request.user)
         celebrity_id = request.data.get('celebrity', '')
         if celebrity_id and check_celebrity_profile_exist(celebrity_id):
             try:
-                CelebrityAvailableAlert.objects.get(Q(fan_id=fan.id) &
+                CelebrityAvailableAlert.objects.get(Q(fan_id=request.user.id) &
                                                     Q(celebrity_id=celebrity_id) &
                                                     Q(notification_send=False))
             except CelebrityAvailableAlert.DoesNotExist:
-                CelebrityAvailableAlert.objects.create(fan_id=fan.id, celebrity_id=celebrity_id)
+                CelebrityAvailableAlert.objects.create(fan_id=request.user.id, celebrity_id=celebrity_id)
             return self.jp_response(s_code='HTTP_200_OK', data='Notification would be send when celebrity is available')
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE', 'Invalid Celebrity User')
@@ -779,15 +770,11 @@ class SocialMediaUrls(APIView, ResponseViewMixin):
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
-        try:
-            user = StargramzUser.objects.get(username=request.user)
-        except Exception:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'User Does not Exist')
         serializer = SocialMediaSerializer(data=request.data)
         if serializer.is_valid():
             for key, links in serializer.validated_data.items():
                 SocialMediaLinks.objects.update_or_create(
-                    user=user,
+                    user=request.user,
                     social_link_key=key,
                     defaults={'social_link_value': links}
                 )
@@ -804,11 +791,6 @@ class ValidateMobile(APIView, ResponseViewMixin):
     permission_classes = (IsAuthenticated, CustomPermission)
 
     def post(self, request):
-
-        try:
-            user = StargramzUser.objects.get(id=request.user.id)
-        except Exception:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', "incorrect_user")
 
         phone_validate = ValidatePhoneNumberSerializer(data=request.data)
         if phone_validate.is_valid():
@@ -828,7 +810,7 @@ class ValidateMobile(APIView, ResponseViewMixin):
                 )
 
                 if response.status_code == 200:
-                    settings = SettingsNotifications.objects.get(user_id=user.id)
+                    settings = SettingsNotifications.objects.get(user_id=request.user.id)
                     settings.verification_uuid = response.json().get('uuid')
                     settings.mobile_verified = False
                     settings.save()
@@ -852,11 +834,6 @@ class VerifyMobile(APIView, ResponseViewMixin):
 
     def post(self, request):
 
-        try:
-            user = StargramzUser.objects.get(id=request.user.id)
-        except Exception:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', "incorrect_user")
-
         phone_verify = VerifyPhoneNumberSerializer(data=request.data)
         if phone_verify.is_valid():
             data = {
@@ -870,7 +847,7 @@ class VerifyMobile(APIView, ResponseViewMixin):
                     headers={"X-Authy-API-Key": os.environ.get('AUTHY_API_KEY'), "Content-Type": "application/json"}
                 )
                 if response.status_code == 200:
-                    settings = SettingsNotifications.objects.get(user_id=user.id)
+                    settings = SettingsNotifications.objects.get(user_id=request.user.id)
                     settings.mobile_verified = True
                     settings.mobile_number = phone_verify.validated_data.get('phone_number')
                     settings.mobile_country_code = phone_verify.validated_data.get('country_code')
