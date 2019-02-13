@@ -881,7 +881,7 @@ class TwitterIntegration(APIView, ResponseViewMixin):
             request_token = OAuth1Session(
                 client_key=consumer_key,
                 client_secret=consumer_secret,
-                callback_uri=WEB_URL+'twitter-login'
+                callback_uri=Config.objects.get(key='web_url').value+'twitter-login'
             )
             data = request_token.get(url_for_token) # Requesting for a token for twitter API generation
 
