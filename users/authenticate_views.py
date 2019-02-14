@@ -38,6 +38,7 @@ import json
 import os
 from urllib.parse import urlencode
 from requests_oauthlib import OAuth1Session
+from .tasks import forgot_password_email
 hashids = Hashids(min_length=8)
 
 
@@ -184,51 +185,10 @@ class ForgotPassword(APIView, ResponseViewMixin):
             except StargramzUser.DoesNotExist:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_USER',
                                               'Email is not registered with Starsona.')
-            subject = 'Starsona Password Reset'
 
-            try:
-                config_email = Config.objects.get(key='sender_email').value
-            except Config.DoesNotExist:
-                config_email = EMAIL_HOST_USER
+            forgot_password_email.delay(user.id)
 
-            try:
-                reset_password_link = Config.objects.get(key='reset_password_link').value
-            except Config.DoesNotExist:
-                reset_password_link = REDIRECT_LINK
-
-            try:
-                website_link = Config.objects.get(key='web_url').value
-            except Config.DoesNotExist:
-                website_link = BASE_URL
-
-            try:
-                base_url = Config.objects.get(key='base_url').value
-            except Config.DoesNotExist:
-                base_url = BASE_URL
-
-            web_reset_url = "%s%s%s" % (website_link, 'resetpassword?reset_id=',str(user.reset_id))
-
-            ctx = {
-                'base_url': base_url,
-                'username': user.first_name + ' ' + user.last_name,
-                'reset_link': generate_branch_io_url(
-                    mob_url='reset/?reset_id=%s' % str(user.reset_id),
-                    title="Reset password for %s" % user.get_short_name(),
-                    desc="Reset password for %s" % user.get_short_name(),
-                    image_url='%smedia/web-images/starsona_logo.png' % base_url,
-                    desktop_url=web_reset_url,
-                    canonical_url=reset_password_link+str(user.reset_id),
-                )
-            }
-
-            html_template = get_template('../templates/emails/forgot_password.html')
-            html_content = html_template.render(ctx)
-            mail_status = SendMail(subject, html_content, sender_email=config_email, to=user.username)
-            if mail_status:
-                return self.jp_response(s_code='HTTP_200_OK', data='Mail has been sent to given email address')
-            else:
-                return self.jp_error_response('HTTP_502_BAD_GATEWAY', 'UNKNOWN_QUERY',
-                                              'Email was not send due to temperory errors')
+            return self.jp_response(s_code='HTTP_200_OK', data='Mail has been sent to given email address')
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', 'Invalid Email Address')
 
@@ -267,14 +227,10 @@ class ChangePassword(APIView, ResponseViewMixin):
         """
             Change the password
         """
-        try:
-            user = StargramzUser.objects.get(username=request.user)
-        except StargramzUser.DoesNotExist:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE', ['User not found'])
-        serializer = ChangePasswordSerializer(data=request.data, context={'user': user})
+        serializer = ChangePasswordSerializer(data=request.data, context={'user': request.user})
         if serializer.is_valid():
-            user.set_password(request.data['new_password'])
-            user.save()
+            request.user.set_password(request.data['new_password'])
+            request.user.save()
             return self.jp_response(s_code='HTTP_200_OK', data='Password has been updated successfully')
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE',
@@ -311,10 +267,7 @@ class ProfileImages(GenericAPIView, ResponseViewMixin):
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request, *args, **kwargs):
-        try:
-            user = request.data['user'] = StargramzUser.objects.get(username=request.user)
-        except Exception as e:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE', ['User not found'])
+        user = request.data['user'] = request.user
         images = request.data['images']
         avatar_image = featured_image = None
         default_avatar_image = request.data['images'][0]
@@ -345,18 +298,16 @@ class RemoveProfileImage(APIView, ResponseViewMixin):
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
-        try:
-            user = StargramzUser.objects.get(username=request.user)
-        except StargramzUser.DoesNotExist:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE', ['User not found'])
-
         serializer = ImageRemoveSerializer(data=request.data)
         if serializer.is_valid():
-            if str(user.avatar_photo_id) in request.data['id']:
-                user.avatar_photo_id = None
-                user.save()
-            ProfileImage.objects.filter(Q(user=user) & Q(id__in=request.data['id'])).delete()
-            return self.jp_response(s_code='HTTP_200_OK', data={'request': 'Successfully Removed images'})
+            try:
+                if str(request.user.avatar_photo_id) in request.data['id']:
+                    request.user.avatar_photo_id = None
+                    request.user.save()
+                ProfileImage.objects.filter(Q(user=request.user) & Q(id__in=request.data['id'])).delete()
+                return self.jp_response(s_code='HTTP_200_OK', data={'request': 'Successfully Removed images'})
+            except Exception as e:
+                return self.exception_response(str(e))
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE',
                                           self.error_msg_list(serializer.errors))
@@ -368,11 +319,8 @@ class NotificationSettings(APIView, ResponseViewMixin):
 
     def post(self, request):
         field_defaults = {}
-        try:
-            user = StargramzUser.objects.get(username=request.user)
-            request.data['user'] = user.id
-        except StargramzUser.DoesNotExist:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE', ['User not found'])
+        user = request.user
+        request.data['user'] = user.id
         notification_keys = NOTIFICATION_TYPES.get_keys()
         # For getting the fields to update
         fields = [list_item for list_item in notification_keys if list_item in request.data]
@@ -684,15 +632,14 @@ class AlertFan(APIView, ResponseViewMixin):
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
-        fan = StargramzUser.objects.get(username=request.user)
         celebrity_id = request.data.get('celebrity', '')
         if celebrity_id and check_celebrity_profile_exist(celebrity_id):
             try:
-                CelebrityAvailableAlert.objects.get(Q(fan_id=fan.id) &
+                CelebrityAvailableAlert.objects.get(Q(fan_id=request.user.id) &
                                                     Q(celebrity_id=celebrity_id) &
                                                     Q(notification_send=False))
             except CelebrityAvailableAlert.DoesNotExist:
-                CelebrityAvailableAlert.objects.create(fan_id=fan.id, celebrity_id=celebrity_id)
+                CelebrityAvailableAlert.objects.create(fan_id=request.user.id, celebrity_id=celebrity_id)
             return self.jp_response(s_code='HTTP_200_OK', data='Notification would be send when celebrity is available')
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE', 'Invalid Celebrity User')
@@ -823,15 +770,11 @@ class SocialMediaUrls(APIView, ResponseViewMixin):
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
-        try:
-            user = StargramzUser.objects.get(username=request.user)
-        except Exception:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'User Does not Exist')
         serializer = SocialMediaSerializer(data=request.data)
         if serializer.is_valid():
             for key, links in serializer.validated_data.items():
                 SocialMediaLinks.objects.update_or_create(
-                    user=user,
+                    user=request.user,
                     social_link_key=key,
                     defaults={'social_link_value': links}
                 )
@@ -848,11 +791,6 @@ class ValidateMobile(APIView, ResponseViewMixin):
     permission_classes = (IsAuthenticated, CustomPermission)
 
     def post(self, request):
-
-        try:
-            user = StargramzUser.objects.get(id=request.user.id)
-        except Exception:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', "incorrect_user")
 
         phone_validate = ValidatePhoneNumberSerializer(data=request.data)
         if phone_validate.is_valid():
@@ -872,7 +810,7 @@ class ValidateMobile(APIView, ResponseViewMixin):
                 )
 
                 if response.status_code == 200:
-                    settings = SettingsNotifications.objects.get(user_id=user.id)
+                    settings = SettingsNotifications.objects.get(user_id=request.user.id)
                     settings.verification_uuid = response.json().get('uuid')
                     settings.mobile_verified = False
                     settings.save()
@@ -896,11 +834,6 @@ class VerifyMobile(APIView, ResponseViewMixin):
 
     def post(self, request):
 
-        try:
-            user = StargramzUser.objects.get(id=request.user.id)
-        except Exception:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', "incorrect_user")
-
         phone_verify = VerifyPhoneNumberSerializer(data=request.data)
         if phone_verify.is_valid():
             data = {
@@ -914,7 +847,7 @@ class VerifyMobile(APIView, ResponseViewMixin):
                     headers={"X-Authy-API-Key": os.environ.get('AUTHY_API_KEY'), "Content-Type": "application/json"}
                 )
                 if response.status_code == 200:
-                    settings = SettingsNotifications.objects.get(user_id=user.id)
+                    settings = SettingsNotifications.objects.get(user_id=request.user.id)
                     settings.mobile_verified = True
                     settings.mobile_number = phone_verify.validated_data.get('phone_number')
                     settings.mobile_country_code = phone_verify.validated_data.get('country_code')
@@ -948,7 +881,7 @@ class TwitterIntegration(APIView, ResponseViewMixin):
             request_token = OAuth1Session(
                 client_key=consumer_key,
                 client_secret=consumer_secret,
-                callback_uri=WEB_URL+'twitter-login'
+                callback_uri=Config.objects.get(key='web_url').value+'twitter-login'
             )
             data = request_token.get(url_for_token) # Requesting for a token for twitter API generation
 
@@ -1019,7 +952,12 @@ class TwitterLogin(APIView, ResponseViewMixin):
             serializer = LoginSerializer(user)
             user_data = {'login_details': serializer.data}
         except Exception:
-            fields = ['id', 'email', 'profile_image_url_https']
-            user_data= {'twitter_details': {field: user_data.get(field, None) for field in fields}}
+            fields = ['id', 'name', 'email', 'profile_image_url_https']
+            name_change = {'profile_image_url_https': 'profile_photo'}
+            user_data= {
+                'twitter_details': {
+                    name_change.get(field, None) if name_change.get(field, None) else field: user_data.get(field, None) for field in fields
+                }
+            }
 
         return self.jp_response(s_code='HTTP_200_OK', data=user_data)

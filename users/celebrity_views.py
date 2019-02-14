@@ -27,10 +27,7 @@ class CelebrityManagement(APIView, ResponseViewMixin):
         """
             Celebrity details Add
         """
-        try:
-            user = StargramzUser.objects.get(username=request.user)
-        except StargramzUser.DoesNotExist:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
+        user = request.user
 
         try:
             celebrity = Celebrity.objects.get(user=user)
@@ -138,11 +135,10 @@ class NotifyAdmin(APIView, ResponseViewMixin):
 
     def get(self, request, *args, **kwargs):
 
-        user = StargramzUser.objects.get(username=request.user)
         config_email = Config.objects.get(key='sender_email').value
 
         ctx = {
-            'celebrity_name': user.get_short_name(),
+            'celebrity_name': request.user.get_short_name(),
             'base_url': BASE_URL,
         }
 
@@ -165,7 +161,7 @@ class ReferralRequest(APIView, ResponseViewMixin):
 
     def post(self, request):
         try:
-            user = StargramzUser.objects.get(username=request.user)
+            user = request.user
 
             config_email = Config.objects.get(key='sender_email').value
 
@@ -231,11 +227,7 @@ class CelebrityRepresentative(APIView, ResponseViewMixin):
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request, pk):
-        try:
-            user = StargramzUser.objects.get(username=request.user)
-        except Exception:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
-        request.data['celebrity'] = user.id
+        request.data['celebrity'] = request.user.id
         if pk:
             try:
                 representative_id = decode_pk(pk)
