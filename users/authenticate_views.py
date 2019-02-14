@@ -949,8 +949,18 @@ class TwitterLogin(APIView, ResponseViewMixin):
             return self.jp_error_response('HTTP_500_INTERNAL_SERVER_ERROR', 'INVALID_CODE', 'Token Expired')
         try:
             user = StargramzUser.objects.get(username=email)
+            user.profile_photo = user_data.get('profile_image_url_https')
+            (token, created) = Token.objects.get_or_create(user=user)  # token.key has the key
+            user.authentication_token = token.key
+            user.tw_id = user_data.get('id_str')
+            user.save()
             serializer = LoginSerializer(user)
-            user_data = {'login_details': serializer.data}
+            data = serializer.data
+            data['role_details'] = get_user_role_details(user)
+            data['celebrity'] = check_celebrity_profile_exist(user)
+            (notifications, created) = SettingsNotifications.objects.get_or_create(user_id=user.id)
+            data['notification_settings'] = NotificationSettingsSerializer(notifications).data
+            user_data = {'login_details': data}
         except Exception:
             fields = ['id', 'name', 'email', 'profile_image_url_https']
             name_change = {'profile_image_url_https': 'profile_photo'}
