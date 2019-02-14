@@ -50,7 +50,11 @@ def alert_admin_celebrity_updates(celebrity_id, type_id):
     from utilities.utils import SendMail
     from .models import Celebrity
 
-    celebrity = Celebrity.objects.get(user_id=celebrity_id)
+    try:
+        celebrity = Celebrity.objects.get(user_id=celebrity_id)
+    except Exception:
+        return False
+
     sender_email = Config.objects.get(key='sender_email').value
     admin_email = Config.objects.get(key='admin_email').value
     base_url = Config.objects.get(key='base_url').value
@@ -117,7 +121,7 @@ def welcome_email(user_id):
     try:
         user = model.objects.get(id=user_id)
     except model.DoesNotExist:
-        pass
+        return False
 
     template_box = {
         'R1001': 'welcome_fan',

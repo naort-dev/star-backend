@@ -106,7 +106,6 @@ class UsersTest(TestCase):
         :param role:
         :return:
         """
-
         register_params = self.register_params.copy()
         if role is 'celebrity':
             register_params.update({'role': "R1002"})
@@ -117,7 +116,7 @@ class UsersTest(TestCase):
         response = self.client.post(
             reverse('register'), content_type='application/json', data=json.dumps(register_params)
         )
-        data = json.loads(response.content)
+        data = json.loads(response.content.decode('utf8'))
         token = data.get("data").get("user").get('authentication_token')
         header = self.header.copy()
         header.update({"HTTP_AUTHORIZATION": 'token '+token})
@@ -286,7 +285,7 @@ class UsersTest(TestCase):
         response = self.client.post(
             reverse('register'), content_type='application/json', data=json.dumps(self.register_params)
         )
-        data = json.loads(response.content)
+        data = json.loads(response.content.decode('utf8'))
         token = data.get("data").get("user").get('authentication_token')
         self.assertIsNotNone(token)
 
@@ -570,7 +569,7 @@ class UsersTest(TestCase):
             reverse('change-password'), content_type='application/json',
             data=json.dumps({'old_password': 'qburst@12', 'new_password': "qburst@123456"})
         )
-        data = json.loads(response.content)
+        data = json.loads(response.content.decode('utf8'))
         code = data.get("error").get("code")
         self.assertEqual(int(code), OLD_PASSWORD_ERROR_CODE)
 
@@ -582,7 +581,7 @@ class UsersTest(TestCase):
             data=json.dumps({'old_password': 'qburst@123', 'new_password': "qburst@123"})
         )
 
-        data = json.loads(response.content)
+        data = json.loads(response.content.decode('utf8'))
         code = data.get("error").get("code")
         self.assertEqual(int(code), NEW_OLD_SAME_ERROR_CODE)
 
@@ -804,7 +803,7 @@ class UsersTest(TestCase):
         response = self.client.post(
             reverse('register'), content_type='application/json', data=json.dumps(register_params)
         )
-        data = json.loads(response.content)
+        data = json.loads(response.content.decode('utf8'))
         token = data.get("data").get("user").get('authentication_token')
         header = self.header.copy()
         header.update({"HTTP_VERSION": "4.5"})
