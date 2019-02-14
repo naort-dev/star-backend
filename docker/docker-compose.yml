@@ -169,7 +169,7 @@ services:
     - RABBITMQ_DEFAULT_USER=${QUEUE_USER}
     - RABBITMQ_DEFAULT_PASS=${QUEUE_PASSWORD}
 
-  nginx:
+  backend-nginx:
     image: backend-nginx-${DEPLOYMENT_TYPE}
     hostname: ${SSL_SERVER_NAME}
     volumes:
