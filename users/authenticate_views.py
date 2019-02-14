@@ -962,6 +962,8 @@ class TwitterLogin(APIView, ResponseViewMixin):
             data['notification_settings'] = NotificationSettingsSerializer(notifications).data
             user_data = {'login_details': data}
         except Exception:
+            if not user_data.get('email'):
+                user_data.update({'email': user_data.get('screen_name')})
             fields = ['id', 'name', 'email', 'profile_image_url_https']
             name_change = {'profile_image_url_https': 'profile_photo'}
             user_data= {
