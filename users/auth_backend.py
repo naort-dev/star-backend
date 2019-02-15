@@ -6,7 +6,7 @@ class PasswordlessAuthBackend(ModelBackend):
     """Log in to Django without providing a password.
 
     """
-    def authenticate(self, username=None):
+    def authenticate(self, request, username=None):
         try:
             return StargramzUser.objects.get(username=username)
         except StargramzUser.DoesNotExist:
