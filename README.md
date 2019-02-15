@@ -38,6 +38,7 @@ Create user and database
 ```
 psql postgres
    create user postgres with encrypted password 'password';
+   alter user postgres WITH createdb;
    create database starsona;
 ```
 
