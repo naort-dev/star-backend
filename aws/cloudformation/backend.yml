@@ -929,6 +929,55 @@ Resources:
           - { Name: ADMIN_USERNAME, Value: !Ref 'AdminUsername' }
           - { Name: ADMIN_PASSWORD, Value: !Ref 'AdminPassword' }
 
+  RunTestsTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Join ['-', [!Ref 'AWS::StackName', 'run-tests']]
+      Cpu: 256
+      Memory: 512
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+      - FARGATE
+      ExecutionRoleArn:
+        Fn::ImportValue:
+          !Join [':', [!Ref 'StackName', 'ECSTaskExecutionRole']]
+      TaskRoleArn: !GetAtt 'InstanceRole.Arn'
+      ContainerDefinitions:
+      - Name: 'run-tests'
+        Image: !Join ['', [!Ref 'ImageRepository', 'backend-migration', !Ref 'ImageTag']]
+        Command: ["./runtests.sh"]
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: !Ref 'AWS::StackName'
+            awslogs-region: !Ref 'AWS::Region'
+            awslogs-stream-prefix: 'backend'
+        Environment:
+        - { Name: ENV, Value: !Ref 'Env' }
+        - { Name: QUEUE_BROKER_URL, Value: 'sqs://' }
+        - { Name: QUEUE_BACKEND, Value: !Join ['', ['cache+memcached://', !GetAtt 'CacheCluster15.ConfigurationEndpoint.Address', ':', !GetAtt 'CacheCluster15.ConfigurationEndpoint.Port', '/']] }
+        - { Name: QUEUE_REGION, Value: !Ref 'AWS::Region' }
+        - { Name: QUEUE_NAME_PREFIX, Value: !Join ['', [!Ref 'AWS::StackName', '-']] }
+        - { Name: DATABASE_HOST, Value: !GetAtt 'DB.Endpoint.Address' }
+        - { Name: DATABASE_NAME, Value: !Ref 'DatabaseName' }
+        - { Name: DATABASE_USER, Value: !Ref 'DatabaseUser' }
+        - { Name: DATABASE_PASSWORD, Value: !Ref 'DatabasePassword' }
+        - { Name: AWS_STORAGE_BUCKET_NAME, Value: !Ref 'BucketName' }
+        - { Name: EMAIL_HOST, Value: !Ref 'EmailHost' }
+        - { Name: EMAIL_HOST_USER, Value: !Ref 'EmailUser' }
+        - { Name: EMAIL_HOST_PASSWORD, Value: !Ref 'EmailPassword' }
+        - { Name: EMAIL_PORT, Value: !Ref 'EmailPort' }
+        - { Name: EMAIL_USE_TLS, Value: !Ref 'EmailUseTls' }
+        - { Name: FCM_SERVER_KEY, Value: !Ref 'FCMServerKey' }
+        - { Name: STRIPE_WEB_HOOK, Value: !Ref 'StripeWebHook' }
+        - { Name: STRIPE_CLIENT_ID, Value: !Ref 'StripeClientId' }
+        - { Name: STRIPE_SECRET_KEY, Value: !Ref 'StripeSecretKey' }
+        - { Name: BRANCH_IO_KEY, Value: !Ref 'BranchIOKey' }
+        - { Name: TWILIO_ACCOUNT_SID, Value: !Ref 'TwilioAccountSID' }
+        - { Name: TWILIO_AUTH_TOKEN, Value: !Ref 'TwilioAuthToken' }
+        - { Name: TWILIO_PHONE_NUMBER, Value: !Ref 'TwilioPhoneNumber' }
+        - { Name: AUTHY_API_KEY, Value: !Ref 'AuthyAPIKey' }
+
   #--------------------------------------------------------------------------------------------------------------------
   # S3 Bucket
   #--------------------------------------------------------------------------------------------------------------------

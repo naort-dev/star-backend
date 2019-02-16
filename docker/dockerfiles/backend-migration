@@ -5,11 +5,13 @@ COPY . /starsona
 COPY docker/scripts/docker-entrypoint.sh /starsona
 COPY docker/scripts/loaddatas.sh /starsona
 COPY docker/scripts/migrations.sh /starsona
+COPY docker/scripts/runtests.sh /starsona
 RUN rm -rf /starsona/docker
 ENV PYTHONPATH=/starsona
 WORKDIR /starsona
 RUN chmod +x docker-entrypoint.sh
 RUN chmod +x loaddatas.sh
 RUN chmod +x migrations.sh
+RUN chmod +x runtests.sh
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["./migrations.sh"]

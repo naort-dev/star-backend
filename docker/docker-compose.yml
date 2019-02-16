@@ -56,6 +56,44 @@ services:
     - ADMIN_PASSWORD
     command: sh -c './migrations.sh && ./loaddatas.sh'
 
+  tests:
+    image: backend-migration
+    networks:
+    - overlay
+    depends_on:
+    - postgres
+    environment:
+    - ENV
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_STORAGE_BUCKET_NAME
+    - AWS_DEFAULT_REGION
+    - AWS_INSTANCE_ROLE
+    - EMAIL_HOST
+    - EMAIL_HOST_USER
+    - EMAIL_HOST_PASSWORD
+    - EMAIL_PORT
+    - EMAIL_USE_TLS
+    - FCM_SERVER_KEY
+    - STRIPE_WEB_HOOK
+    - STRIPE_CLIENT_ID
+    - STRIPE_SECRET_KEY
+    - DATABASE_NAME
+    - DATABASE_USER
+    - DATABASE_PASSWORD
+    - DATABASE_HOST
+    - BRANCH_IO_KEY
+    - QUEUE_BROKER_URL
+    - QUEUE_BACKEND
+    - QUEUE_HOST
+    - ADMIN_USERNAME
+    - ADMIN_PASSWORD
+    - TWILIO_ACCOUNT_SID
+    - TWILIO_AUTH_TOKEN
+    - TWILIO_PHONE_NUMBER
+    - AUTHY_API_KEY
+    command: sh -c './runtests.sh'
+
   celery-beat:
     image: backend-celery
     networks:

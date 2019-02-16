@@ -96,6 +96,27 @@ Resources:
         BuildSpec: aws/codebuild/buildspec-migrations.yml
       TimeoutInMinutes: 15
 
+  RunTestsStaging:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Join ['-', [!Ref 'AWS::StackName', 'tests-staging']]
+      Description: Run migrations
+      ServiceRole: arn:aws:iam::376169159073:role/service-role/codebuild-starsona-service-role
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/ubuntu-base:14.04
+        PrivilegedMode: false
+        EnvironmentVariables:
+        - { Name: ENV, Value: staging }
+
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: aws/codebuild/buildspec-tests.yml
+      TimeoutInMinutes: 15
+
   RunMigrationsProduction:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -212,6 +233,18 @@ Resources:
                 Provider: CodeBuild
               Configuration:
                 ProjectName: !Ref 'RunMigrationsStaging'
+              RunOrder: 2
+            -
+              Name: tests
+              InputArtifacts:
+              - Name: source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref 'RunTestsStaging'
               RunOrder: 3
         -
           Name: Approvals
