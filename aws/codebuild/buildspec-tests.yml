@@ -1,0 +1,10 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - apt-get update && apt-get install -y jq
+      - chmod +x aws/scripts/run-ecs-task.sh
+  build:
+    commands:
+      - aws/scripts/run-ecs-task.sh production-backend-vpc $ENV run-tests
