@@ -1,0 +1,16 @@
+<!--meta name="apple-itunes-app" content="app-id=1294478616, app-argument=https://app.starsona.com"-->
+<meta name="google-play-app" content="app-id=com.starsona.app">
+
+{% if id %}
+<!--meta property="al:ios:app_store_id" content="2RAH5ZZCTZ" /-->
+<!--meta property="al:ios:url" content="com.starsona.development.app://{{ request }}/?{{ arg }}={{id}}" /-->
+<!--meta property="al:ios:app_name" content="Starsona" /-->
+
+<meta property="al:android:package" content="com.starsona.development.app" />
+<meta property="al:android:url" content="com.starsona.development.app://{{ request }}/?{{ arg }}={{id}}" />
+<meta property="al:android:app_name" content="Starsona" />
+{% endif %}
+<script type="text/javascript">
+    android_package ='com.starsona.development.app';
+    ios_package = ''; //'com.starsona.development.app';
+</script>

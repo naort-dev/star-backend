@@ -19,6 +19,7 @@ Parameters:
     - dev
     - hot
     - live
+    - upgrade
     Description: Environment type
 
   AdminUsername:
@@ -50,6 +51,7 @@ Parameters:
     - starsona-stb-usea1
     - starsona-prb-usea1
     - starsona-htb-usea1
+    - starsona-upb-usea1
     - starsona
     Description: S3 Bucket name
 
