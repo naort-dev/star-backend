@@ -328,6 +328,7 @@ Resources:
       AllocatedStorage: 5
       DBInstanceClass: !Ref 'DBInstanceClass'
       Engine: 'postgres'
+      AllowMajorVersionUpgrade: True
       EngineVersion: '9.6'
       MasterUsername: !Ref 'DatabaseUser'
       MasterUserPassword: !Ref 'DatabasePassword'
