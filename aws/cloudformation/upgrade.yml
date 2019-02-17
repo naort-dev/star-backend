@@ -14,12 +14,12 @@ Parameters:
   BaseImageTag:
     Type: String
     Description: Base image tag
-    Default: ":20190208"
+    Default: ":20190217"
 
   GitBranch:
     Type: String
     Description: Git branch
-    Default: 'master'
+    Default: 'ubuntu-18.04'
 
   GithubToken:
     Type: String
