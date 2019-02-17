@@ -329,7 +329,7 @@ Resources:
       DBInstanceClass: !Ref 'DBInstanceClass'
       Engine: 'postgres'
       AllowMajorVersionUpgrade: True
-      EngineVersion: '10.6'
+      EngineVersion: '9.6'
       MasterUsername: !Ref 'DatabaseUser'
       MasterUserPassword: !Ref 'DatabasePassword'
       DBSubnetGroupName: !Ref 'DBSubnetGroup'
