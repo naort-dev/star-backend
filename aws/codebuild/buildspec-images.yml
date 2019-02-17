@@ -37,10 +37,12 @@ phases:
       - echo Writing artifacts...
       - aws ssm get-parameter --name /env/staging/backend/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"$IMAGE_TAG\"" > staging-backend.json
       - aws ssm get-parameter --name /env/hotfix/backend/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"$IMAGE_TAG\"" > hotfix-backend.json
+      - aws ssm get-parameter --name /env/upgrade/backend/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"$IMAGE_TAG\"" > upgrade-backend.json
       - aws ssm get-parameter --name /env/production/backend/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"$IMAGE_TAG\"" > production-backend.json
 artifacts:
   files:
     - staging-backend.json
     - hotfix-backend.json
+    - upgrade-backend.json
     - production-backend.json
   discard-paths: yes

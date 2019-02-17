@@ -323,6 +323,8 @@ Resources:
       - PublicLoadBalancerCertificate3
       - PublicLoadBalancerCertificate4
       - PublicLoadBalancerCertificate5
+      - PublicLoadBalancerCertificate6
+      - PublicLoadBalancerCertificate7
     Properties:
       Certificates:
         - CertificateArn: !Ref 'PublicLoadBalancerCertificate1'
@@ -330,6 +332,8 @@ Resources:
         - CertificateArn: !Ref 'PublicLoadBalancerCertificate3'
         - CertificateArn: !Ref 'PublicLoadBalancerCertificate4'
         - CertificateArn: !Ref 'PublicLoadBalancerCertificate5'
+        - CertificateArn: !Ref 'PublicLoadBalancerCertificate6'
+        - CertificateArn: !Ref 'PublicLoadBalancerCertificate7'
       ListenerArn: !Ref 'PublicLoadBalancerListenerHTTPS'
 
   PublicLoadBalancerCertificate:
@@ -382,6 +386,22 @@ Resources:
       DomainName: 'hotfix.starsona.com'
       DomainValidationOptions:
       - DomainName: 'hotfix.starsona.com'
+        ValidationDomain: !Ref 'ValidationDomain'
+
+  PublicLoadBalancerCertificate6:
+    Type: "AWS::CertificateManager::Certificate"
+    Properties:
+      DomainName: 'app.upgrade.starsona.com'
+      DomainValidationOptions:
+      - DomainName: 'app.upgrade.starsona.com'
+        ValidationDomain: !Ref 'ValidationDomain'
+
+  PublicLoadBalancerCertificate7:
+    Type: "AWS::CertificateManager::Certificate"
+    Properties:
+      DomainName: 'upgrade.starsona.com'
+      DomainValidationOptions:
+      - DomainName: 'upgrade.starsona.com'
         ValidationDomain: !Ref 'ValidationDomain'
 
   # This is an IAM role which authorizes ECS to manage resources on your
