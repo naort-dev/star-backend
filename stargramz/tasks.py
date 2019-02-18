@@ -196,3 +196,42 @@ def booking_feedback_celebrity_notification(booking_id, fields):
         return True
     except Exception:
         return False
+
+
+@app.task(name='celebrity_request_notification')
+def celebrity_request_notification():
+    """
+    This task will send reminder mail to all the celebrity who has not completed their Starsona request
+    :return:
+    """
+    requests = Stargramrequest.objects.filter(request_status__in=[2, 3])
+    try:
+        template = "daily_booking_notification"
+        subject = 'Starsona Request Reminder'
+        days = Config.objects.get(key='celebrity_notify_days').value
+        days = [int(i) for i in days.replace(',', '')]
+        current_date = datetime.datetime.now(pytz.utc)
+        web_url = Config.objects.get(key='web_url').value
+        base_url = Config.objects.get(key='base_url').value
+        for request in requests:
+            if (current_date - request.created_date).days in days:
+                expiring_date = (request.created_date + datetime.timedelta(days=7)).strftime("%d-%m-%Y")
+                mob_link = 'request/?request_id=%s' % encode_pk(request.id)
+                ctx = {
+                    "celebrity_name": request.celebrity.get_short_name(),
+                    "fan_name": request.fan.get_short_name(),
+                    "booking_title": request.booking_title,
+                    "occasion": request.occasion.title,
+                    "expiring_date": expiring_date,
+                    "app_url": generate_branch_io_url(
+                        title="Request reminder",
+                        desc="Reminder of the Starsona Request from %s." % request.fan.get_short_name(),
+                        mob_url=mob_link,
+                        desktop_url='%suser/bookings' % web_url,
+                        image_url='%smedia/web-images/starsona_logo.png' % base_url,
+                    )
+                }
+                sent_email(request.celebrity.email, subject, template, ctx)
+        return True
+    except Exception as e:
+        return False

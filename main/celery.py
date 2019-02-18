@@ -59,11 +59,15 @@ app.conf.beat_schedule = {
         'task': 'resend_failed_payouts',
         'schedule': crontab(minute=1, hour=0, day_of_month=1, nowfun=get_now_fun),
     },
-    # 'schedule-9': {
+    'schedule-9': {
+        'task': 'celebrity_request_notification',
+        'schedule': crontab(minute=0, hour=0, nowfun=get_now_fun),
+    },
+    # 'schedule-10': {
     #     'task': 'reprocess_pending_video_approval',
     #     'schedule': crontab(minute=0, hour=0),
     # },
-    #'schedule-10': {
+    #'schedule-11': {
     #    'task': 'cancel_booking_on_seven_days_completion',
     #    'schedule': crontab(minute=0, hour=0),
     #},
