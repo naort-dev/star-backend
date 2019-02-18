@@ -23,6 +23,8 @@ from datetime import datetime, timedelta
 import imageio
 import time, json
 import re
+from contextlib import contextmanager
+from django.core.cache import cache
 from hashids import Hashids
 from utilities.constants import BASE_URL
 from utilities.konstants import NOTIFICATION_TYPES, ROLES
@@ -1211,6 +1213,18 @@ def reprocess_pending_video_approval():
     return True
 
 
+@contextmanager
+def memcache_lock(lock_id, oid):
+    """
+    Check to execute the task only once, store the lock in cache for 1 hr
+    :param lock_id:
+    :param oid:
+    :return: Boolean
+    """
+    status = cache.add(lock_id, oid, 3600)
+    yield status
+
+
 @app.task
 def notify_fan_reaction_videos_and_feedback(booking_id):
     from notification.tasks import send_notification
@@ -1220,6 +1234,11 @@ def notify_fan_reaction_videos_and_feedback(booking_id):
     :param booking_id:
     :return:
     """
+    lock_id = '{0}-lock-{1}'.format('reaction_video', booking_id)
+    with memcache_lock(lock_id, app.oid) as acquired:
+        if not acquired:
+            return True
+
     print("Reaction for %d" % booking_id)
     if Reaction.objects.filter(booking_id=booking_id).count() == 0:
         print('Adding reactions...')
