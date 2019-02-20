@@ -95,7 +95,8 @@ def get_pre_signed_post_url(filename, expires, expiry=3600, private=False):
         # {
         #     'Expires': expires
         # },
-        # ["starts-with", "$Content-Type", ""]
+        # ["starts-with", "$Content-Type", ""],
+        ["starts-with", "$Content-MD5", ""]
         # Means that Content-type starts with any value
     ]
 
