@@ -86,7 +86,13 @@ class StargramzVideoSerializer(CustomModelSerializer):
         return hashids.encode(obj.id)
 
     def get_video_url(self, obj):
-        return self.web_url + obj.stragramz_request.celebrity.vanity_urls.name+'?video_id=' + hashids.encode(obj.id)
+        try:
+            if self.context.get("meta").get("HTTP_DEVICE") is "web":
+                return self.web_url + obj.stragramz_request.celebrity.vanity_urls.name + '?video_id=' + hashids.encode(obj.id)
+            else:
+                return "%svideo/%s/" % (self.web_url, hashids.encode(obj.id))
+        except Exception:
+            return self.web_url + obj.stragramz_request.celebrity.vanity_urls.name+'?video_id=' + hashids.encode(obj.id)
 
     def get_status(self, obj):
         return False if obj.status == 3 else True
