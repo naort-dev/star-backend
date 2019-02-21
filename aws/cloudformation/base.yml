@@ -1,0 +1,119 @@
+Description: Create a CodePipeline to include Nested CloudFormation, CodeBuild and Approval steps.
+Parameters:
+
+  PipelineName:
+    Type: String
+    Description: Pipeline
+    Default: codepipeline
+
+  GitBranch:
+    Type: String
+    Description: Git branch
+    Default: master
+
+  GithubToken:
+    Type: String
+    Description: Github OAuth token
+    Default: 51639390163a192eb23b6a74aefcfa8369b62518
+
+Resources:
+  BuildBase:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: backend-base-images
+      Description: Build base images
+      ServiceRole: arn:aws:iam::376169159073:role/service-role/codebuild-starsona-service-role
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/docker:17.09.0
+        PrivilegedMode: true
+
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: aws/codebuild/buildspec-base.yml
+      TimeoutInMinutes: 15
+
+  Pipeline:
+    Type: "AWS::CodePipeline::Pipeline"
+    Properties:
+      Name: !Ref AWS::StackName
+      RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
+      Stages:
+        -
+          Name: Source
+          Actions:
+            -
+              Name: github
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Version: 1
+                Provider: GitHub
+              OutputArtifacts:
+                - Name: source
+              Configuration:
+                Owner: Starsona
+                Repo: backend
+                PollForSourceChanges: false
+                Branch: !Ref 'GitBranch'
+                OAuthToken: !Ref 'GithubToken'
+              RunOrder: 1
+        -
+          Name: Approvals
+          Actions:
+          -
+            Name: approval
+            ActionTypeId:
+              Category: Approval
+              Owner: AWS
+              Version: 1
+              Provider: Manual
+            Configuration:
+              CustomData: Approve new base images
+            RunOrder: 1
+        -
+          Name: Build
+          Actions:
+            -
+              Name: images
+              InputArtifacts:
+                - Name: source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              OutputArtifacts:
+                - Name: build
+              Configuration:
+                ProjectName: !Ref 'BuildBase'
+              RunOrder: 1
+        -
+          Name: Update
+          Actions:
+            -
+              Name: pipeline
+              InputArtifacts:
+                - Name: source
+                - Name: build
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
+                Capabilities: CAPABILITY_IAM
+                StackName: backend-codepipeline
+                TemplateConfiguration: build::codepipeline.json
+                TemplatePath: !Join ['', ['source::aws/cloudformation/', !Ref 'PipelineName', '.yml']]
+              RunOrder: 1
+
+      ArtifactStore:
+        Type: S3
+        Location: codepipeline-us-east-1-219080120354
+
