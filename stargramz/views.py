@@ -825,8 +825,6 @@ def play_video(request, id):
         config = Config.objects.get(key='stargram_videos')
         celebrity = video.stragramz_request.celebrity.get_short_name()
         occasion = video.stragramz_request.occasion
-        web_url = Config.objects.get(key="web_url").value
-        redirect_link = "%s%s?video_id=%s" % (web_url, video.stragramz_request.celebrity.vanity_urls.name, id)
 
         req_type = video.stragramz_request.request_type
         page_title = {
@@ -851,7 +849,6 @@ def play_video(request, id):
             "title": "Starsona %s video from %s" % (occasion, celebrity),
             "page_title": page_title[req_type],
             "page_desc": page_desc[req_type],
-            "redirect_link": redirect_link
             }
 
     except StargramVideo.DoesNotExist:
