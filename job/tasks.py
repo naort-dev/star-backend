@@ -789,7 +789,7 @@ def send_email_notification(request_id):
             'template_2': 'request_confirmation',
             'email_2': celebrity.email,
             'subject_5': 'Cancelled Starsona Request',
-            'template_5': 'request_cancelled',
+            'template_5': 'request_cancelled' if not request.comment else 'request_cancelled_from_celebrity',
             'email_5': fan.email,
             'subject_6': 'Your Starsona video is ready',
             'template_6': 'video_completed_with_reprocessing' if request.reprocessed else 'video_completed',
