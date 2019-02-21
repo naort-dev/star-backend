@@ -351,6 +351,10 @@ footer{
         window.location = android_package+'://video/?video_id={{id}}';
     }
 
+    setTimeout(function(){
+            window.location = '{{redirect_link}}';
+        }, 2000);
+
     <!--if (/iPad|iPhone|iPod/i.test(navigator.userAgent) && !window.MSStream) {-->
         <!--window.location = ios_package+'://video/?video_id={{id}}';-->
     <!--}-->
