@@ -115,7 +115,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
                     request_created.save()
             if process_audio:
                 convert_audio.delay(request_created.id)
-            data = StargramzRetrieveSerializer(request_created, context={"meta": request.META}).data
+            data = StargramzRetrieveSerializer(request_created).data
             return self.jp_response('HTTP_200_OK', data={'stargramz_response': data})
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN',
@@ -230,7 +230,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
             star_request.public_request = request.data['public_request']
             star_request.booking_title = request.data['booking_title']
             star_request.save()
-            data = StargramzRetrieveSerializer(star_request, context={"meta": request.META}).data
+            data = StargramzRetrieveSerializer(star_request).data
             return self.jp_response('HTTP_200_OK', data={'stargramz_response': data})
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN',
@@ -257,7 +257,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
                 'INVALID_CODE',
                 'You are not allowed to view the request'
             )
-        data = StargramzRetrieveSerializer(star_request, context={"meta": request.META}).data
+        data = StargramzRetrieveSerializer(star_request).data
         return self.jp_response('HTTP_200_OK', data={'stargramz_response': data})
 
     def generate_title(self, request, celebrity, occasion):
@@ -334,7 +334,7 @@ class ChangeRequestStatus(APIView, ResponseViewMixin):
                                             NOTIFICATION_REQUEST_FAN_CANCEL_TITLE,
                                             NOTIFICATION_REQUEST_FAN_CANCEL_BODY % (star_request.fan.get_short_name()),
                                             data, field='celebrity_starsona_request')
-            data = StargramzRetrieveSerializer(star_request, context={"meta": request.META}).data
+            data = StargramzRetrieveSerializer(star_request).data
             return self.jp_response('HTTP_200_OK', data={'change_status': data})
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN',
@@ -411,7 +411,7 @@ class RequestList(GenericViewSet, ResponseViewMixin):
                 # Code block to be removed after the next sprint release
             query_set = query_set.order_by('-modified_date', 'celebrity__first_name')
             page = self.paginate_queryset(query_set.distinct())
-            serializer = self.get_serializer(page, many=True, context={"meta": request.META})
+            serializer = self.get_serializer(page, many=True)
             return self.paginator.get_paginated_response(serializer.data, key_name='request_list')
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
@@ -470,7 +470,7 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
                     'professions', 'created_date', 'booking_title', 'video_url', 'width', 'height', 'booking_id',
                     'booking_type', 'video_status', 'comments_count', 'video_id', 'read_status', 'fan_rate', 'occasion'
                 ],
-                many=True, context=request.META
+                many=True
             )
 
             if serializer.data:
@@ -530,8 +530,7 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
 
                     data = StargramzVideoSerializer(
                         video,
-                        fields=['stragramz_request', 'video', 'duration', 'thumbnail'],
-                        context=request.META
+                        fields=['stragramz_request', 'video', 'duration', 'thumbnail']
                     ).data
                 except StarsonaTransaction.DoesNotExist:
                     pass
@@ -639,7 +638,7 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
         self.transaction_update(transaction, TRANSACTION_STATUS.captured, 'Successfully captured')
         data = StargramzVideoSerializer(video_saved, fields=[
             'stragramz_request', 'video', 'video_status', 'duration', 'thumbnail', 'comments_count'
-        ], context=request.META).data
+        ]).data
         admin_email = Config.objects.get(key='admin_email').value
         try:
             ctx = {
@@ -735,8 +734,7 @@ class FeaturedVideo(GenericViewSet, ResponseViewMixin):
                 'video_url', 'width', 'height', 'question_answer_videos', 'following', 'occasion', 'fan_name',
                 'comments_count', 'video_id', 'read_status', 'fan_rate'
             ],
-            many=True,
-            context=request.META
+            many=True
         )
         return self.paginator.get_paginated_response(serializer.data, key_name='featured_videos')
 
@@ -827,8 +825,7 @@ def play_video(request, id):
         config = Config.objects.get(key='stargram_videos')
         celebrity = video.stragramz_request.celebrity.get_short_name()
         occasion = video.stragramz_request.occasion
-        web_url = Config.objects.get(key="web_url").value
-        redirect_url = "%s%s?video_id=%s" % (web_url, video.stragramz_request.celebrity.vanity_urls.name, id)
+
         req_type = video.stragramz_request.request_type
         page_title = {
             1: "Watch this video shout-out from %s" % celebrity,
@@ -852,13 +849,12 @@ def play_video(request, id):
             "title": "Starsona %s video from %s" % (occasion, celebrity),
             "page_title": page_title[req_type],
             "page_desc": page_desc[req_type],
-            "redirect_url": redirect_url
             }
 
     except StargramVideo.DoesNotExist:
         pass
 
-    return render(request=request, template_name='home/video_redirecting_template.html', context=data)
+    return render(request=request, template_name='home/video.html', context=data)
 
 
 def profile_detail(request, user_id):
