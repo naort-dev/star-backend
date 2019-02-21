@@ -25,3 +25,7 @@ phases:
       - docker push ${REGISTRY}base-backend${IMAGE_TAG}
       - echo Writing artifacts...
       - 'echo "{\"Parameters\": {\"BaseImageTag\":\"$IMAGE_TAG\"}}" > codepipeline.json'
+artifacts:
+  files:
+  - codepipeline.json
+  discard-paths: yes
