@@ -813,7 +813,7 @@ def send_email_notification(request_id):
         date = ''
         if 'date' in data:
             try:
-                date = datetime.strptime(data['date'], "%Y-%m-%dT%H:%M:%S.000Z").strftime('%d-%B-%Y')
+                date = datetime.strptime(data['date'], "%Y-%m-%dT%H:%M:%S.%fZ").strftime('%B %d, %Y')
             except Exception:
                 pass
 
@@ -827,8 +827,8 @@ def send_email_notification(request_id):
             'to_name': data['stargramto'] if 'stargramto' in data else '',
             'from_name': data['stargramfrom'] if 'stargramfrom' in data else '',
             'date': date,
+            'relationship': data['relationship']['title'] if 'relationship' in data else ''
         }
-
         video_id = None
         video_url = BASE_URL
         if request.request_status == 6:
