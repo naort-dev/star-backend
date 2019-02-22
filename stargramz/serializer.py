@@ -71,7 +71,7 @@ class StargramzVideoSerializer(CustomModelSerializer):
     following = serializers.SerializerMethodField(read_only=True)
     video_id = serializers.SerializerMethodField(read_only=True)
     fan_rate = serializers.SerializerMethodField(read_only=True)
-    occasion = serializers.CharField(read_only=True, source="stragramz_request.occasion.title")
+    occasion = serializers.SerializerMethodField(read_only=True)
     user_id = serializers.CharField(read_only=True, source="stragramz_request.celebrity.vanity_urls.name")
     question_answer_videos = serializers.SerializerMethodField(read_only=True)
 
@@ -86,7 +86,7 @@ class StargramzVideoSerializer(CustomModelSerializer):
         return hashids.encode(obj.id)
 
     def get_video_url(self, obj):
-        return self.web_url + obj.stragramz_request.celebrity.vanity_urls.name+'?video_id=' + hashids.encode(obj.id)
+        return "%svideo/%s/" % (self.web_url, hashids.encode(obj.id))
 
     def get_status(self, obj):
         return False if obj.status == 3 else True
@@ -140,6 +140,18 @@ class StargramzVideoSerializer(CustomModelSerializer):
         except Exception:
             return None
         return fan_rate
+
+    def get_occasion(self, obj):
+        occasion = obj.stragramz_request.occasion
+        if occasion.id is 18:
+            try:
+                data = json.loads(obj.stragramz_request.request_details)
+                specifically_for = data.get('specifically_for', None)
+                if specifically_for:
+                    return specifically_for
+            except:
+                pass
+        return occasion.title
 
 
 class StargramzSerializer(serializers.ModelSerializer):
