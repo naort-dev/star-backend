@@ -14,7 +14,7 @@
     "pk": 2,
     "fields": {
       "key": "reset_password_link",
-      "value": "https://app.hotfix.starsona.com/applinks/reset?reset_id=",
+      "value": "https://app.upgrade.starsona.com/applinks/reset?reset_id=",
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }
@@ -64,7 +64,7 @@
     "pk": 7,
     "fields": {
       "key": "base_url",
-      "value": "https://app.hotfix.starsona.com/",
+      "value": "https://app.upgrade.starsona.com/",
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }
@@ -194,7 +194,7 @@
     "pk": 20,
     "fields": {
       "key": "aws_pool_id",
-      "value": "us-east-1:ccf1349d-12d9-45cc-9137-4b17e0c373b8",
+      "value": "us-east-1:fb65d488-f39c-4aa4-b782-2ce2dedcd5d2",
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }
@@ -204,7 +204,7 @@
     "pk": 21,
     "fields": {
       "key": "aws_bucket_name",
-      "value": "starsona-stb-usea1",
+      "value": "starsona-upb-usea1",
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }
@@ -214,7 +214,7 @@
     "pk": 22,
     "fields": {
       "key": "web_url",
-      "value": "https://hotfix.starsona.com/",
+      "value": "https://upgrade.starsona.com/",
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }
@@ -274,7 +274,7 @@
     "pk": 28,
     "fields": {
       "key": "short_web_url",
-      "value": "hotfix.starsona.com/",
+      "value": "upgrade.starsona.com/",
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }

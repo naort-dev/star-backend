@@ -11,9 +11,11 @@ services:
     - postgres
     environment:
     - ENV
-    - AWS_ACCESS_KEY_ID=${S3_AWS_ACCESS_KEY_ID}
-    - AWS_SECRET_ACCESS_KEY=${S3_AWS_SECRET_ACCESS_KEY}
-    - AWS_STORAGE_BUCKET_NAME=${S3_AWS_STORAGE_BUCKET_NAME}
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_STORAGE_BUCKET_NAME
+    - AWS_DEFAULT_REGION
+    - AWS_INSTANCE_ROLE
     - EMAIL_HOST
     - EMAIL_HOST_USER
     - EMAIL_HOST_PASSWORD
@@ -33,6 +35,10 @@ services:
     - QUEUE_HOST
     - ADMIN_USERNAME
     - ADMIN_PASSWORD
+    - TWILIO_ACCOUNT_SID
+    - TWILIO_AUTH_TOKEN
+    - TWILIO_PHONE_NUMBER
+    - AUTHY_API_KEY
 
   migration:
     image: backend-migration
@@ -49,6 +55,44 @@ services:
     - ADMIN_USERNAME
     - ADMIN_PASSWORD
     command: sh -c './migrations.sh && ./loaddatas.sh'
+
+  tests:
+    image: backend-migration
+    networks:
+    - overlay
+    depends_on:
+    - postgres
+    environment:
+    - ENV
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_STORAGE_BUCKET_NAME
+    - AWS_DEFAULT_REGION
+    - AWS_INSTANCE_ROLE
+    - EMAIL_HOST
+    - EMAIL_HOST_USER
+    - EMAIL_HOST_PASSWORD
+    - EMAIL_PORT
+    - EMAIL_USE_TLS
+    - FCM_SERVER_KEY
+    - STRIPE_WEB_HOOK
+    - STRIPE_CLIENT_ID
+    - STRIPE_SECRET_KEY
+    - DATABASE_NAME
+    - DATABASE_USER
+    - DATABASE_PASSWORD
+    - DATABASE_HOST
+    - BRANCH_IO_KEY
+    - QUEUE_BROKER_URL
+    - QUEUE_BACKEND
+    - QUEUE_HOST
+    - ADMIN_USERNAME
+    - ADMIN_PASSWORD
+    - TWILIO_ACCOUNT_SID
+    - TWILIO_AUTH_TOKEN
+    - TWILIO_PHONE_NUMBER
+    - AUTHY_API_KEY
+    command: sh -c './runtests.sh'
 
   celery-beat:
     image: backend-celery
@@ -75,10 +119,11 @@ services:
     command: ["celery", "-A", "main", "worker"]
     environment:
     - ENV
-    - AWS_ACCESS_KEY_ID=${S3_AWS_ACCESS_KEY_ID}
-    - AWS_SECRET_ACCESS_KEY=${S3_AWS_SECRET_ACCESS_KEY}
-    - AWS_STORAGE_BUCKET_NAME=${S3_AWS_STORAGE_BUCKET_NAME}
-    - AWS_DEFAULT_REGION=${S3_AWS_DEFAULT_REGION}
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_STORAGE_BUCKET_NAME
+    - AWS_DEFAULT_REGION
+    - AWS_INSTANCE_ROLE
     - EMAIL_HOST
     - EMAIL_HOST_USER
     - EMAIL_HOST_PASSWORD
@@ -97,6 +142,10 @@ services:
     - QUEUE_BACKEND
     - QUEUE_HOST
     - QUEUE_NAME_PREFIX=dev-
+    - TWILIO_ACCOUNT_SID
+    - TWILIO_AUTH_TOKEN
+    - TWILIO_PHONE_NUMBER
+    - AUTHY_API_KEY
 
   celery-videos:
     image: backend-celery
@@ -109,10 +158,11 @@ services:
     command: ["celery", "-A", "main", "worker", "-Q", "videos"]
     environment:
     - ENV
-    - AWS_ACCESS_KEY_ID=${S3_AWS_ACCESS_KEY_ID}
-    - AWS_SECRET_ACCESS_KEY=${S3_AWS_SECRET_ACCESS_KEY}
-    - AWS_STORAGE_BUCKET_NAME=${S3_AWS_STORAGE_BUCKET_NAME}
-    - AWS_DEFAULT_REGION=${S3_AWS_DEFAULT_REGION}
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+    - AWS_STORAGE_BUCKET_NAME
+    - AWS_DEFAULT_REGION
+    - AWS_INSTANCE_ROLE
     - EMAIL_HOST
     - EMAIL_HOST_USER
     - EMAIL_HOST_PASSWORD
@@ -130,6 +180,10 @@ services:
     - QUEUE_BROKER_URL
     - QUEUE_BACKEND
     - QUEUE_HOST
+    - TWILIO_ACCOUNT_SID
+    - TWILIO_AUTH_TOKEN
+    - TWILIO_PHONE_NUMBER
+    - AUTHY_API_KEY
 
   postgres:
     image: postgres:9.5
@@ -145,7 +199,7 @@ services:
     - PGDATA=/var/lib/postgresql/data/pgdata
 
   rabbitmq:
-    image: rabbitmq:3.7
+    image: rabbitmq
     networks:
     - overlay
     restart: on-failure
@@ -153,7 +207,7 @@ services:
     - RABBITMQ_DEFAULT_USER=${QUEUE_USER}
     - RABBITMQ_DEFAULT_PASS=${QUEUE_PASSWORD}
 
-  nginx:
+  backend-nginx:
     image: backend-nginx-${DEPLOYMENT_TYPE}
     hostname: ${SSL_SERVER_NAME}
     volumes:
@@ -169,9 +223,11 @@ services:
     environment:
     - SSL_SERVER_NAME
     - SSL_SERVER_EMAIL
+    - HTTP_PORT
+    - HTTPS_PORT
 
   memcached:
-    image: memcached:1.4
+    image: memcached:1.5
     networks:
     - overlay
     restart: on-failure

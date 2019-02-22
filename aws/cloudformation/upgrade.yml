@@ -14,12 +14,12 @@ Parameters:
   BaseImageTag:
     Type: String
     Description: Base image tag
-    Default: ":20190208"
+    Default: ":20190217"
 
   GitBranch:
     Type: String
     Description: Git branch
-    Default: '1.0'
+    Default: 'ubuntu-18.04'
 
   GithubToken:
     Type: String
@@ -65,7 +65,7 @@ Resources:
         Image: aws/codebuild/ubuntu-base:14.04
         PrivilegedMode: false
         EnvironmentVariables:
-          - { Name: ENV, Value: hotfix }
+          - { Name: ENV, Value: upgrade }
 
       Source:
         Type: CODEPIPELINE
@@ -86,32 +86,11 @@ Resources:
         Image: aws/codebuild/ubuntu-base:14.04
         PrivilegedMode: false
         EnvironmentVariables:
-        - { Name: ENV, Value: hotfix }
+        - { Name: ENV, Value: upgrade }
 
       Source:
         Type: CODEPIPELINE
         BuildSpec: aws/codebuild/buildspec-tests.yml
-      TimeoutInMinutes: 15
-
-  RunMigrationsProduction:
-    Type: AWS::CodeBuild::Project
-    Properties:
-      Name: !Join ['-', [!Ref 'AWS::StackName', 'migrations-production']]
-      Description: Run migrations
-      ServiceRole: arn:aws:iam::376169159073:role/service-role/codebuild-starsona-service-role
-      Artifacts:
-        Type: CODEPIPELINE
-      Environment:
-        Type: LINUX_CONTAINER
-        ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/ubuntu-base:14.04
-        PrivilegedMode: false
-        EnvironmentVariables:
-          - { Name: ENV, Value: production }
-
-      Source:
-        Type: CODEPIPELINE
-        BuildSpec: aws/codebuild/buildspec-migrations.yml
       TimeoutInMinutes: 15
 
   Pipeline:
@@ -173,8 +152,8 @@ Resources:
                 ActionMode: CREATE_UPDATE
                 RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
                 Capabilities: CAPABILITY_IAM
-                StackName: hotfix-backend-app
-                TemplateConfiguration: build::hotfix-backend.json
+                StackName: upgrade-backend-app
+                TemplateConfiguration: build::upgrade-backend.json
                 TemplatePath: source::aws/cloudformation/backend.yml
               RunOrder: 1
             -
@@ -200,53 +179,6 @@ Resources:
                 Provider: CodeBuild
               Configuration:
                 ProjectName: !Ref 'RunTestsStaging'
-              RunOrder: 3
-        -
-          Name: Approvals
-          Actions:
-            -
-              Name: ProductionDeploymentApproval
-              ActionTypeId:
-                Category: Approval
-                Owner: AWS
-                Version: 1
-                Provider: Manual
-              Configuration:
-                NotificationArn: arn:aws:sns:us-east-1:376169159073:ProductionDeploymentApproval
-                CustomData: Approve hotfix deployment.
-              RunOrder: 1
-        -
-          Name: Production
-          Actions:
-            -
-              Name: app
-              InputArtifacts:
-                - Name: source
-                - Name: build
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Version: 1
-                Provider: CloudFormation
-              Configuration:
-                ActionMode: CREATE_UPDATE
-                RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
-                Capabilities: CAPABILITY_IAM
-                StackName: production-backend-app
-                TemplateConfiguration: build::production-backend.json
-                TemplatePath: source::aws/cloudformation/backend.yml
-              RunOrder: 1
-            -
-              Name: migrations
-              InputArtifacts:
-                - Name: source
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Version: 1
-                Provider: CodeBuild
-              Configuration:
-                ProjectName: !Ref 'RunMigrationsProduction'
               RunOrder: 3
 
       ArtifactStore:

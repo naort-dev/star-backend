@@ -1,0 +1,14 @@
+PASSWORD_MIN_LENGTH = 8
+PASSWORD_MAX_LENGTH = 32
+IOS_UNIVERSAL_FILE_PATH = "../.well-known/apple-app-site-association"
+ANDROID_CONFIG_KEY = "android_version"
+IOS_CONFIG_KEY = "ios_version"
+ANDROID = "android"
+IOS = "ios"
+WEB = "web"
+BASE_URL = "https://app.upgrade.starsona.com/"
+SHORT_BASE_URL = "app.upgrade.starsona.com/"
+REDIRECT_LINK = "https://app.upgrade.starsona.com/applinks/reset?reset_id="
+ANDROID_UNIVERSAL_FILE_PATH = "../.well-known/assetlinks.json"
+SHORT_WEB_URL = "upgrade.starsona.com/"
+WEB_URL = "https://upgrade.starsona.com/"

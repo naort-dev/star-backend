@@ -1,3 +1,6 @@
+#!/bin/bash
+
+aws cloudformation set-stack-policy --stack-name $1 --stack-policy-body '
 {
   "Statement" : [
     {
@@ -19,3 +22,4 @@
     }
   ]
 }
+'

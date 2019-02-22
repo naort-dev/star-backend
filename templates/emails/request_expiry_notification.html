@@ -2,12 +2,12 @@
 <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Hi {{ celebrity_name }},</p>
 
 <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">
-    You have a new booking request from {{ fan_name }} for a {{ occasion }} shout-out. Please see request details below
+    Just a final reminder that your fan's {{ occasion }} request will <u><strong>expire today</strong></u>.  Please be sure to attend to this at your earliest convenience.  As always, you can review and respond to this request directly from your Starsona account.  If you have any questions or concerns regarding this particular request, please feel free to contact me directly anytime.
 </p>
-<p>
-    {% if date %}
+<div>
+    {% if expiring_date %}
     <p style="font-family: sans-serif;margin-bottom: 0;margin-top: 8px;font-size:12px;">
-        <span style="min-width:120px;display: inline-block;font-weight:bold;">Request date</span> {{ date }}<br/>
+        <span style="min-width:120px;display: inline-block;font-weight:bold;">Expires</span> {{ expiring_date }}<br/>
     </p>
     {% endif %}
     {% if occasion %}
@@ -30,12 +30,21 @@
         <span style="min-width:120px;display: inline-block;font-weight:bold;">Details</span> {{ important_info }}<br/>
     </p>
     {% endif %}
-</p>
+</div>
 <p style="text-align:center">
     &nbsp;<a href="{{app_url}}" class="button-app">View request</a>
 </p>
-<p>
-Thanks, <br/>
-The Starsona Team
-</p>
+<div style="font-size: 14px;">
+    <p style="font-family: sans-serif;">
+        Kind regards,
+    </p>
+    <p style="font-family: sans-serif;margin-bottom: 0;margin-top: 8px;font-style:italic;font-weight: bold;color:rgb(255, 153, 0);">Matthew Martin</p>
+    <p style="font-family: sans-serif;margin-bottom: 0;margin-top: 0px;font-style:italic;">Head of Operations</p>
+    <p style="font-family: sans-serif;margin-bottom: 0;margin-top: 0px;font-style:italic;font-weight: bold;">Starsona Inc</p>
+    <p style="font-family: sans-serif;margin-bottom: 0;margin-top: 0px;font-style:italic;">p:(408) 242-8440</p>
+    <p style="font-family: sans-serif;margin-bottom: 0;margin-top: 0px;font-style:italic;">
+        w: <a href="http://starsona.com" style="color:rgb(255, 108, 88);">starsona.com</a>
+        e: <a href="mailto:matt@starsona.com" style="color:rgb(255, 108, 88);">matt@starsona.com</a>
+    </p>
+</div>
 {% include "emails/footer.html" %}

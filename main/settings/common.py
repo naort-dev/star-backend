@@ -109,7 +109,7 @@ AUTHENTICATION_BACKENDS = (
 )
 
 # Tell nose to measure coverage of apps
-NOSE_ARGS = ['--with-coverage', '--cover-html', '--cover-package=stargramz,users,payments']
+NOSE_ARGS = os.environ.get('NOSE_ARGS', '--with-coverage --cover-html --cover-package=stargramz,users,payments').split(' ')
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 

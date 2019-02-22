@@ -5,7 +5,8 @@ phases:
     commands:
       - "export AWS_ACCOUNT_ID=`echo $CODEBUILD_BUILD_ARN | cut -d: -f5`"
       - export REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/"
-      - export IMAGE_TAG=:`date +%Y%m%d`
+      - export IMAGE_TAG=:`date +%Y%m%d-%H%M%S`
+      - echo BaseImageTag=$IMAGE_TAG
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
   build:
@@ -22,3 +23,9 @@ phases:
       - docker push ${REGISTRY}base-nginx${IMAGE_TAG}
       - docker push ${REGISTRY}base-letsencrypt${IMAGE_TAG}
       - docker push ${REGISTRY}base-backend${IMAGE_TAG}
+      - echo Writing artifacts...
+      - 'echo "{\"Parameters\": {\"BaseImageTag\":\"$IMAGE_TAG\"}}" > codepipeline.json'
+artifacts:
+  files:
+  - codepipeline.json
+  discard-paths: yes
