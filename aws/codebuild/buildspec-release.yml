@@ -14,14 +14,28 @@ phases:
   build:
     commands:
       - chmod +x aws/scripts/release.sh
+      - echo Reading parameters from SSM...
+      - aws ssm get-parameter --name ${PARAMETERS} | jq -r .Parameter.Value > parameters.json
+      - cat parameters.json
+      - export VERSION=`cat parameters.json | jq -r .Parameters.Version`
+      - export GIT_BRANCH=`cat parameters.json | jq -r .Parameters.GitBranch`
+      - export BASE_IMAGE_TAG=`cat parameters.json | jq -r .Parameters.BaseImageTag`
       - aws/scripts/release.sh 'git@github.com:Starsona/backend.git'
-      - export RELEASE=`cat .release`
-      - echo New hotfix branch $RELEASE
+      - export HOTFIX=`cat .hotfix`
+      - echo New hotfix branch ${HOTFIX}
+      - export CODEPIPELINE=`cat .codepipeline`
+      - echo Codepipeline version ${CODEPIPELINE}
   post_build:
     commands:
     - echo Writing artifacts...
-    - 'echo "{\"Parameters\": {\"GitBranch\":\"$RELEASE\"}}" > release.json'
+    - cat parameters.json | jq ".Parameters.Version = \"${CODEPIPELINE}\"" > codepipeline.json
+    - aws ssm get-parameter --name /codepipeline/backend/hotfix.json | jq -r .Parameter.Value | jq ".Parameters.Version = \"${HOTFIX}\" | .Parameters.GitBranch = \"${HOTFIX}\" | .Parameters.BaseImageTag = \"${BASE_IMAGE_TAG}\"" > hotfix.json
+    - cat codepipeline.json hotfix.json
+    - echo Updating SSM...
+    - aws ssm put-parameter --name /codepipeline/backend/codepipeline.json --type String --overwrite --value file://./codepipeline.json
+    - aws ssm put-parameter --name /codepipeline/backend/hotfix.json --type String --overwrite --value file://./hotfix.json
 artifacts:
   files:
-  - release.json
+  - hotfix.json
+  - codepipeline.json
   discard-paths: yes

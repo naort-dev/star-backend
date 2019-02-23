@@ -16,14 +16,20 @@ phases:
       - "export AWS_ACCOUNT_ID=`echo $CODEBUILD_BUILD_ARN | cut -d: -f5`"
       - export REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/"
       - export DEPLOYMENT_TYPE=aws
+      - echo Reading parameters from SSM...
+      - aws ssm get-parameter --name ${PARAMETERS} | jq -r .Parameter.Value > parameters.json
+      - cat parameters.json
+      - export VERSION=`cat parameters.json | jq -r .Parameters.Version`
+      - export GIT_BRANCH=`cat parameters.json | jq -r .Parameters.GitBranch`
+      - export BASE_IMAGE_TAG=`cat parameters.json | jq -r .Parameters.BaseImageTag`
       - echo Logging in to Amazon ECR...
-      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - $(aws ecr get-login --no-include-email --region ${AWS_DEFAULT_REGION})
   build:
     commands:
       - chmod +x aws/scripts/version.sh
       - aws/scripts/version.sh 'git@github.com:Starsona/backend.git'
       - export IMAGE_TAG=:`cat .version`
-      - echo Building the Docker images version$IMAGE_TAG...
+      - echo Building the Docker images version${IMAGE_TAG}...
       - chmod +x docker/build-docker-images.sh
       - docker/build-docker-images.sh
   post_build:
@@ -35,10 +41,11 @@ phases:
       - docker push ${REGISTRY}backend-nginx-${DEPLOYMENT_TYPE}${IMAGE_TAG}
       - docker push ${REGISTRY}backend-migration${IMAGE_TAG}
       - echo Writing artifacts...
-      - aws ssm get-parameter --name /env/staging/backend/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"$IMAGE_TAG\"" > staging-backend.json
-      - aws ssm get-parameter --name /env/hotfix/backend/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"$IMAGE_TAG\"" > hotfix-backend.json
-      - aws ssm get-parameter --name /env/upgrade/backend/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"$IMAGE_TAG\"" > upgrade-backend.json
-      - aws ssm get-parameter --name /env/production/backend/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"$IMAGE_TAG\"" > production-backend.json
+      - aws ssm get-parameter --name /env/staging/backend/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"${IMAGE_TAG}\"" > staging-backend.json
+      - aws ssm get-parameter --name /env/hotfix/backend/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"${IMAGE_TAG}\"" > hotfix-backend.json
+      - aws ssm get-parameter --name /env/upgrade/backend/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"${IMAGE_TAG}\"" > upgrade-backend.json
+      - aws ssm get-parameter --name /env/production/backend/backend.json | jq -r .Parameter.Value | jq ".Parameters.ImageTag = \"${IMAGE_TAG}\"" > production-backend.json
+      - cat staging-backend.json hotfix-backend.json upgrade-backend.json production-backend.json
 artifacts:
   files:
     - staging-backend.json
