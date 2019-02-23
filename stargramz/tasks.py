@@ -1,7 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 from main.celery import app
 from django.db.models import Q
-from .models import Stargramrequest, STATUS_TYPES
+from .models import Stargramrequest, STATUS_TYPES, REQUEST_TYPES
 from users.models import VanityUrl
 from django.utils import timezone
 import datetime
@@ -15,6 +15,7 @@ from utilities.utils import SendMail, generate_branch_io_url, sent_email, encode
 from django.template.loader import get_template
 from hashids import Hashids
 import pytz
+import json
 hashids = Hashids(min_length=8)
 
 
@@ -206,30 +207,52 @@ def celebrity_request_notification():
     """
     requests = Stargramrequest.objects.filter(request_status__in=[2, 3])
     try:
-        template = "daily_booking_notification"
-        subject = 'Starsona Request Reminder'
         days = Config.objects.get(key='celebrity_notify_days').value
         days = [int(i) for i in days.replace(',', '')]
-        current_date = datetime.datetime.now(pytz.utc)
+        current_date = datetime.datetime.now(pytz.utc).date()
         web_url = Config.objects.get(key='web_url').value
         base_url = Config.objects.get(key='base_url').value
         for request in requests:
-            if (current_date - request.created_date).days in days:
-                expiring_date = (request.created_date + datetime.timedelta(days=7)).strftime("%d-%m-%Y")
+            if (current_date - request.created_date.date()).days in days:
+                expiring_date = (request.created_date + datetime.timedelta(days=7)).date()
                 mob_link = 'request/?request_id=%s' % encode_pk(request.id)
+                if current_date == expiring_date:
+                    subject = 'Reminder: Pending Starsona {} Request - EXPIRES TODAY!'.format(request.occasion.title)
+                    template = 'request_expiry_notification'
+                else:
+                    if (expiring_date - current_date).days == ONE:
+                        subject = 'Reminder: Pending Starsona {} Request - EXPIRES TOMORROW!'.format(
+                            request.occasion.title
+                        )
+                        template = 'event_announcement_request_notification' \
+                            if request.request_type == REQUEST_TYPES.event_announcement \
+                            else 'shout_out_request_expire_tomorrow_notification'
+                    else:
+                        subject = 'Reminder: Pending Starsona {} Request'.format(request.occasion.title)
+                        template = 'event_announcement_request_notification' \
+                            if request.request_type == REQUEST_TYPES.event_announcement \
+                            else 'shout_out_request_notification'
+                request_data = json.loads(request.request_details) if request.request_details else ''
                 ctx = {
                     "celebrity_name": request.celebrity.get_short_name(),
                     "fan_name": request.fan.get_short_name(),
                     "booking_title": request.booking_title,
                     "occasion": request.occasion.title,
-                    "expiring_date": expiring_date,
+                    "expiring_date": expiring_date.strftime('%B %d, %Y'),
                     "app_url": generate_branch_io_url(
                         title="Request reminder",
                         desc="Reminder of the Starsona Request from %s." % request.fan.get_short_name(),
                         mob_url=mob_link,
                         desktop_url='%suser/bookings' % web_url,
-                        image_url='%smedia/web-images/starsona_logo.png' % base_url,
-                    )
+                        image_url='%smedia/web-images/starsona_logo.png' % base_url
+                    ),
+                    'relationship': request_data['relationship']['title'] if 'relationship' in request_data else '',
+                    'important_info': request_data['important_info'] if 'important_info' in request_data else '',
+                    'to_name': request_data['stargramto'] if 'stargramto' in request_data else '',
+                    'from_name': request_data['stargramfrom'] if 'stargramfrom' in request_data else '',
+                    'date': datetime.datetime.strptime(request_data['date'], "%Y-%m-%dT%H:%M:%S.%fZ").strftime('%B %d, %Y'),
+                    'event_title': request_data['event_title'] if 'event_title' in request_data else '',
+                    'expire_tomorrow': True if (expiring_date - current_date).days == ONE else False
                 }
                 sent_email(request.celebrity.email, subject, template, ctx)
         return True
