@@ -39,3 +39,5 @@ NOTIFICATION_REQUEST_LIMIT_BODY = 'Your Starsona booking limit has reached. Tap 
 # Notification for pending reaction video
 PENDING_REACTION_VIDEO_TITLE = 'Starsona'
 PENDING_REACTION_VIDEO_BODY = 'Did %s video meet your expectations? Review and share reaction videos with Starsona'
+
+ONE = 1
