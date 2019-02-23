@@ -29,7 +29,7 @@ commit_id=$(git rev-list -n 1 ${last_tag})
 echo "Latest commit: ${commit_id}"
 echo "Codebuild commit: ${CODEBUILD_RESOLVED_SOURCE_VERSION}"
 if [[ "${commit_id}" != "${CODEBUILD_RESOLVED_SOURCE_VERSION}" ]]; then
-    echo 'Not the latest build, exiting'
+    echo "Not the latest build, exiting"
     exit 1
 fi
 
@@ -39,28 +39,29 @@ minor=$(echo ${version} | cut -d. -f2)
 patch=$(echo ${version} | cut -d. -f3)
 release=${major}.${minor}
 
-echo "Latest version: ${major}.${minor}.${patch}"
-echo "Hotfix branch: ${release} off ${major}.${minor}.${patch}"
+echo "Latest version on ${GIT_BRANCH}: ${major}.${minor}.${patch}"
+echo "Create hotfix branch: ${release} off ${major}.${minor}.${patch}"
 git checkout -b ${release} "${major}.${minor}.${patch}"
 
-echo 'Push new branch to remote'
+echo "Push hotfix branch ${release} to remote"
 git push origin ${release}
 
+echo "Checkout ${GIT_BRANCH}"
 git checkout ${GIT_BRANCH}
 
 let minor=$minor+1
 patch=0
 
-echo "Switching to new version: ${major}.${minor}.${patch}"
+echo "Switching ${GIT_BRANCH} to new version: ${major}.${minor}.${patch}"
 git tag -a ${major}.${minor}.${patch} -m "Version ${major}.${minor}.${patch}"
 
-echo 'Push tag to remote'
+echo "Push new tag to remote"
 git push
 git push origin ${major}.${minor}.${patch}
 
 rm -rf $(pwd)
 cd -
 
-echo Writing artifacts file in current directory
-echo "${release}" > .codepipeline
-echo "${major}.${minor}" > .hotfix
+echo "Writing artifacts file in current directory"
+echo "${major}.${minor}" > .codepipeline
+echo "${release}" > .hotfix

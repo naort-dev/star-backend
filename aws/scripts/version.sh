@@ -35,9 +35,9 @@ patch=$(echo ${version} | cut -d. -f3)
 echo "Latest version: ${major}.${minor}.${patch}"
 let patch=$patch+1
 
-echo "Switching to new version: ${major}.${minor}.${patch}"
+echo "Switching ${GIT_BRANCH} to new version: ${major}.${minor}.${patch}"
 $(git tag -a ${major}.${minor}.${patch} ${commit_id} -m "Version ${major}.${minor}.${patch}")
-echo 'Push tag to remote'
+echo "Push new tag to remote"
 $(git push origin ${major}.${minor}.${patch})
 
 rm -rf $(pwd)
