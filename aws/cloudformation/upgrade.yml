@@ -1,30 +1,21 @@
 Description: Create a CodePipeline to include Nested CloudFormation, CodeBuild and Approval steps.
 Parameters:
 
-  MajorVersion:
-    Type: Number
-    Description: Major version
-    Default: 1
-
-  MinorVersion:
-    Type: Number
-    Description: Minor version, increment each time code merged to production
-    Default: 0
-
   BaseImageTag:
     Type: String
-    Description: Base image tag
-    Default: ":20190217"
+    Description: Base image tag (placeholder only, not to be used in the template itself, but directly from SSM in codebuild projects)
+
+  Version:
+    Type: String
+    Description: major version.minor version (placeholder only, not to be used in the template itself, but directly from SSM in codebuild projects)
 
   GitBranch:
     Type: String
     Description: Git branch
-    Default: 'ubuntu-18.04'
 
   GithubToken:
     Type: String
     Description: Github OAuth token
-    Default: 51639390163a192eb23b6a74aefcfa8369b62518
 
 Resources:
   BuildImages:
@@ -41,10 +32,7 @@ Resources:
         Image: aws/codebuild/docker:17.09.0
         PrivilegedMode: true
         EnvironmentVariables:
-          - { Name: BASE_IMAGE_TAG, Value: !Ref 'BaseImageTag' }
-          - { Name: GIT_BRANCH, Value: !Ref 'GitBranch' }
-          - { Name: MAJOR_VERSION, Value: !Ref 'MajorVersion' }
-          - { Name: MINOR_VERSION, Value: !Ref 'MinorVersion' }
+          - { Name: PARAMETERS, Value: '/codepipeline/backend/upgrade.json' }
 
       Source:
         Type: CODEPIPELINE
@@ -135,51 +123,51 @@ Resources:
               Configuration:
                 ProjectName: !Ref 'BuildImages'
               RunOrder: 1
-        -
-          Name: Staging
-          Actions:
-            -
-              Name: app
-              InputArtifacts:
-                - Name: source
-                - Name: build
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Version: 1
-                Provider: CloudFormation
-              Configuration:
-                ActionMode: CREATE_UPDATE
-                RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
-                Capabilities: CAPABILITY_IAM
-                StackName: upgrade-backend-app
-                TemplateConfiguration: build::upgrade-backend.json
-                TemplatePath: source::aws/cloudformation/backend.yml
-              RunOrder: 1
-            -
-              Name: migrations
-              InputArtifacts:
-                - Name: source
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Version: 1
-                Provider: CodeBuild
-              Configuration:
-                ProjectName: !Ref 'RunMigrationsStaging'
-              RunOrder: 2
-            -
-              Name: tests
-              InputArtifacts:
-              - Name: source
-              ActionTypeId:
-                Category: Build
-                Owner: AWS
-                Version: 1
-                Provider: CodeBuild
-              Configuration:
-                ProjectName: !Ref 'RunTestsStaging'
-              RunOrder: 3
+#        -
+#          Name: Staging
+#          Actions:
+#            -
+#              Name: app
+#              InputArtifacts:
+#                - Name: source
+#                - Name: build
+#              ActionTypeId:
+#                Category: Deploy
+#                Owner: AWS
+#                Version: 1
+#                Provider: CloudFormation
+#              Configuration:
+#                ActionMode: CREATE_UPDATE
+#                RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
+#                Capabilities: CAPABILITY_IAM
+#                StackName: upgrade-backend-app
+#                TemplateConfiguration: build::upgrade-backend.json
+#                TemplatePath: source::aws/cloudformation/backend.yml
+#              RunOrder: 1
+#            -
+#              Name: migrations
+#              InputArtifacts:
+#                - Name: source
+#              ActionTypeId:
+#                Category: Build
+#                Owner: AWS
+#                Version: 1
+#                Provider: CodeBuild
+#              Configuration:
+#                ProjectName: !Ref 'RunMigrationsStaging'
+#              RunOrder: 2
+#            -
+#              Name: tests
+#              InputArtifacts:
+#              - Name: source
+#              ActionTypeId:
+#                Category: Build
+#                Owner: AWS
+#                Version: 1
+#                Provider: CodeBuild
+#              Configuration:
+#                ProjectName: !Ref 'RunTestsStaging'
+#              RunOrder: 3
 
       ArtifactStore:
         Type: S3

@@ -1,6 +1,9 @@
 version: 0.2
 
 phases:
+  install:
+    commands:
+    - apt-get update && apt-get install -y jq
   pre_build:
     commands:
       - "export AWS_ACCOUNT_ID=`echo $CODEBUILD_BUILD_ARN | cut -d: -f5`"
@@ -24,7 +27,10 @@ phases:
       - docker push ${REGISTRY}base-letsencrypt${IMAGE_TAG}
       - docker push ${REGISTRY}base-backend${IMAGE_TAG}
       - echo Writing artifacts...
-      - 'echo "{\"Parameters\": {\"BaseImageTag\":\"$IMAGE_TAG\"}}" > codepipeline.json'
+      - aws ssm get-parameter --name /codepipeline/backend/$CODEPIPELINE.json | jq -r .Parameter.Value | jq ".Parameters.BaseImageTag = \"$IMAGE_TAG\"" > codepipeline.json
+      - cat codepipeline.json
+      - echo Updating SSM...
+      - aws ssm put-parameter --name /codepipeline/backend/$CODEPIPELINE.json --type String --value file://./codepipeline.json
 artifacts:
   files:
   - codepipeline.json

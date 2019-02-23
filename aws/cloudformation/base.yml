@@ -3,18 +3,19 @@ Parameters:
 
   PipelineName:
     Type: String
-    Description: Pipeline
-    Default: codepipeline
+    Description: Pipeline name
+    AllowedValues:
+    - codepipeline
+    - hotfix
+    - upgrade
 
   GitBranch:
     Type: String
     Description: Git branch
-    Default: master
 
   GithubToken:
     Type: String
     Description: Github OAuth token
-    Default: 51639390163a192eb23b6a74aefcfa8369b62518
 
 Resources:
   BuildBase:
@@ -30,6 +31,8 @@ Resources:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/docker:17.09.0
         PrivilegedMode: true
+        EnvironmentVariables:
+        - { Name: CODEPIPELINE, Value: !Ref 'PipelineName' }
 
       Source:
         Type: CODEPIPELINE
@@ -90,27 +93,6 @@ Resources:
                 - Name: build
               Configuration:
                 ProjectName: !Ref 'BuildBase'
-              RunOrder: 1
-        -
-          Name: Update
-          Actions:
-            -
-              Name: pipeline
-              InputArtifacts:
-                - Name: source
-                - Name: build
-              ActionTypeId:
-                Category: Deploy
-                Owner: AWS
-                Version: 1
-                Provider: CloudFormation
-              Configuration:
-                ActionMode: CREATE_UPDATE
-                RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
-                Capabilities: CAPABILITY_IAM
-                StackName: backend-codepipeline
-                TemplateConfiguration: build::codepipeline.json
-                TemplatePath: !Join ['', ['source::aws/cloudformation/', !Ref 'PipelineName', '.yml']]
               RunOrder: 1
 
       ArtifactStore:
