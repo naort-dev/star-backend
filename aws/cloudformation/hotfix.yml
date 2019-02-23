@@ -17,6 +17,16 @@ Parameters:
     Type: String
     Description: Github OAuth token
 
+  CodebuildDockerImage:
+    Type: String
+    Description: Base image for codebuild - Docker
+    Default: aws/codebuild/docker:18.09.0
+
+  CodebuildUbuntuImage:
+    Type: String
+    Description: Base image for codebuild - Ubuntu
+    Default: aws/codebuild/python:3.6.5
+
 Resources:
   BuildImages:
     Type: AWS::CodeBuild::Project
@@ -29,7 +39,7 @@ Resources:
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/docker:17.09.0
+        Image: !Ref 'CodebuildDockerImage'
         PrivilegedMode: true
         EnvironmentVariables:
           - { Name: PARAMETERS, Value: '/codepipeline/backend/hotfix.json' }
@@ -50,7 +60,7 @@ Resources:
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/ubuntu-base:14.04
+        Image: !Ref 'CodebuildUbuntuImage'
         PrivilegedMode: false
         EnvironmentVariables:
           - { Name: ENV, Value: hotfix }
@@ -71,7 +81,7 @@ Resources:
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/ubuntu-base:14.04
+        Image: !Ref 'CodebuildUbuntuImage'
         PrivilegedMode: false
         EnvironmentVariables:
         - { Name: ENV, Value: hotfix }
@@ -92,7 +102,7 @@ Resources:
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/ubuntu-base:14.04
+        Image: !Ref 'CodebuildUbuntuImage'
         PrivilegedMode: false
         EnvironmentVariables:
           - { Name: ENV, Value: production }

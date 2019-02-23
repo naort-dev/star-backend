@@ -17,6 +17,11 @@ Parameters:
     Type: String
     Description: Github OAuth token
 
+  CodebuildDockerImage:
+    Type: String
+    Description: Base image for codebuild - Docker
+    Default: aws/codebuild/docker:18.09.0
+
 Resources:
   BuildBase:
     Type: AWS::CodeBuild::Project
@@ -29,7 +34,7 @@ Resources:
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/docker:17.09.0
+        Image: !Ref 'CodebuildDockerImage'
         PrivilegedMode: true
         EnvironmentVariables:
         - { Name: CODEPIPELINE, Value: !Ref 'PipelineName' }
