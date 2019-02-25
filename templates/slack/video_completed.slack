@@ -1,0 +1,8 @@
+{% extends django_slack %}
+
+{% load django_slack %}
+
+{% block text %}
+Video is delivered {{celebrity_name}} has delivered a video to {{fan_name}}
+{{video_link}}
+{% endblock %}

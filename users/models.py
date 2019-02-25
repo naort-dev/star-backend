@@ -537,6 +537,20 @@ class GroupAccount(models.Model):
         return str(self.group_type)
 
 
+@receiver(post_save, sender=GroupAccount)
+def group_created_notification(sender, instance, created, **kwargs):
+    from config.models import Config
+    from job.tasks import send_message_to_slack
+    if created:
+        web_url = Config.objects.get(key="web_url").value
+        slack_template = "new_user_group"
+        slack_ctx = {
+            "group_name": instance.user.get_short_name(),
+            "group_link": "%s%s" % (web_url, instance.user.vanity_urls.name)
+        }
+        send_message_to_slack.delay(slack_template, slack_ctx)
+
+
 class GroupAccountUser(StargramzUser):
     """
         Proxy Class of Users Model for Admin Users
