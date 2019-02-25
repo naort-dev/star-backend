@@ -253,6 +253,8 @@ class Profession(models.Model):
 class Celebrity(models.Model):
     user = models.OneToOneField('StargramzUser', related_name='celebrity_user', blank=False, on_delete=models.PROTECT)
     rate = models.DecimalField('Rate', max_digits=7, decimal_places=2, blank=False)
+    in_app_price = models.DecimalField('Inapp Price', max_digits=7, decimal_places=2, blank=True, default=0.00,
+                                      null=True)
     rating = models.DecimalField('Celebrity rating', max_digits=4, decimal_places=2, blank=True, default=0.00,
                                  validators=[MinValueValidator(MIN_RATING_VALUE),
                                              MaxValueValidator(MAX_RATING_VALUE)])
