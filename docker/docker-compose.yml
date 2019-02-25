@@ -39,7 +39,11 @@ services:
     - TWILIO_AUTH_TOKEN
     - TWILIO_PHONE_NUMBER
     - AUTHY_API_KEY
-
+    - SLACK_TOKEN
+    - SLACK_CHANNEL
+    - SLACK_USERNAME
+    - TWITTER_CONSUMER_KEY
+    - TWITTER_CONSUMER_SECRET
   migration:
     image: backend-migration
     networks:
@@ -92,6 +96,11 @@ services:
     - TWILIO_AUTH_TOKEN
     - TWILIO_PHONE_NUMBER
     - AUTHY_API_KEY
+    - SLACK_TOKEN
+    - SLACK_CHANNEL
+    - SLACK_USERNAME
+    - TWITTER_CONSUMER_KEY
+    - TWITTER_CONSUMER_SECRET
     command: sh -c './runtests.sh'
 
   celery-beat:
@@ -146,6 +155,11 @@ services:
     - TWILIO_AUTH_TOKEN
     - TWILIO_PHONE_NUMBER
     - AUTHY_API_KEY
+    - SLACK_TOKEN
+    - SLACK_CHANNEL
+    - SLACK_USERNAME
+    - TWITTER_CONSUMER_KEY
+    - TWITTER_CONSUMER_SECRET
 
   celery-videos:
     image: backend-celery
@@ -184,6 +198,11 @@ services:
     - TWILIO_AUTH_TOKEN
     - TWILIO_PHONE_NUMBER
     - AUTHY_API_KEY
+    - SLACK_TOKEN
+    - SLACK_CHANNEL
+    - SLACK_USERNAME
+    - TWITTER_CONSUMER_KEY
+    - TWITTER_CONSUMER_SECRET
 
   postgres:
     image: postgres:10.5
