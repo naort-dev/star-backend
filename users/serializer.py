@@ -26,6 +26,7 @@ from stargramz.models import Stargramrequest, STATUS_TYPES
 from django.db.models import Q, Sum
 from utilities.constants import BASE_URL
 from .tasks import welcome_email, representative_email
+from job.tasks import send_message_to_slack
 from payments.models import PaymentPayout
 from hashids import Hashids
 hashids = Hashids(min_length=8)
@@ -169,6 +170,13 @@ class RegisterSerializer(serializers.ModelSerializer):
             )
             if is_complete:
                 welcome_email.delay(user.pk)
+                # when a fan created, a message will send to the slack
+                slack_template = "new_user_fan"
+                slack_ctx = {
+                    "fan_name": user.get_short_name()
+                }
+                send_message_to_slack.delay(slack_template, slack_ctx)
+
             old_user_roles = UserRoleMapping.objects.filter(user=user).exclude(id=user_role.id)
             old_user_roles.delete()
 
@@ -519,6 +527,19 @@ class CelebrityProfileSerializer(CustomModelSerializer):
                    user=user_id, availability=availability, description=description, charity=charity)
         for profession in professions:
             CelebrityProfession.objects.create(user=user_id, profession_id=profession)
+
+        # when a celebrity created a message will send to the slack
+        try:
+            user = StargramzUser.objects.get(username=user_id)
+            web_url = Config.objects.get(key="web_url").value
+            slack_template = "new_user_celebrity"
+            slack_ctx = {
+                "celebrity_name": user.get_short_name(),
+                "celebrity_link": "%s%s" % (web_url, user.vanity_urls.name)
+            }
+            send_message_to_slack.delay(slack_template, slack_ctx)
+        except Exception as e:
+            print(str(e))
         return celebrity
 
     def update(self, instance, validated_data):
