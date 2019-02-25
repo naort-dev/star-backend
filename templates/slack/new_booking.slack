@@ -1,0 +1,7 @@
+{% extends django_slack %}
+
+{% load django_slack %}
+
+{% block text %}
+a Booking is made {{fan_name}} has booked a video / QA with {{celebrity_name}}
+{% endblock %}

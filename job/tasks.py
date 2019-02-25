@@ -17,7 +17,7 @@ from users.models import ProfileImage, Celebrity, StargramzUser, Campaign, Celeb
 from config.models import Config
 from config.constants import *
 from utilities.utils import get_pre_signed_get_url, upload_image_s3, SendMail, verify_user_for_notifications,\
-    generate_branch_io_url, sent_email, representative_notify, get_bucket_url
+    generate_branch_io_url, sent_email, representative_notify, get_bucket_url, encode_pk
 import urllib.request
 from datetime import datetime, timedelta
 import imageio
@@ -30,6 +30,7 @@ from utilities.constants import BASE_URL
 from utilities.konstants import NOTIFICATION_TYPES, ROLES
 from django.db.models import Sum
 from twilio.rest import Client
+from django_slack import slack_message
 imageio.plugins.ffmpeg.download()
 
 hashids = Hashids(min_length=8)
@@ -1566,3 +1567,41 @@ def send_admin_mail(subject, template, ctx):
         return True
     except Exception:
         return False
+
+
+@app.task
+def send_message_to_slack(template, ctx):
+    try:
+        slack_message('slack/%s.slack' % template, ctx)
+        return True
+    except Exception as e:
+        print(str(e))
+        return False
+
+@app.task
+def request_slack_message(request_id):
+    try:
+        booking = Stargramrequest.objects.get(id=request_id)
+        slack_template = ""
+        slack_ctx = {}
+        if booking.request_status is STATUS_TYPES.completed:
+            # This script below will send slack message when the request is completed
+            slack_template = "video_completed"
+            web_url = Config.objects.get(key="web_url").value
+            video = StargramVideo.objects.get(stragramz_request=booking, status=1)
+            slack_ctx = {
+                "fan_name": booking.fan.get_short_name(),
+                "celebrity_name": booking.celebrity.get_short_name(),
+                "video_link": "%svideo/%s" % (web_url, encode_pk(video.id))
+            }
+        elif booking.request_status is STATUS_TYPES.pending:
+            # This script will send slack message when a new request is completed its edit time
+            slack_template = "new_booking"
+            slack_ctx = {
+                "fan_name": booking.fan.get_short_name(),
+                "celebrity_name": booking.celebrity.get_short_name()
+            }
+        send_message_to_slack.delay(slack_template, slack_ctx)
+    except Exception as e:
+        print(str(e))
+
