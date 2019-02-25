@@ -218,20 +218,20 @@ def celebrity_request_notification():
                 mob_link = 'request/?request_id=%s' % encode_pk(request.id)
                 if current_date == expiring_date:
                     subject = 'Reminder: Pending Starsona {} Request - EXPIRES TODAY!'.format(request.occasion.title)
-                    template = 'request_expiry_notification'
+                    template = 'reminder_emails/request_expiry_notification'
                 else:
                     if (expiring_date - current_date).days == ONE:
                         subject = 'Reminder: Pending Starsona {} Request - EXPIRES TOMORROW!'.format(
                             request.occasion.title
                         )
-                        template = 'event_announcement_request_notification' \
+                        template = 'reminder_emails/event_announcement_request_notification' \
                             if request.request_type == REQUEST_TYPES.event_announcement \
-                            else 'shout_out_request_expire_tomorrow_notification'
+                            else 'reminder_emails/shout_out_request_expire_tomorrow_notification'
                     else:
                         subject = 'Reminder: Pending Starsona {} Request'.format(request.occasion.title)
-                        template = 'event_announcement_request_notification' \
+                        template = 'reminder_emails/event_announcement_request_notification' \
                             if request.request_type == REQUEST_TYPES.event_announcement \
-                            else 'shout_out_request_notification'
+                            else 'reminder_emails/shout_out_request_notification'
                 request_data = json.loads(request.request_details) if request.request_details else ''
                 ctx = {
                     "celebrity_name": request.celebrity.get_short_name(),
@@ -252,7 +252,8 @@ def celebrity_request_notification():
                     'from_name': request_data['stargramfrom'] if 'stargramfrom' in request_data else '',
                     'date': datetime.datetime.strptime(request_data['date'], "%Y-%m-%dT%H:%M:%S.%fZ").strftime('%B %d, %Y'),
                     'event_title': request_data['event_title'] if 'event_title' in request_data else '',
-                    'expire_tomorrow': True if (expiring_date - current_date).days == ONE else False
+                    'expire_tomorrow': True if (expiring_date - current_date).days == ONE else False,
+                    'live_qa_request': True if request.request_type == REQUEST_TYPES.live_question_answer else False
                 }
                 sent_email(request.celebrity.email, subject, template, ctx)
         return True
