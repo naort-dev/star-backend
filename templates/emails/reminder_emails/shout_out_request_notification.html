@@ -2,10 +2,10 @@
 <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Hi {{ celebrity_name }},</p>
 
 <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">
-    Just sending you a quick reminder that you have a Starsona request from one of your fans.  The pending booking request is for {{ to_name }} for a {{ occasion }} shout-out.  Details below.
+    Just sending you a quick reminder that you have a Starsona request from one of your fans.  The pending booking request is {% if not live_qa_request %}for {{ to_name }}{% endif %} for {{ occasion }} shout-out.  Details below.
 </p>
 <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">
-    You can review and respond to this {{ occasion }} request directly from your Starsona account.  I'm sure {{ to_name }} is anxiously awaiting your response.  If you have any questions or concerns regarding this particular request, please feel free to contact me directly.
+    You can review and respond to this {{ occasion }} request directly from your Starsona account. {% if not live_qa_request %}I'm sure {{ to_name }} is anxiously awaiting your response.{% endif %}  If you have any questions or concerns regarding this particular request, please feel free to contact me directly.
 </p>
 <div>
     {% if expiring_date %}

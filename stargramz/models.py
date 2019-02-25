@@ -98,8 +98,8 @@ class Occasion(models.Model):
 
 
 class OrderRelationship(models.Model):
-    relation = models.ForeignKey('OccasionRelationship', related_name='through_relation')
-    occasion = models.ForeignKey('Occasion', related_name='through_occasion')
+    relation = models.ForeignKey('OccasionRelationship', related_name='through_relation', on_delete=models.PROTECT)
+    occasion = models.ForeignKey('Occasion', related_name='through_occasion', on_delete=models.PROTECT)
     order = models.IntegerField(default=0)
 
     class Meta:
@@ -108,9 +108,9 @@ class OrderRelationship(models.Model):
 
 class Stargramrequest(models.Model):
     booking_title = models.CharField('Booking title', max_length=255, blank=True, null=True)
-    occasion = models.ForeignKey('Occasion', related_name='request_occasion', blank=True, null=True)
-    fan = models.ForeignKey('users.StargramzUser', related_name='request_fan')
-    celebrity = models.ForeignKey('users.StargramzUser', related_name='request_celebrity')
+    occasion = models.ForeignKey('Occasion', related_name='request_occasion', blank=True, null=True, on_delete=models.PROTECT)
+    fan = models.ForeignKey('users.StargramzUser', related_name='request_fan', on_delete=models.PROTECT)
+    celebrity = models.ForeignKey('users.StargramzUser', related_name='request_celebrity', on_delete=models.PROTECT)
     request_details = models.TextField(name='request_details')
     share_check = models.BooleanField(default=False)
     due_date = models.DateField(auto_now_add=True)
@@ -144,11 +144,15 @@ class Stargramrequest(models.Model):
             Override the save to check the old value of request_status field
         """
         booking_id = self.pk
-        from job.tasks import send_email_notification, notify_fan_reaction_videos_and_feedback
+        from job.tasks import send_email_notification, notify_fan_reaction_videos_and_feedback, request_slack_message
         from notification.tasks import send_notification
         from payments.tasks import create_request_refund
         if self.request_status != self.__original_request_status:
             send_email_notification.apply_async(
+                (booking_id,),
+                eta=datetime.datetime.utcnow() + datetime.timedelta(seconds=5)
+            )
+            request_slack_message.apply_async(
                 (booking_id,),
                 eta=datetime.datetime.utcnow() + datetime.timedelta(seconds=5)
             )
@@ -210,7 +214,7 @@ def update_remaining_limits(sender, instance, **kwargs):
 
 
 class StargramVideo(models.Model):
-    stragramz_request = models.ForeignKey('Stargramrequest', related_name='request_video')
+    stragramz_request = models.ForeignKey('Stargramrequest', related_name='request_video', on_delete=models.PROTECT)
     video = models.CharField('Request Video', max_length=600, null=True, blank=True)
     thumbnail = models.CharField('Thumbnail Image', max_length=600, null=True, blank=True)
     duration = models.TimeField('Duration', blank=True, null=True)
@@ -236,9 +240,9 @@ class StargramVideo(models.Model):
 
 
 class ReportAbuse(models.Model):
-    request = models.ForeignKey('Stargramrequest', related_name='request_abuse')
+    request = models.ForeignKey('Stargramrequest', related_name='request_abuse', on_delete=models.PROTECT)
     comments = models.TextField('Comments')
-    reported_by = models.ForeignKey('users.StargramzUser', related_name='reported_user')
+    reported_by = models.ForeignKey('users.StargramzUser', related_name='reported_user', on_delete=models.PROTECT)
     read_flag = models.BooleanField('Verified abuse', default=False)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
 
@@ -253,10 +257,10 @@ def verify_abuse_reported(sender, instance, **kwargs):
 
 
 class Comment(models.Model):
-    video = models.ForeignKey('StargramVideo', related_name='comment_video')
+    video = models.ForeignKey('StargramVideo', related_name='comment_video', on_delete=models.PROTECT)
     comments = models.TextField('Comments')
-    user = models.ForeignKey('users.StargramzUser', related_name='commented_user')
-    reply = models.ForeignKey('self', blank=True, null=True, related_name='reply_comment')
+    user = models.ForeignKey('users.StargramzUser', related_name='commented_user', on_delete=models.PROTECT)
+    reply = models.ForeignKey('self', blank=True, null=True, related_name='reply_comment', on_delete=models.PROTECT)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
 
     def __str__(self):
@@ -275,8 +279,8 @@ def update_comments_count(sender, instance, **kwargs):
 
 
 class Reaction(models.Model):
-    booking = models.ForeignKey('Stargramrequest', related_name='booking_reaction')
-    user = models.ForeignKey('users.StargramzUser', related_name='user_reaction')
+    booking = models.ForeignKey('Stargramrequest', related_name='booking_reaction', on_delete=models.PROTECT)
+    user = models.ForeignKey('users.StargramzUser', related_name='user_reaction', on_delete=models.PROTECT)
     file_type = models.IntegerField('File type', choices=FILE_TYPES.choices())
     reaction_file = models.CharField('Reaction File', max_length=600, blank=False)
     file_thumbnail = models.CharField('Thumbnail', max_length=600, null=True, blank=True)
@@ -306,9 +310,9 @@ class BookingAdminAdd(Stargramrequest):
 
 
 class ReactionAbuse(models.Model):
-    reaction = models.ForeignKey('Reaction', related_name='reaction_abuse')
+    reaction = models.ForeignKey('Reaction', related_name='reaction_abuse', on_delete=models.PROTECT)
     comments = models.TextField('Comments')
-    reported_by = models.ForeignKey('users.StargramzUser', related_name='abuse_reported_user')
+    reported_by = models.ForeignKey('users.StargramzUser', related_name='abuse_reported_user', on_delete=models.PROTECT)
     read_flag = models.BooleanField('Verified abuse', default=False)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
 

@@ -27,8 +27,8 @@ class Role(models.Model):
 
 
 class RoleFeatureMapping(models.Model):
-    role = models.ForeignKey(Role)
-    feature = models.ForeignKey(Feature)
+    role = models.ForeignKey(Role, on_delete=models.PROTECT)
+    feature = models.ForeignKey(Feature, on_delete=models.PROTECT)
     privilege_enabled = models.BooleanField(default=True)
 
     class Meta:

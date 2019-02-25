@@ -1,0 +1,7 @@
+{% extends django_slack %}
+
+{% load django_slack %}
+
+{% block text %}
+{{group_name}} ({{group_link}}) has signed up to Starsona as a group !.
+{% endblock %}

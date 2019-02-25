@@ -23,7 +23,7 @@ import datetime
 from utilities.utils import datetime_range, get_pre_signed_get_url, check_user_role, upload_image_s3,\
     get_s3_public_url, sent_email, decode_pk
 from utilities.permissions import CustomPermission
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from django.db.models import Q
 import uuid
 import magic
@@ -441,7 +441,7 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
-    @detail_route(methods=['get'], permission_classes=[CustomPermission], authentication_classes=[])
+    @action(detail=True, methods=['get'], permission_classes=[CustomPermission], authentication_classes=[])
     def get(self, request, pk):
         try:
             pk = hashids.decode(pk)[0]
@@ -456,7 +456,7 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
         try:
             video = StargramVideo.objects.filter(
                 stragramz_request__request_status=STATUS_TYPES.completed,
-                stragramz_request=request_id
+                stragramz_request__in=request_id
             ).select_related('stragramz_request').prefetch_related(
                 'stragramz_request__occasion',
                 'stragramz_request__celebrity',

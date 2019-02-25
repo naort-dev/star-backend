@@ -1,0 +1,5 @@
+{% extends django_slack %}
+
+{% block text %}
+{{fan_name}} has signed up to Starsona as a fan !.
+{% endblock %}

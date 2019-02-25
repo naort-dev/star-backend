@@ -186,7 +186,7 @@ services:
     - AUTHY_API_KEY
 
   postgres:
-    image: postgres:9.5
+    image: postgres:10.5
     volumes:
     - /var/lib/postgresql/data
     networks:
