@@ -113,7 +113,7 @@ class NotificationSettingInline(ReadOnlyStackedInline):
 
 class CelebrityInline(ReadOnlyStackedInline):
     model = Celebrity
-    fields = ('rate', 'availability', 'admin_approval', 'rating', 'weekly_limits', 'remaining_limit', 'follow_count',
+    fields = ('rate', 'availability', 'admin_approval', 'rating', 'in_app_price', 'weekly_limits', 'remaining_limit', 'follow_count',
               'featured', 'description', 'charity', 'has_fan_account',
               'check_payments', 'check_comments')
     readonly_fields = ('rating', 'follow_count', 'remaining_limit')

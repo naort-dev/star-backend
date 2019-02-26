@@ -34,7 +34,7 @@ class CelebrityManagement(APIView, ResponseViewMixin):
         except Exception:
             request.data['user'] = user.id
             fields = ['user']
-            field_list = ['profession', 'rate', 'weekly_limits', 'availability',
+            field_list = ['profession', 'rate', 'in_app_price', 'weekly_limits', 'availability',
                           'profile_video', 'description', 'charity']
             for list_item in field_list:
                 if list_item in request.data:
@@ -84,7 +84,7 @@ class CelebrityManagement(APIView, ResponseViewMixin):
             return return_data
         fields = []
         # Remove 'check_payments' after next app release
-        field_list = ['profession', 'rate', 'weekly_limits', 'availability', 'description', 'charity', 'check_payments']
+        field_list = ['profession', 'rate', 'weekly_limits', 'in_app_price',  'availability', 'description', 'charity', 'check_payments']
         for list_item in field_list:
             if list_item in request:
                 fields.append(list_item)
@@ -116,7 +116,7 @@ class CelebrityManagement(APIView, ResponseViewMixin):
             data = CelebrityProfileSerializer(
                 # Remove 'check_payments' from celebrity after next app release
                 celebrity, fields=['rating', 'weekly_limits', 'featured', 'rating', 'remaining_limit', 'profession',
-                                   'profession_name', 'charity', 'description', 'follow_count', 'rate',
+                                   'profession_name', 'charity', 'description', 'follow_count', 'rate', 'in_app_price',
                                    'availability', 'stripe_user_id', 'pending_requests_count', 'check_payments'
                                    ]).data
             celebrity_professions = CelebrityProfession.objects.filter(user_id=pk).select_related('profession')
