@@ -104,6 +104,21 @@ Parameters:
   AuthyAPIKey:
     Type: String
 
+  SlackToken:
+    Type: String
+
+  SlackChannel:
+    Type: String
+
+  SlackUsername:
+    Type: String
+
+  TwitterConsumerKey:
+    Type: String
+
+  TwitterConsumerSecret:
+    Type: String
+
   DBInstanceClass:
     Type: String
     Default: 'db.t2.micro'
@@ -437,6 +452,11 @@ Resources:
           - { Name: TWILIO_AUTH_TOKEN, Value: !Ref 'TwilioAuthToken' }
           - { Name: TWILIO_PHONE_NUMBER, Value: !Ref 'TwilioPhoneNumber' }
           - { Name: AUTHY_API_KEY, Value: !Ref 'AuthyAPIKey' }
+          - { Name: SLACK_TOKEN, Value: !Ref 'SlackToken' }
+          - { Name: SLACK_CHANNEL, Value: !Ref 'SlackChannel' }
+          - { Name: SLACK_USERNAME, Value: !Ref 'SlackUsername' }
+          - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
+          - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
 
   BackendService:
     Type: AWS::ECS::Service
@@ -583,6 +603,11 @@ Resources:
           - { Name: TWILIO_AUTH_TOKEN, Value: !Ref 'TwilioAuthToken' }
           - { Name: TWILIO_PHONE_NUMBER, Value: !Ref 'TwilioPhoneNumber' }
           - { Name: AUTHY_API_KEY, Value: !Ref 'AuthyAPIKey' }
+          - { Name: SLACK_TOKEN, Value: !Ref 'SlackToken' }
+          - { Name: SLACK_CHANNEL, Value: !Ref 'SlackChannel' }
+          - { Name: SLACK_USERNAME, Value: !Ref 'SlackUsername' }
+          - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
+          - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
 
   CeleryBeatService:
     Type: AWS::ECS::Service
@@ -657,6 +682,11 @@ Resources:
           - { Name: TWILIO_AUTH_TOKEN, Value: !Ref 'TwilioAuthToken' }
           - { Name: TWILIO_PHONE_NUMBER, Value: !Ref 'TwilioPhoneNumber' }
           - { Name: AUTHY_API_KEY, Value: !Ref 'AuthyAPIKey' }
+          - { Name: SLACK_TOKEN, Value: !Ref 'SlackToken' }
+          - { Name: SLACK_CHANNEL, Value: !Ref 'SlackChannel' }
+          - { Name: SLACK_USERNAME, Value: !Ref 'SlackUsername' }
+          - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
+          - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
 
   CeleryWorkerService:
     Type: AWS::ECS::Service
@@ -731,6 +761,11 @@ Resources:
            - { Name: TWILIO_AUTH_TOKEN, Value: !Ref 'TwilioAuthToken' }
            - { Name: TWILIO_PHONE_NUMBER, Value: !Ref 'TwilioPhoneNumber' }
            - { Name: AUTHY_API_KEY, Value: !Ref 'AuthyAPIKey' }
+           - { Name: SLACK_TOKEN, Value: !Ref 'SlackToken' }
+           - { Name: SLACK_CHANNEL, Value: !Ref 'SlackChannel' }
+           - { Name: SLACK_USERNAME, Value: !Ref 'SlackUsername' }
+           - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
+           - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
            - { Name: MAX_IDLE, Value: 300 }
            - { Name: MIN_COUNT, Value: 0 }
            - Name: ECS_CLUSTER
@@ -834,36 +869,6 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       MetricName: ApproximateNumberOfMessagesVisible
 
-#  CeleryVideosScalingPolicyDown:
-#    Type: AWS::ApplicationAutoScaling::ScalingPolicy
-#    Properties:
-#      PolicyName: CeleryVideosScalingPolicyDown
-#      PolicyType: StepScaling
-#      ScalingTargetId: !Ref 'CeleryVideosScalingTarget'
-#      StepScalingPolicyConfiguration:
-#        AdjustmentType: ExactCapacity
-#        Cooldown: 600
-#        MetricAggregationType: Maximum
-#        StepAdjustments:
-#        - MetricIntervalUpperBound: 0
-#          ScalingAdjustment: 0
-#
-#  CeleryVideosAlarmDown:
-#    Type: AWS::CloudWatch::Alarm
-#    Properties:
-#      EvaluationPeriods: 1
-#      Statistic: Sum
-#      Threshold: 1
-#      TreatMissingData: notBreaching
-#      AlarmDescription: Alarm if our there are no messages in SQS queue
-#      Period: 1800
-#      OKActions: [!Ref 'CeleryVideosScalingPolicyDown']
-#      Namespace: AWS/SQS
-#      Dimensions:
-#        - Name: QueueName
-#          Value: !Join ['-', [!Ref 'AWS::StackName', 'videos']]
-#      ComparisonOperator: GreaterThanOrEqualToThreshold
-#      MetricName: ApproximateNumberOfMessagesVisible
 
   #--------------------------------------------------------------------------------------------------------------------
   # Initialization and migration
@@ -980,6 +985,11 @@ Resources:
         - { Name: TWILIO_AUTH_TOKEN, Value: !Ref 'TwilioAuthToken' }
         - { Name: TWILIO_PHONE_NUMBER, Value: !Ref 'TwilioPhoneNumber' }
         - { Name: AUTHY_API_KEY, Value: !Ref 'AuthyAPIKey' }
+        - { Name: SLACK_TOKEN, Value: !Ref 'SlackToken' }
+        - { Name: SLACK_CHANNEL, Value: !Ref 'SlackChannel' }
+        - { Name: SLACK_USERNAME, Value: !Ref 'SlackUsername' }
+        - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
+        - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
 
   #--------------------------------------------------------------------------------------------------------------------
   # S3 Bucket

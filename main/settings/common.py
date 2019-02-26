@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'metrics',
     'django_nose',
+    'django_slack',
 ]
 
 MIDDLEWARE = [
@@ -147,3 +148,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     )
 }
+
+SLACK_TOKEN = os.environ.get("SLACK_TOKEN")
+SLACK_CHANNEL = os.environ.get("SLACK_CHANNEL")
+SLACK_USERNAME = os.environ.get("SLACK_USERNAME")

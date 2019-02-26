@@ -26,6 +26,7 @@ from stargramz.models import Stargramrequest, STATUS_TYPES
 from django.db.models import Q, Sum
 from utilities.constants import BASE_URL
 from .tasks import welcome_email, representative_email
+from job.tasks import send_message_to_slack
 from payments.models import PaymentPayout
 from hashids import Hashids
 hashids = Hashids(min_length=8)
@@ -169,6 +170,13 @@ class RegisterSerializer(serializers.ModelSerializer):
             )
             if is_complete:
                 welcome_email.delay(user.pk)
+                # when a fan created, a message will send to the slack
+                slack_template = "new_user_fan"
+                slack_ctx = {
+                    "fan_name": user.get_short_name()
+                }
+                send_message_to_slack.delay(slack_template, slack_ctx)
+
             old_user_roles = UserRoleMapping.objects.filter(user=user).exclude(id=user_role.id)
             old_user_roles.delete()
 
@@ -508,6 +516,7 @@ class CelebrityProfileSerializer(CustomModelSerializer):
     def create(self, validated_data):
         user_id = validated_data.get('user')
         rate = validated_data.get('rate')
+        in_app_price = validated_data.get('in_app_price')
         weekly_limits = validated_data.get('weekly_limits')
         profile_video = validated_data.get('profile_video')
         professions = validated_data.get('profession')
@@ -515,10 +524,23 @@ class CelebrityProfileSerializer(CustomModelSerializer):
         description = validated_data.get('description', '')
         charity = validated_data.get('charity', '')
         celebrity = Celebrity.objects.\
-            create(rate=rate, weekly_limits=weekly_limits, profile_video=profile_video,
+            create(rate=rate, in_app_price=in_app_price, weekly_limits=weekly_limits, profile_video=profile_video,
                    user=user_id, availability=availability, description=description, charity=charity)
         for profession in professions:
             CelebrityProfession.objects.create(user=user_id, profession_id=profession)
+
+        # when a celebrity created a message will send to the slack
+        try:
+            user = StargramzUser.objects.get(username=user_id)
+            web_url = Config.objects.get(key="web_url").value
+            slack_template = "new_user_celebrity"
+            slack_ctx = {
+                "celebrity_name": user.get_short_name(),
+                "celebrity_link": "%s%s" % (web_url, user.vanity_urls.name)
+            }
+            send_message_to_slack.delay(slack_template, slack_ctx)
+        except Exception as e:
+            print(str(e))
         return celebrity
 
     def update(self, instance, validated_data):
@@ -527,7 +549,7 @@ class CelebrityProfileSerializer(CustomModelSerializer):
             CelebrityProfession.objects.filter(user=instance.user_id).delete()
             for profession in professions:
                 CelebrityProfession.objects.create(user_id=instance.user_id, profession_id=profession)
-        field_list = ['rate', 'weekly_limits', 'availability', 'description', 'charity']
+        field_list = ['rate', 'in_app_price', 'weekly_limits', 'availability', 'description', 'charity']
         for list_item in field_list:
             if list_item in validated_data:
                 setattr(instance, list_item, validated_data.get(list_item))

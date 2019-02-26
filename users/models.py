@@ -253,6 +253,8 @@ class Profession(models.Model):
 class Celebrity(models.Model):
     user = models.OneToOneField('StargramzUser', related_name='celebrity_user', blank=False, on_delete=models.PROTECT)
     rate = models.DecimalField('Rate', max_digits=7, decimal_places=2, blank=False)
+    in_app_price = models.DecimalField('Inapp Price', max_digits=7, decimal_places=2, blank=True, default=0.00,
+                                      null=True)
     rating = models.DecimalField('Celebrity rating', max_digits=4, decimal_places=2, blank=True, default=0.00,
                                  validators=[MinValueValidator(MIN_RATING_VALUE),
                                              MaxValueValidator(MAX_RATING_VALUE)])
@@ -535,6 +537,20 @@ class GroupAccount(models.Model):
 
     def get_grouptype(self):
         return str(self.group_type)
+
+
+@receiver(post_save, sender=GroupAccount)
+def group_created_notification(sender, instance, created, **kwargs):
+    from config.models import Config
+    from job.tasks import send_message_to_slack
+    if created:
+        web_url = Config.objects.get(key="web_url").value
+        slack_template = "new_user_group"
+        slack_ctx = {
+            "group_name": instance.user.get_short_name(),
+            "group_link": "%s%s" % (web_url, instance.user.vanity_urls.name)
+        }
+        send_message_to_slack.delay(slack_template, slack_ctx)
 
 
 class GroupAccountUser(StargramzUser):
