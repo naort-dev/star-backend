@@ -383,7 +383,7 @@ class RequestList(GenericViewSet, ResponseViewMixin):
             filter_by_status = request.GET.get("status")
             if filter_by_status:
                 if filter_by_status == 'all':
-                    filter_by_status = '2, 3, 4, 5, 6' if role == 'celebrity_id' else '2, 3, 1, 5, 6'
+                    filter_by_status = '2, 3, 4, 5, 6' if role == 'celebrity_id' else '2, 3, 1, 5, 6, 4'
                 try:
                     if '2' in filter_by_status:
                         filter_by_status = filter_by_status + ', 7'
