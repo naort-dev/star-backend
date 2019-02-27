@@ -6,10 +6,11 @@ from rest_framework.permissions import IsAuthenticated
 from utilities.permissions import CustomPermission
 from users.models import StargramzUser, Celebrity
 from .serializer import EphemeralKeySerializer, ChargeSerializer, AttachDetachSourceSerializer, \
-    StarsonaTransactionSerializer, TipPaymentSerializer, BookingValidate, CreditCardNotificationSerializer
+    StarsonaTransactionSerializer, TipPaymentSerializer, BookingValidate, CreditCardNotificationSerializer, \
+    InAppSerializer
 import stripe
 from .models import StarsonaTransaction, LogEvent, TRANSACTION_STATUS, PAYOUT_STATUS, StripeAccount, PaymentPayout,\
-    TipPayment, TIP_STATUS
+    TipPayment, TIP_STATUS, PAYMENT_TYPES
 from stargramz.models import Stargramrequest, STATUS_TYPES
 from config.models import Config
 from django.db.models import Q
@@ -598,4 +599,52 @@ class CreditCardNotification(APIView, ResponseViewMixin):
             return self.jp_response(data={"message": "Notification sent Successfully"})
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN',
+                                          self.error_msg_string(serializer.erros))
+
+
+class InAppPurchase(APIView, ResponseViewMixin):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def post(self, request):
+        """
+            In-App purchase for IOS users
+        """
+        request.data['fan'] = request.user.id
+        request.data['stripe_transaction_id'] = request.data['transaction_id']
+        serializer = InAppSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                stargram_request = Stargramrequest.objects.get(
+                    Q(id=serializer.validated_data.get('starsona')) & Q(fan_id=serializer.validated_data.get('fan'))
+                )
+            except Stargramrequest.DoesNotExist:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE',
+                                              'Request does not exist for this user')
+            if str(stargram_request.celebrity.celebrity_user.in_app_price) != str(request.data['amount']):
+                return self.jp_error_response(
+                    'HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY',
+                    'The amount has been updated to %s' % stargram_request.celebrity.celebrity_user.in_app_price)
+            StarsonaTransaction.objects.create(
+                starsona_id=serializer.validated_data.get('starsona', ''),
+                fan_id=serializer.validated_data.get('fan'),
+                celebrity_id=stargram_request.celebrity.id,
+                amount=stargram_request.celebrity.celebrity_user.in_app_price,
+                transaction_status=TRANSACTION_STATUS.captured,
+                source_id='in_app',
+                stripe_transaction_id=serializer.validated_data.get('stripe_transaction_id'),
+                payment_type=PAYMENT_TYPES.in_app
+            )
+            stargram_request.request_status = STATUS_TYPES.approval_pending
+            stargram_request.save()
+            transaction_completed_notification.delay(stargram_request.id)
+            try:
+                edit_time = int(Config.objects.get(key='booking_edit_time').value)
+            except Exception:
+                edit_time = 15
+            change_request_status_to_pending.apply_async((stargram_request.id,),
+                                                         eta=datetime.utcnow() + timedelta(minutes=edit_time))
+            return self.jp_response(data={"charge_status": "Payment was successful"})
+        else:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY',
                                           self.error_msg_string(serializer.errors))

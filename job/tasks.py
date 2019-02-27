@@ -3,7 +3,7 @@ from moviepy import *
 from moviepy.video.fx.resize import resize
 from moviepy.video.compositing.transitions import slide_in
 from stargramz.models import Stargramrequest, StargramVideo, STATUS_TYPES, Occasion, VIDEO_STATUS, Reaction, REQUEST_TYPES
-from payments.models import StarsonaTransaction, PaymentPayout, TRANSACTION_STATUS, PAYOUT_STATUS
+from payments.models import StarsonaTransaction, PaymentPayout, TRANSACTION_STATUS, PAYOUT_STATUS, PAYMENT_TYPES
 import stripe
 from stargramz.constants import *
 from payments.constants import SECRET_KEY
@@ -451,6 +451,7 @@ def create_payout_records():
             transaction_status=TRANSACTION_STATUS.captured,
             starsona__request_status=STATUS_TYPES.completed,
             amount__gt=1,
+            payment_type=PAYMENT_TYPES.stripe
         ).exclude(transaction_payout__status__in=PAYOUT_STATUS.get_key_values())[:1]
 
         for record in records:

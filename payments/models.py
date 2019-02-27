@@ -33,6 +33,12 @@ PAYOUT_STATUS = Konstants(
 )
 
 
+PAYMENT_TYPES = Konstants(
+    K(stripe=1, label='Stripe'),
+    K(in_app=2, label='InApp')
+)
+
+
 class LogEvent(models.Model):
     event = models.TextField('Log event', max_length=1500, null=True, blank=True)
     type = models.CharField('Event Type', max_length=300, null=True, blank=True)
@@ -54,6 +60,8 @@ class StarsonaTransaction(models.Model):
     stripe_transaction_id = models.CharField(max_length=120)
     stripe_refund_id = models.CharField(blank=True, null=True, max_length=120)
     comments = models.TextField('Comments', max_length=200, blank=True)
+    payment_type = models.IntegerField('Payment Type', choices=PAYMENT_TYPES.choices(),
+                                       default=PAYMENT_TYPES.stripe, db_index=True)
 
     class Meta:
         unique_together = (("starsona", "fan"), ("starsona", "celebrity"))
