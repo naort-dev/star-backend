@@ -2,7 +2,7 @@ from moviepy.editor import *
 from moviepy import *
 from moviepy.video.fx.resize import resize
 from moviepy.video.compositing.transitions import slide_in
-from stargramz.models import Stargramrequest, StargramVideo, STATUS_TYPES, Occasion, VIDEO_STATUS, Reaction
+from stargramz.models import Stargramrequest, StargramVideo, STATUS_TYPES, Occasion, VIDEO_STATUS, Reaction, REQUEST_TYPES
 from payments.models import StarsonaTransaction, PaymentPayout, TRANSACTION_STATUS, PAYOUT_STATUS
 import stripe
 from stargramz.constants import *
@@ -1599,7 +1599,8 @@ def request_slack_message(request_id):
             slack_template = "new_booking"
             slack_ctx = {
                 "fan_name": booking.fan.get_short_name(),
-                "celebrity_name": booking.celebrity.get_short_name()
+                "celebrity_name": booking.celebrity.get_short_name(),
+                "type":  REQUEST_TYPES.get_label(booking.request_type),
             }
         send_message_to_slack.delay(slack_template, slack_ctx)
     except Exception as e:
