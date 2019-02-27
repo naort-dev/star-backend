@@ -3,5 +3,5 @@
 {% load django_slack %}
 
 {% block text %}
-*{{celebrity_name}}*<{{celebrity_link}}> has signed up to starsona as a celebrity!
+ <{{celebrity_link}}|{{celebrity_name}}> has signed up to starsona as a star!
 {% endblock %}
