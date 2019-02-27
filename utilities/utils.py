@@ -472,7 +472,7 @@ def sent_email(to_email, subject, template, ctx):
         print(str(e))
 
 
-def generate_branch_io_url(mob_url='', title='', desc='', image_url='', desktop_url='', canonical_url=''):
+def generate_branch_io_url(mob_url='', title='', desc='', image_url='', desktop_url='', canonical_url='', nav_to=''):
     """
         Generate url to track via branch io
 
@@ -499,7 +499,7 @@ def generate_branch_io_url(mob_url='', title='', desc='', image_url='', desktop_
             '$fallback_url': desktop_url,
             '$og_image_url': image_url,
             '$desktop_url': desktop_url,
-            'nav_to': links[0] if links[0] else '',
+            'nav_to': nav_to if nav_to else links[0] if links[0] else '',
 
         }
     }

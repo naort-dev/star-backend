@@ -183,6 +183,8 @@ def booking_feedback_celebrity_notification(booking_id, fields):
                 mob_url=mob_link,
                 desktop_url='%suser/bookings' % web_url,
                 image_url='%smedia/web-images/starsona_logo.png' % base_url,
+                nav_to='reactions',
+                canonical_url="%srequest/R1002/%s" % (web_url, encode_pk(booking.id))
             )
         }
         template = "feedback_notification"
