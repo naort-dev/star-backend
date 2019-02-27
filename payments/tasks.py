@@ -239,6 +239,7 @@ def transaction_completed_notification(starsona_id):
                 desc="New Stasona Request",
                 mob_url=mob_link,
                 desktop_url=desktop_link,
+                canonical_url="%srequest/R1001/%s" % (web_url, encode_pk(booking.id)),
                 image_url='%smedia/web-images/starsona_logo.png' % BASE_URL
             )
         }

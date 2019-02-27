@@ -4,5 +4,5 @@
 
 {% block text %}
 Video has been delivered:
-*{{celebrity_name}}* has delivered a video to *{{fan_name}}* <{{video_link}}>
+*{{celebrity_name}}* has delivered the video to *{{fan_name}}* <{{video_link}}|video link>
 {% endblock %}

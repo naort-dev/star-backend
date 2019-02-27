@@ -3,5 +3,5 @@
 {% load django_slack %}
 
 {% block text %}
-*{{group_name}}* <({{group_link}})> has signed up to starsona as a group!
+ <{{group_link}}|{{group_name}}> has signed up to starsona as a group!
 {% endblock %}

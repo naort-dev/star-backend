@@ -181,8 +181,10 @@ def booking_feedback_celebrity_notification(booking_id, fields):
                 title="New reaction received",
                 desc="Fan %s Reacted to your Starsona video." % booking.fan.get_short_name(),
                 mob_url=mob_link,
-                desktop_url='%suser/bookings' % web_url,
+                desktop_url='%suser/bookings?request_id=%s' % (web_url, encode_pk(booking.id)),
                 image_url='%smedia/web-images/starsona_logo.png' % base_url,
+                nav_to='reactions',
+                canonical_url="%srequest/R1002/%s" % (web_url, encode_pk(booking.id))
             )
         }
         template = "feedback_notification"
@@ -244,6 +246,7 @@ def celebrity_request_notification():
                         desc="Reminder of the Starsona Request from %s." % request.fan.get_short_name(),
                         mob_url=mob_link,
                         desktop_url='%suser/bookings' % web_url,
+                        canonical_url='%srequest/R1002/%s' % (web_url, encode_pk(request.id)),
                         image_url='%smedia/web-images/starsona_logo.png' % base_url
                     ),
                     'relationship': request_data['relationship']['title'] if 'relationship' in request_data else '',
