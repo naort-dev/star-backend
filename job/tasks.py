@@ -836,7 +836,7 @@ def send_email_notification(request_id):
             try:
                 video_id = StargramVideo.objects.values_list('id', flat=True).get(stragramz_request_id=request.id, status=1)
                 web_url = Config.objects.get(key="web_url").value
-                video_url = web_url + request.celebrity.vanity_urls.name + '?video_id=' + hashids.encode(video_id)
+                video_url = "%svideo/%s" % (web_url, hashids.encode(video_id))
             except Exception:
                 pass
 
@@ -853,11 +853,18 @@ def send_email_notification(request_id):
             6: 'video/?video_id=%s' % hashids.encode(video_id) if video_id else None
         }
 
+        canonical_url = {
+            2: '%srequest/R1002/%s' % (web_url, encode_pk(request.id)),
+            5: BASE_URL,
+            6: video_url
+        }
+
         ctx['app_url'] = video_url if request.request_status == 6 else generate_branch_io_url(
             title=subject,
             desc=subject,
             mob_url=app_urls[request.request_status],
             desktop_url=urls[request.request_status],
+            canonical_url=canonical_url[request.request_status],
             image_url='%smedia/web-images/starsona_logo.png' % BASE_URL,
         )
 
