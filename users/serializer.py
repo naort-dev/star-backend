@@ -693,7 +693,7 @@ class CelebritySerializer(serializers.RelatedField):
             return celebrity
 
     def to_representation(self, value):
-        return {'rate': str(int(value.rate)), 'rating': str(value.rating),
+        return {'rate': str(int(value.rate)), 'in_app_price': str(float(value.in_app_price)), 'rating': str(value.rating),
                 'weekily_limits': value.weekly_limits, 'follow_count': value.follow_count,
                 'charity': value.charity}
 
