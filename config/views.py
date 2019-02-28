@@ -15,7 +15,7 @@ class ConfigView(APIView, ResponseViewMixin):
             file_type = os.environ.get("ENV")
             with open("config/in_app_pricing_%s.json" % file_type, mode="r") as file:
                 in_app_pricing = file.read()
-                data = {"in_app_pricing": json.loads(in_app_pricing)}
+                data = json.loads(in_app_pricing)
                 response_list.update(data)
             return self.jp_response(s_code='HTTP_200_OK', data={
                 'config': response_list

@@ -7,7 +7,7 @@ import json
 def migrate_in_app_price(apps, schema_editor):
 
     celebrity = apps.get_model('users', 'Celebrity')
-    with open("config/in_app_pricing_dev.json", mode="r") as file:
+    with open("config/in_app_pricing_migration.json", mode="r") as file:
         data = file.read()
         data = json.loads(data)
         values = [data[i] for i in data]
