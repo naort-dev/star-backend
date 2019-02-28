@@ -4,14 +4,14 @@
 <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">
 Your transaction for the booking {{booking_title}} has completed successfully. Details below.
 </p>
-<p style="text-align:center;margin:50px;">
-    &nbsp;<a href="{{app_url}}" class="button-app">View booking</a>
-</p>
 <p>
     {% if date %}Transaction date: {{ date }}<br/>{% endif %}
     {% if occasion %}Occasion: {{ occasion }}<br/>{% endif %}
     {% if celebrity_name %}Celebrity: {{ celebrity_name }}<br/>{% endif %}
     {% if amount %}Amount: ${{ amount }}<br/>{% endif %}
+</p>
+<p style="text-align:center;margin:50px auto;">
+    &nbsp;<a href="{{app_url}}" class="button-app">View booking</a>
 </p>
 <p>
 Thanks, <br/>
