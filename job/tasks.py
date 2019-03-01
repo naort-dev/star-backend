@@ -845,19 +845,22 @@ def send_email_notification(request_id):
         urls = {
             2: '%suser/bookings' % web_url,
             5: BASE_URL,
-            6: video_url
+            6: video_url,
+            7: '%suser/bookings' % web_url
         }
 
         app_urls = {
             2: 'request/?request_id=%s&role=R1002' % hashids.encode(request.id),
             5: 'home/',
-            6: 'video/?video_id=%s' % hashids.encode(video_id) if video_id else None
+            6: 'video/?video_id=%s' % hashids.encode(video_id) if video_id else None,
+            7: 'request/?request_id=%s&role=R1002' % hashids.encode(request.id)
         }
 
         canonical_url = {
             2: '%srequest/R1002/%s' % (web_url, encode_pk(request.id)),
             5: BASE_URL,
-            6: video_url
+            6: video_url,
+            7: '%srequest/R1002/%s' % (web_url, encode_pk(request.id)),
         }
 
         ctx['app_url'] = video_url if request.request_status == 6 else generate_branch_io_url(
