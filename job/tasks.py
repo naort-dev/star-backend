@@ -2,8 +2,8 @@ from moviepy.editor import *
 from moviepy import *
 from moviepy.video.fx.resize import resize
 from moviepy.video.compositing.transitions import slide_in
-from stargramz.models import Stargramrequest, StargramVideo, STATUS_TYPES, Occasion, VIDEO_STATUS, Reaction
-from payments.models import StarsonaTransaction, PaymentPayout, TRANSACTION_STATUS, PAYOUT_STATUS
+from stargramz.models import Stargramrequest, StargramVideo, STATUS_TYPES, Occasion, VIDEO_STATUS, Reaction, REQUEST_TYPES
+from payments.models import StarsonaTransaction, PaymentPayout, TRANSACTION_STATUS, PAYOUT_STATUS, PAYMENT_TYPES
 import stripe
 from stargramz.constants import *
 from payments.constants import SECRET_KEY
@@ -451,6 +451,7 @@ def create_payout_records():
             transaction_status=TRANSACTION_STATUS.captured,
             starsona__request_status=STATUS_TYPES.completed,
             amount__gt=1,
+            payment_type=PAYMENT_TYPES.stripe
         ).exclude(transaction_payout__status__in=PAYOUT_STATUS.get_key_values())[:1]
 
         for record in records:
@@ -836,7 +837,7 @@ def send_email_notification(request_id):
             try:
                 video_id = StargramVideo.objects.values_list('id', flat=True).get(stragramz_request_id=request.id, status=1)
                 web_url = Config.objects.get(key="web_url").value
-                video_url = web_url + request.celebrity.vanity_urls.name + '?video_id=' + hashids.encode(video_id)
+                video_url = "%svideo/%s" % (web_url, hashids.encode(video_id))
             except Exception:
                 pass
 
@@ -844,13 +845,22 @@ def send_email_notification(request_id):
         urls = {
             2: '%suser/bookings' % web_url,
             5: BASE_URL,
-            6: video_url
+            6: video_url,
+            7: '%suser/bookings' % web_url
         }
 
         app_urls = {
             2: 'request/?request_id=%s&role=R1002' % hashids.encode(request.id),
             5: 'home/',
-            6: 'video/?video_id=%s' % hashids.encode(video_id) if video_id else None
+            6: 'video/?video_id=%s' % hashids.encode(video_id) if video_id else None,
+            7: 'request/?request_id=%s&role=R1002' % hashids.encode(request.id)
+        }
+
+        canonical_url = {
+            2: '%srequest/R1002/%s' % (web_url, encode_pk(request.id)),
+            5: BASE_URL,
+            6: video_url,
+            7: '%srequest/R1002/%s' % (web_url, encode_pk(request.id)),
         }
 
         ctx['app_url'] = video_url if request.request_status == 6 else generate_branch_io_url(
@@ -858,6 +868,7 @@ def send_email_notification(request_id):
             desc=subject,
             mob_url=app_urls[request.request_status],
             desktop_url=urls[request.request_status],
+            canonical_url=canonical_url[request.request_status],
             image_url='%smedia/web-images/starsona_logo.png' % BASE_URL,
         )
 
@@ -1599,7 +1610,8 @@ def request_slack_message(request_id):
             slack_template = "new_booking"
             slack_ctx = {
                 "fan_name": booking.fan.get_short_name(),
-                "celebrity_name": booking.celebrity.get_short_name()
+                "celebrity_name": booking.celebrity.get_short_name(),
+                "type":  REQUEST_TYPES.get_label(booking.request_type),
             }
         send_message_to_slack.delay(slack_template, slack_ctx)
     except Exception as e:

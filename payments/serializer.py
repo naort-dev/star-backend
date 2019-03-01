@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import StarsonaTransaction, TipPayment, PaymentPayout, PAYOUT_STATUS
+from .models import StarsonaTransaction, TipPayment, PaymentPayout, PAYOUT_STATUS, Stargramrequest
 from stargramz.serializer import TransactionStargramzSerializer
 from hashids import Hashids
 hashids = Hashids(min_length=8)
@@ -61,3 +61,22 @@ class TipPaymentSerializer(serializers.ModelSerializer):
 
 class CreditCardNotificationSerializer(serializers.Serializer):
     attach = serializers.BooleanField(required=True)
+
+
+class InAppSerializer(serializers.ModelSerializer):
+    starsona = serializers.CharField(required=True)
+    fan = serializers.IntegerField(required=True)
+    amount = serializers.DecimalField(required=True, max_digits=7, decimal_places=2)
+    stripe_transaction_id = serializers.CharField(required=True, allow_blank=False, allow_null=False)
+
+    class Meta:
+        model = StarsonaTransaction
+        fields = ('starsona', 'fan', 'amount', 'stripe_transaction_id')
+
+    def validate_starsona(self, value):
+        try:
+            starsona_id = hashids.decode(value)[0]
+            return Stargramrequest.objects.get(pk=starsona_id).id
+        except Exception:
+            raise serializers.ValidationError("Invalid Request")
+

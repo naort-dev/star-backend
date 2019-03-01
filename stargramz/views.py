@@ -33,7 +33,7 @@ from difflib import get_close_matches
 from .constants import *
 from job.tasks import generate_video_thumbnail, combine_video_clips, convert_audio
 from .tasks import booking_feedback_celebrity_notification
-from payments.models import StarsonaTransaction, TRANSACTION_STATUS, TipPayment
+from payments.models import StarsonaTransaction, TRANSACTION_STATUS, TipPayment, PAYMENT_TYPES
 from django.utils import timezone
 from hashids import Hashids
 from notification.tasks import send_notification
@@ -319,7 +319,16 @@ class ChangeRequestStatus(APIView, ResponseViewMixin):
                 star_request.comment = request.data['comment']
             star_request.save()
             if star_request.request_status == STATUS_TYPES.cancelled:
-                create_request_refund.delay()
+                try:
+                    starsona_transaction = StarsonaTransaction.objects.get(starsona=star_request)
+                except StarsonaTransaction.DoesNotExist:
+                    pass
+                if starsona_transaction:
+                    if starsona_transaction.payment_type == PAYMENT_TYPES.stripe:
+                        create_request_refund.delay()
+                    else:
+                        starsona_transaction.transaction_status = TRANSACTION_STATUS.cancelled
+                        starsona_transaction.save()
                 if user.id == star_request.celebrity.id:
                     data = {'id': star_request.id, 'type': NOTIFICATION_TYPES.fan_celebrity_cancelled_details,
                             'role': ROLES.fan}
@@ -383,7 +392,7 @@ class RequestList(GenericViewSet, ResponseViewMixin):
             filter_by_status = request.GET.get("status")
             if filter_by_status:
                 if filter_by_status == 'all':
-                    filter_by_status = '2, 3, 4, 5, 6' if role == 'celebrity_id' else '2, 3, 1, 5, 6'
+                    filter_by_status = '2, 3, 4, 5, 6' if role == 'celebrity_id' else '2, 3, 1, 5, 6, 4'
                 try:
                     if '2' in filter_by_status:
                         filter_by_status = filter_by_status + ', 7'
@@ -553,50 +562,54 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
             # Payment capture process
             try:
                 transaction = StarsonaTransaction.objects.get(starsona_id=stargramz_request.id)
-                try:
-                    charge = stripe.Charge.retrieve(transaction.stripe_transaction_id)
-                except Exception as e:
-                    self.transaction_update(transaction, TRANSACTION_STATUS.failed, str(e))
-                    self.booking_update(stargramz_request, STATUS_TYPES.cancelled)
-                    return self.jp_error_response(
-                        'HTTP_400_BAD_REQUEST',
-                        'INVALID_SIGNUP',
-                        'Invalid transaction'
-                    )
+                if transaction.payment_type == PAYMENT_TYPES.stripe:
+                    try:
+                        charge = stripe.Charge.retrieve(transaction.stripe_transaction_id)
+                    except Exception as e:
+                        self.transaction_update(transaction, TRANSACTION_STATUS.failed, str(e))
+                        self.booking_update(stargramz_request, STATUS_TYPES.cancelled)
+                        return self.jp_error_response(
+                            'HTTP_400_BAD_REQUEST',
+                            'INVALID_SIGNUP',
+                            'Invalid transaction'
+                        )
                 if stargramz_request.request_status == STATUS_TYPES.reprocessing:
                     data = self.video_complete(serializer, stargramz_request, transaction)
                     return self.jp_response('HTTP_200_OK', data={'request_video': data})
 
-                # If the charge is not captured and not refunded
-                if not charge.captured and not charge.refunded:
-                    try:
-                        charge.capture()
-                        data = self.video_complete(serializer, stargramz_request, transaction)
-                        return self.jp_response('HTTP_200_OK', data={'request_video': data})
-                    except Exception as e:
+                if transaction.payment_type == PAYMENT_TYPES.stripe:
+                    # If the charge is not captured and not refunded
+                    if not charge.captured and not charge.refunded:
+                        try:
+                            charge.capture()
+                            data = self.video_complete(serializer, stargramz_request, transaction)
+                            return self.jp_response('HTTP_200_OK', data={'request_video': data})
+                        except Exception as e:
+                            self.booking_update(stargramz_request, STATUS_TYPES.cancelled)
+                            self.transaction_update(transaction, TRANSACTION_STATUS.failed, str(e))
+                            return self.jp_error_response(
+                                'HTTP_400_BAD_REQUEST',
+                                'INVALID_LOGIN',
+                                data='Failed to process the Booking.'
+                            )
+
+                    # If the charge is refunded
+                    elif charge.refunded:
                         self.booking_update(stargramz_request, STATUS_TYPES.cancelled)
-                        self.transaction_update(transaction, TRANSACTION_STATUS.failed, str(e))
+                        self.transaction_update(transaction, TRANSACTION_STATUS.refunded, 'Amount has been refunded')
                         return self.jp_error_response(
                             'HTTP_400_BAD_REQUEST',
                             'INVALID_LOGIN',
                             data='Failed to process the Booking.'
                         )
 
-                # If the charge is refunded
-                elif charge.refunded:
-                    self.booking_update(stargramz_request, STATUS_TYPES.cancelled)
-                    self.transaction_update(transaction, TRANSACTION_STATUS.refunded, 'Amount has been refunded')
-                    return self.jp_error_response(
-                        'HTTP_400_BAD_REQUEST',
-                        'INVALID_LOGIN',
-                        data='Failed to process the Booking.'
-                    )
-
-                # If the charge is already captured
-                elif charge.captured:
+                    # If the charge is already captured
+                    elif charge.captured:
+                        data = self.video_complete(serializer, stargramz_request, transaction)
+                        return self.jp_response('HTTP_200_OK', data={'request_video': data})
+                else:
                     data = self.video_complete(serializer, stargramz_request, transaction)
                     return self.jp_response('HTTP_200_OK', data={'request_video': data})
-
             except Exception:
                 self.booking_update(stargramz_request, STATUS_TYPES.cancelled)
                 return self.jp_error_response(
