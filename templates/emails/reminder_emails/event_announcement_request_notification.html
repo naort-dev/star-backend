@@ -2,7 +2,7 @@
 <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">Hi {{ celebrity_name }},</p>
 
 <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">
-    Hope all is well.  Just sending you a quick reminder that you have a Starsona request from one of your fans{% if expire_tomorrow %} which <u><strong>expires tomorrow</strong></u>{% endif %}.  The pending booking request is for an event announcement for {{ occasion }} called {{ from_name }}.
+    Hope all is well.  Just sending you a quick reminder that you have a Starsona request from one of your fans{% if expire_tomorrow %} which <u><strong>expires tomorrow</strong></u>{% endif %}.  The pending booking request is for an event announcement for {{ occasion }}{% if from_name %} called {{ from_name }}{% endif %}.
 </p>
 <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; Margin-bottom: 15px;">
     You can review and respond to this encouragement request directly from your Starsona account.  If you have any questions or concerns regarding this particular request, please feel free to contact me directly.
