@@ -363,6 +363,7 @@ class EarningsList(GenericViewSet, ResponseViewMixin):
     serializer_class = StarsonaTransactionSerializer
 
     def list(self, request):
+        from job.tasks import verify_referee_discount
         user = StargramzUser.objects.get(username=request.user)
         try:
             Celebrity.objects.get(user_id=user.id)
@@ -402,9 +403,13 @@ class EarningsList(GenericViewSet, ResponseViewMixin):
         completed_stasonas_amount = completed_starsonas.aggregate(Sum('amount'))
         pending_starsonas_amount = pending_starsonas.aggregate(Sum('amount'))
 
-        paid_amount = int(paid_starsonas_amount['amount__sum']) if paid_starsonas_amount['amount__sum'] else 0
-        total_amount = int(completed_stasonas_amount['amount__sum']) if completed_stasonas_amount['amount__sum'] else 0
-        pending_amount = int(pending_starsonas_amount['amount__sum']) if pending_starsonas_amount['amount__sum'] else 0
+        paid_amount = float(paid_starsonas_amount['amount__sum']) if paid_starsonas_amount['amount__sum'] else 0
+        total_amount = float(completed_stasonas_amount['amount__sum']) if completed_stasonas_amount['amount__sum'] else 0
+        pending_amount = float(pending_starsonas_amount['amount__sum']) if pending_starsonas_amount['amount__sum'] else 0
+        referee_discount = verify_referee_discount(user.id)
+        paid_amount = paid_amount * (referee_discount / 100.0)
+        pending_amount = pending_amount * (referee_discount / 100.0)
+        total_amount = total_amount * (referee_discount / 100.0)
 
         # Referral amount
         users_amount = PaymentPayout.objects.filter(celebrity=user, referral_payout=True)\
@@ -422,11 +427,12 @@ class EarningsList(GenericViewSet, ResponseViewMixin):
             result = {}
             paid_stasonas_transactions = paid_starsonas[:5]
             result['Paid'] = self.get_serializer(paid_stasonas_transactions, many=True).data
-            result['Paid_amount'] = paid_amount
-            result['Total_amount'] = total_amount + referral_payed_out
+            result['Paid_amount'] = round(paid_amount, 2)
+            result['referral_payed_out'] = referral_payed_out
+            result['Total_amount'] = round(total_amount + referral_payed_out, 2)
             pending_starsonas_transactions = pending_starsonas[:5]
             result['Pending'] = self.get_serializer(pending_starsonas_transactions, many=True).data
-            result['Pending_amount'] = pending_amount
+            result['Pending_amount'] = round(pending_amount, 2)
             return self.jp_response('HTTP_200_OK', data=result)
 
         page = self.paginate_queryset(query_set.distinct())

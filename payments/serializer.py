@@ -26,7 +26,7 @@ class AttachDetachSourceSerializer(serializers.Serializer):
 
 class StarsonaTransactionSerializer(serializers.ModelSerializer):
     starsona = TransactionStargramzSerializer(read_only=True)
-    amount = serializers.DecimalField(read_only=True, max_digits=7, decimal_places=2)
+    amount = serializers.SerializerMethodField(read_only=True)
     id = serializers.CharField(read_only=True, source='order_id')
     payout_status = serializers.SerializerMethodField(read_only=True)
 
@@ -42,6 +42,12 @@ class StarsonaTransactionSerializer(serializers.ModelSerializer):
             ))
         except Exception:
             return PAYOUT_STATUS.get_label(1)
+
+    def get_amount(self, obj):
+        from job.tasks import verify_referee_discount
+        referee_discount = verify_referee_discount(obj.celebrity_id)
+        net_amount = float(obj.amount) * (referee_discount / 100.0)
+        return round(net_amount, 2)
 
 
 class BookingValidate(serializers.ModelSerializer):
