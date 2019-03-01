@@ -217,7 +217,9 @@ def celebrity_request_notification():
         for request in requests:
             if (current_date - request.created_date.date()).days in days:
                 expiring_date = (request.created_date + datetime.timedelta(days=7)).date()
-                mob_link = 'request/?request_id=%s' % encode_pk(request.id)
+                # mobile redirection issue fix
+                # mob_link = 'request/?request_id=%s' % encode_pk(request.id)
+                mob_link = 'request/?request_id=%s&role=R1002' % encode_pk(request.id)
                 if current_date == expiring_date:
                     subject = 'Reminder: Pending Starsona {} Request - EXPIRES TODAY!'.format(request.occasion.title)
                     template = 'reminder_emails/request_expiry_notification'
