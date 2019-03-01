@@ -5,10 +5,26 @@
 Your transaction for the booking {{booking_title}} has completed successfully. Details below.
 </p>
 <p>
-    {% if date %}Transaction date: {{ date }}<br/>{% endif %}
-    {% if occasion %}Occasion: {{ occasion }}<br/>{% endif %}
-    {% if celebrity_name %}Celebrity: {{ celebrity_name }}<br/>{% endif %}
-    {% if amount %}Amount: ${{ amount }}<br/>{% endif %}
+    {% if date %}
+    <p style="font-family: sans-serif;margin-bottom: 0;margin-top: 8px;font-size:12px;">
+        <span style="min-width:120px;display: inline-block;font-weight:bold;">Transaction date</span> {{ date }}<br/>
+    </p>
+    {% endif %}
+    {% if occasion %}
+    <p style="font-family: sans-serif;margin-bottom: 0;margin-top: 8px;font-size:12px;">
+        <span style="min-width:120px;display: inline-block;font-weight:bold;">Occasion</span> {{ occasion }}<br/>
+    </p>
+    {% endif %}
+    {% if celebrity_name %}
+    <p style="font-family: sans-serif;margin-bottom: 0;margin-top: 8px;font-size:12px;">
+        <span style="min-width:120px;display: inline-block;font-weight:bold;">Celebrity</span> {{ celebrity_name }}<br/>
+    </p>
+    {% endif %}
+    {% if amount %}
+    <p style="font-family: sans-serif;margin-bottom: 0;margin-top: 8px;font-size:12px;">
+        <span style="min-width:120px;display: inline-block;font-weight:bold;">Amount</span> ${{ amount }}<br/>
+    </p>
+    {% endif %}
 </p>
 <p style="text-align:center;margin:50px auto;">
     &nbsp;<a href="{{app_url}}" class="button-app">View booking</a>
