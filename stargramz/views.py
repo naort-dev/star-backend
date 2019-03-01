@@ -33,7 +33,7 @@ from difflib import get_close_matches
 from .constants import *
 from job.tasks import generate_video_thumbnail, combine_video_clips, convert_audio
 from .tasks import booking_feedback_celebrity_notification
-from payments.models import StarsonaTransaction, TRANSACTION_STATUS, TipPayment
+from payments.models import StarsonaTransaction, TRANSACTION_STATUS, TipPayment, PAYMENT_TYPES
 from django.utils import timezone
 from hashids import Hashids
 from notification.tasks import send_notification
@@ -319,7 +319,16 @@ class ChangeRequestStatus(APIView, ResponseViewMixin):
                 star_request.comment = request.data['comment']
             star_request.save()
             if star_request.request_status == STATUS_TYPES.cancelled:
-                create_request_refund.delay()
+                try:
+                    starsona_transaction = StarsonaTransaction.objects.get(starsona=star_request)
+                except StarsonaTransaction.DoesNotExist:
+                    pass
+                if starsona_transaction:
+                    if starsona_transaction.payment_type == PAYMENT_TYPES.stripe:
+                        create_request_refund.delay()
+                    else:
+                        starsona_transaction.transaction_status = TRANSACTION_STATUS.cancelled
+                        starsona_transaction.save()
                 if user.id == star_request.celebrity.id:
                     data = {'id': star_request.id, 'type': NOTIFICATION_TYPES.fan_celebrity_cancelled_details,
                             'role': ROLES.fan}
