@@ -12,7 +12,7 @@ def to_lines(filename):
             lines[row['Name']] = row
     return lines, reader.fieldnames
 
-threshold_percent = 30
+threshold_percent = 50
 
 def increase_ok(diff, percent):
     return ('green' if percent >= 0 else ('orange' if percent >= -threshold_percent else 'red'), 'white' if percent >= -threshold_percent else 'red')
