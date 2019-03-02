@@ -9,7 +9,14 @@ phases:
   build:
     commands:
       #- aws/scripts/run-ecs-task.sh production-backend-vpc $ENV run-tests
-      - locust --host='https://app.staging.starsona.com' --clients=10 --hatch-rate=1 --only-summary --csv=actual --no-web --run-time=10m
+      - >
+        locust --locustfile=tests/locustfile.py
+               --host='https://app.staging.starsona.com'
+               --clients=10 --hatch-rate=1
+               --only-summary
+               --csv=actual
+               --no-web
+               --run-time=10m
       - python3 tests/report.py 'arn:aws:sns:us-east-1:376169159073:Test'
 artifacts:
   files:
