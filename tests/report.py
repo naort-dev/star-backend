@@ -1,6 +1,8 @@
-import jinja2, csv, boto3, sys
+import jinja2, csv, boto3, sys, os
 from collections import OrderedDict
 CHARSET = "UTF-8"
+__location__ = os.path.realpath(
+    os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 def to_lines(filename):
     lines = OrderedDict()
@@ -84,7 +86,7 @@ def send(sender, topic, subject, body):
 
 if __name__ == '__main__':
     topic_arn = sys.argv[1]
-    expected = 'expected_requests.csv'
+    expected = os.path.join(__location__, 'expected_requests.csv')
     actual = 'actual_requests.csv'
     actual_lines, fieldnames1 = to_lines(actual)
     expected_lines, fieldnames2 = to_lines(expected)
@@ -97,7 +99,7 @@ if __name__ == '__main__':
         if not result_line:
             result = False
 
-    templateLoader = jinja2.FileSystemLoader(searchpath="./")
+    templateLoader = jinja2.FileSystemLoader(searchpath=__location__)
     templateEnv = jinja2.Environment(loader=templateLoader)
 
     template = templateEnv.get_template('template.html.jinja2')
