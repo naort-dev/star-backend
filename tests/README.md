@@ -28,5 +28,5 @@ Run tests in UI mode
 
 Example
 ```
-locust --host=https://app.staging.starsona.com --clients=10 --hatch-rate=1 --only-summary --csv=report --no-web --run-time=10m
+locust --host=https://app.staging.starsona.com --clients=10 --hatch-rate=1 --only-summary --csv=actual --no-web --run-time=10m
 ``` 
