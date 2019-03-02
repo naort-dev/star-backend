@@ -4,7 +4,16 @@ phases:
   install:
     commands:
       - apt-get update && apt-get install -y jq
+      - python3 -m pip install locustio
       - chmod +x aws/scripts/run-ecs-task.sh
   build:
     commands:
-      - aws/scripts/run-ecs-task.sh production-backend-vpc $ENV run-tests
+      #- aws/scripts/run-ecs-task.sh production-backend-vpc $ENV run-tests
+      - locust --host='https://app.staging.starsona.com' --clients=10 --hatch-rate=1 --only-summary --csv=actual --no-web --run-time=10m
+      - python3 tests/report.py 'arn:aws:sns:us-east-1:376169159073:Test'
+artifacts:
+  files:
+  - actual_distribution.csv
+  - actual_requests.csv
+  - report_requests.html
+  discard-paths: yes

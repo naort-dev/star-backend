@@ -1,0 +1,58 @@
+<html>
+<head>
+    <style type="text/css">
+        table {
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px dotted grey;
+        }
+
+        th, td {
+            padding: 2px;
+        }
+
+        td.red {
+            background-color: mistyrose;
+        }
+
+        td.white {
+            background-color: white;
+        }
+
+        span.red {
+            color: red;
+        }
+
+        span.green {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+<table>
+    <thead>
+    <tr>{% for field in fieldnames %}<th>{{ field }}</th>{% endfor %}</tr>
+    </thead>
+    <tbody>
+    {% for name in lines %}
+        <tr>
+            {% for field in fieldnames %}
+                {% if loop.index <= 2 %}
+                    <td>
+                        {{ lines[name][field] }}
+                    </td>
+                {% else %}
+                    <td class="{{ diffs[name][field][1][1] }}">
+                        {{ lines[name][field] }}
+                        <span class="{{ diffs[name][field][1][0] }}">{{ diffs[name][field][0] }}</span>
+                    </td>
+                {% endif %}
+            {% endfor %}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</body>
+</html>
