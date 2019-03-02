@@ -16,7 +16,7 @@ phases:
                --only-summary --no-web \
                --csv=actual \
                --run-time=1m
-      - python3 tests/report.py 'arn:aws:sns:us-east-1:376169159073:Test'
+      - python3 tests/report.py 'arn:aws:sns:us-east-1:376169159073:CodePipeline'
 artifacts:
   files:
   - actual_distribution.csv
