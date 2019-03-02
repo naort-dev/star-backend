@@ -51,7 +51,7 @@ def diff_lines(actual_line, expected_line, fieldnames):
         percent_str = '' if expected_value == 0 else '(%d%%)' % percent
         diffs_line[field] = (diff_format % (diff, percent_str) if percent_str and diff else '', field_styles[field](diff, percent), diff, percent)
         if not(expected_value*(1. - threshold_percent/100.) <= actual_value <= expected_value*(1. + threshold_percent/100.)):
-            print('%s %s %s %f != %f' % (actual_line['Method'], actual_line['Name'], field, actual_value, expected_value))
+            print('%s %s %s %.2f != %.2f' % (actual_line['Method'], actual_line['Name'], field, actual_value, expected_value))
             result = False
 
     return diffs_line, result
