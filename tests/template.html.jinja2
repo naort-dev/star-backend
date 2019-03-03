@@ -13,15 +13,27 @@
             padding: 2px;
         }
 
-        td.red {
+        .legend {
+            padding: 2px;
+            display: inline-block;
+            border: 1px dotted grey;
+            width: 100px;
+            margin-bottom: 5px;
+        }
+        .legend.header {
+            width: auto;
+            font-weight: bold;
+        }
+
+        td.red, .legend.red {
             background-color: mistyrose;
         }
 
-        td.white {
+        td.white, .legend.white {
             background-color: white;
         }
 
-        td.green {
+        td.green, .legend.green {
             background-color: lightgreen;
         }
 
@@ -36,9 +48,14 @@
         span.orange {
             color: orange;
         }
+
+        h3 {
+            border-bottom: 1px dashed grey;
+        }
     </style>
 </head>
 <body>
+<h1>Performance test {{ 'SUCCESSFUL' if result else 'FAILED' }}</h1>
 <table>
     <thead>
     <tr>{% for field in fieldnames %}<th>{{ field }}</th>{% endfor %}</tr>
@@ -62,5 +79,61 @@
     {% endfor %}
     </tbody>
 </table>
+<h3>Legend</h3>
+<div>
+    <div class="legend white">
+        175 <span class="green">-5(1%)</span>
+    </div>
+    Perfect! The metric is better than expected
+</div>
+<div>
+    <div class="legend white">
+        133 <span class="orange">+25(25%)</span>
+    </div>
+    Warning, but the metric is still within +/-{{ threshold }}% of expected
+</div>
+<div>
+    <div class="legend red">
+        225 <span class="red">+25(32%)</span>
+    </div>
+    Red error, the metric is worse &gt;{{ threshold }}% than expected. Possibly due to bad performance.
+</div>
+<div>
+    <div class="legend green">
+        301 <span class="green">-25(65%)</span>
+    </div>
+    Green error, the metric better &gt;{{ threshold }}% than expected. Maybe something is wrong with the test?
+</div>
+
+<div>
+    These metrics WILL cause test to FAIL if metric is outside of limits:
+    <div class="legend header">
+        # requests
+    </div>
+    <div class="legend header">
+        # failures
+    </div>
+    <div class="legend header">
+        Median response time
+    </div>
+    <div class="legend header">
+        Average response time
+    </div>
+    <div class="legend header">
+        Requests/s
+    </div>
+</div>
+<div>
+    These metrics will NOT cause test to fail if metric is outside of limits:
+    <div class="legend header">
+        Min response time
+    </div>
+    <div class="legend header">
+        Max response time
+    </div>
+    <div class="legend header">
+        Average Content Size
+    </div>
+</div>
 </body>
 </html>

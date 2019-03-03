@@ -104,7 +104,7 @@ if __name__ == '__main__':
     templateEnv = jinja2.Environment(loader=templateLoader)
 
     template = templateEnv.get_template('template.html.jinja2')
-    outputText = template.render(lines=actual_lines, fieldnames=fieldnames1, diffs=diffs)
+    outputText = template.render(lines=actual_lines, fieldnames=fieldnames1, diffs=diffs, result=result, threshold=threshold_percent)
     with open("report_requests.html", "w") as output:
         output.write(outputText)
     send('build@starsona.com', topic_arn, 'Performance test %s' % ('SUCCESSFUL' if result else 'FAILED'), outputText)
