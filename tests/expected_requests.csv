@@ -1,9 +1,9 @@
 "Method","Name","# requests","# failures","Median response time","Average response time","Min response time","Max response time","Average Content Size","Requests/s"
 "GET","/api/v1/config/",355,0,66,105,22,1055,8164,0.59
-"GET","/api/v1/request/featured_videos",890,0,410,527,94,2170,15148,1.48
+"GET","/api/v1/request/featured_videos",890,0,410,527,94,1500,15148,1.48
 "GET","/api/v1/user/fan/celebrity_list/get_list",858,0,220,329,78,1693,10541,1.43
 "GET","/api/v1/user/filtered_professions/",325,0,200,269,50,1203,11151,0.54
 "POST","/api/v1/user/login/",298,0,850,933,399,2398,1595,0.50
 "GET","/api/v1/user/user_details",285,0,250,328,63,1846,1728,0.48
-"GET","/private/video",8900,0,82,119,21,1981,0,14.85
+"GET","/private/video",8900,0,60,100,20,1300,0,14.85
 "None","Total",11911,0,100,194,21,2398,2520,19.87

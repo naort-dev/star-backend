@@ -15,10 +15,10 @@ def to_lines(filename):
 threshold_percent = 30
 
 def increase_ok(diff, percent):
-    return ('green' if percent >= 0 else ('orange' if percent >= -threshold_percent else 'red'), 'white' if percent >= -threshold_percent else 'red')
+    return ('green' if percent >= 0 else ('orange' if percent >= -threshold_percent else 'red'), 'green' if percent >= threshold_percent else ('white' if percent >= -threshold_percent else 'red'))
 
 def decrease_ok(diff, percent):
-    return ('green' if percent <= 0 else ('orange' if percent <= threshold_percent else 'red'), 'white' if percent <= threshold_percent else 'red')
+    return ('green' if percent <= 0 else ('orange' if percent <= threshold_percent else 'red'), 'green' if percent <= -threshold_percent else ('white' if percent <= threshold_percent else 'red'))
 
 def expected_zero(diff, percent):
     return ('green' if diff == 0 else 'red', 'white' if diff == 0 else 'red')
