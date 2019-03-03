@@ -79,6 +79,25 @@ role_arn=arn:aws:iam::376169159073:role/staging-backend-app-InstanceRole-4EVCXXJ
 source_profile=default
 ```
 
+### Tasks before first run ###
+
+A static folder needs to be generated in project (as it's not under source control) by running:
+
+```
+python manage.py collectstatic
+```
+
+Some local files need to be renamed to their local names:
+
+backend/templates/home.apps/html.dev
+should be copied as
+backend/templates/home/apps.html
+
+backend/config/fixtures/config.json.dev
+should be copied as
+backend/config/fixtures/config.json
+
+
 ### Running Gunicorn under Intellij
 
 Intellij preferences:
@@ -90,8 +109,9 @@ Script path:
 Parameters:
 main.wsgi:application
 
-Use specific interpreter:
-(add python venv-3.6.7)
+Use specified interpreter: you should create a new SDK by going to File - Project Structure - SDKs and adding Python SDK Home Path: backend/venv-3.6.7/bin/python
+
+Then choose this newly added SDK as the Specified Interpreter
 
 Working directory:
 <...>/backend/
@@ -141,8 +161,8 @@ migrate --fake-initial
 Working directory:
 <...>/backend/
 
-Use specific interpreter:
-(add python venv-3.6.7)
+Use specified interpreter:
+same SDK as above
 
 Environment variables:
 same as Gunicorn
@@ -152,7 +172,7 @@ same as Gunicorn
 Script path:
 <...>/backend/venv-3.6.7/bin/celery
 
-Parameters 
+Parameters
 events:
 -A main worker -n events
 
@@ -162,8 +182,8 @@ videos:
 Working directory:
 <...>/backend/
 
-Use specific interpreter:
-(add python venv-3.6.7)
+Use specified interpreter:
+same SDK as above
 
 Environment variables:
 same as Gunicorn

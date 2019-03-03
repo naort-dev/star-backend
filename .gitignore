@@ -5,3 +5,6 @@ main/settings/local.py
 .well-known/apple-app-site-association
 templates/home/apps.html
 config/fixtures/config.json
+venv*
+.python-version
+*.sql
