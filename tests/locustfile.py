@@ -25,23 +25,30 @@ class UserBehavior(TaskSet):
         )
         self.username = 'phil.peshin@gmail.com'
         self.password = 'action2!'
-        self.config()
-        self.login()
+        self.config(setup=True)
+        self.login(setup=True)
         self.profile()
         self.filtered_professions()
 
     def on_stop(self):
         pass
 
-    def config(self):
+    @task
+    def config(self, setup = False):
         r = self.client.get('/api/v1/config/', headers=self.locust.headers, allow_redirects=False)
-        self.locust.config = Struct(r.json()).data.config
+        tmp = Struct(r.json()).data.config
+        if setup:
+            self.locust.config = tmp
 
-    def login(self):
+
+    @task
+    def login(self, setup = False):
         params = dict(username=self.username, password=self.password)
         r = self.client.post('/api/v1/user/login/', data=params, headers=self.locust.headers, allow_redirects=False)
-        self.locust.user = Struct(r.json()).data.user
-        self.locust.headers['Authorization'] = 'Token ' + self.locust.user.authentication_token
+        tmp = Struct(r.json()).data.user
+        if setup:
+            self.locust.user = tmp
+            self.locust.headers['Authorization'] = 'Token ' + self.locust.user.authentication_token
 
     @task
     def profile(self):

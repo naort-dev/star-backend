@@ -15,7 +15,7 @@ phases:
                --clients=10 --hatch-rate=1 \
                --only-summary --no-web \
                --csv=actual \
-               --run-time=1m
+               --run-time=10m
       - python3 tests/report.py 'arn:aws:sns:us-east-1:376169159073:CodePipeline'
 artifacts:
   files:
