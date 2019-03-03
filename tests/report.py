@@ -12,7 +12,7 @@ def to_lines(filename):
             lines[row['Name']] = row
     return lines, reader.fieldnames
 
-threshold_percent = 50
+threshold_percent = 30
 
 def increase_ok(diff, percent):
     return ('green' if percent >= 0 else ('orange' if percent >= -threshold_percent else 'red'), 'white' if percent >= -threshold_percent else 'red')
@@ -27,14 +27,14 @@ def no_style(diff, percent):
     return ('', '')
 
 field_styles = {
-    '# requests': increase_ok,
-    '# failures': expected_zero,
-    'Median response time':    decrease_ok,
-    'Average response time': decrease_ok,
-    'Min response time': decrease_ok,
-    'Max response time': decrease_ok,
-    'Average Content Size': no_style,
-    'Requests/s': increase_ok
+    '# requests': (increase_ok, True),
+    '# failures': (expected_zero, True),
+    'Median response time': (decrease_ok, True),
+    'Average response time': (decrease_ok, True),
+    'Min response time': (decrease_ok, False),
+    'Max response time': (decrease_ok, False),
+    'Average Content Size': (decrease_ok, False),
+    'Requests/s': (increase_ok, True)
 }
 
 def diff_lines(actual_line, expected_line, fieldnames):
@@ -49,8 +49,9 @@ def diff_lines(actual_line, expected_line, fieldnames):
         diff = actual_value - expected_value
         percent = 0 if expected_value == 0 else int(100 * diff/expected_value)
         percent_str = '' if expected_value == 0 else '(%d%%)' % percent
-        diffs_line[field] = (diff_format % (diff, percent_str) if percent_str and diff else '', field_styles[field](diff, percent), diff, percent)
-        if not(expected_value*(1. - threshold_percent/100.) <= actual_value <= expected_value*(1. + threshold_percent/100.)):
+        style, measure = field_styles[field]
+        diffs_line[field] = (diff_format % (diff, percent_str) if percent_str and diff else '', style(diff, percent), diff, percent)
+        if measure and not(expected_value*(1. - threshold_percent/100.) <= actual_value <= expected_value*(1. + threshold_percent/100.)):
             print('%s %s %s %.2f != %.2f' % (actual_line['Method'], actual_line['Name'], field, actual_value, expected_value))
             result = False
 
