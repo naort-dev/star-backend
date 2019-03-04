@@ -224,6 +224,7 @@ def transaction_completed_notification(starsona_id):
         desktop_link = '%suser/myVideos' % web_url   # new desktop URL is needed
         date = datetime.datetime.now().strftime("%d/%m/%Y")
         booking = Stargramrequest.objects.get(id=starsona_id)
+        transaction = StarsonaTransaction.objects.get(starsona=booking)
         to_email = booking.fan.email
         template = "transaction_status_to_fan"
         subject = "Starsona Transaction Status"
@@ -233,7 +234,7 @@ def transaction_completed_notification(starsona_id):
             "occasion": booking.occasion.title,
             "booking_title": booking.booking_title,
             "date": date,
-            "amount": str(booking.celebrity.celebrity_user.rate),
+            "amount": str(transaction.amount),
             "app_url": generate_branch_io_url(
                 title="New Stasona Request",
                 desc="New Stasona Request",
