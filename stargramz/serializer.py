@@ -242,13 +242,12 @@ class StargramzSerializer(serializers.ModelSerializer):
             else:
                 return None
 
-
     def get_order_details(self, obj):
         try:
             starsona_transaction = StarsonaTransaction.objects.get(starsona_id=obj.id)
-            return {'order': starsona_transaction.order_id(), 'amount': int(starsona_transaction.amount)}
+            return {'order': starsona_transaction.order_id(), 'amount': float(starsona_transaction.amount)}
         except StarsonaTransaction.DoesNotExist:
-            return {'order': '', 'amount': int(obj.celebrity.celebrity_user.rate)}
+            return {'order': '', 'amount': float(obj.celebrity.celebrity_user.rate)}
 
     def get_professions(self, obj):
         query = CelebrityProfession.objects.filter(user_id=obj.celebrity_id)\
