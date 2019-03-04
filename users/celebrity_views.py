@@ -100,6 +100,7 @@ class CelebrityManagement(APIView, ResponseViewMixin):
                 celebrity_data = CelebrityProfessionSerializer(celebrity_professions, many=True).data
                 data['profession_details'] = celebrity_data
                 keys = ['id', 'user', 'created_date', 'profile_video']
+                in_app_price_limit(data)
                 data = removefromdict(data, keys)
                 return_data = dict(status='HTTP_200_OK', data={'celebrity': data}, content_type='application/json')
         else:
@@ -122,11 +123,22 @@ class CelebrityManagement(APIView, ResponseViewMixin):
                                    'profession_name', 'charity', 'description', 'follow_count', 'rate', 'in_app_price',
                                    'availability', 'stripe_user_id', 'pending_requests_count', 'check_payments'
                                    ]).data
+            in_app_price_limit(data)
             celebrity_professions = CelebrityProfession.objects.filter(user_id=pk).select_related('profession')
             data['related_videos'] = []
             celebrity_data = CelebrityProfessionSerializer(celebrity_professions, many=True).data
             data['profession_details'] = celebrity_data
             return dict(status='HTTP_200_OK', data={'celebrity': data}, content_type='application/json')
+
+
+def in_app_price_limit(data):
+    in_app_price = data.get("in_app_price")
+    rate = int(float(data.get("rate", "0.00")))
+    if not in_app_price:
+        in_app_price = rate
+    elif rate > 1000:
+        in_app_price = rate
+    data.update({"in_app_price": str(in_app_price)})
 
 
 class NotifyAdmin(APIView, ResponseViewMixin):
