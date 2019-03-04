@@ -88,6 +88,9 @@ class CelebrityManagement(APIView, ResponseViewMixin):
         for list_item in field_list:
             if list_item in request:
                 fields.append(list_item)
+        if 'in_app_price' not in request:
+            fields.append('in_app_price')
+            request.update({"in_app_price": None})
         serializer = CelebrityProfileSerializer(data=request, instance=celebrity, fields=fields)
         if serializer.is_valid():
             celebrity = serializer.save()
