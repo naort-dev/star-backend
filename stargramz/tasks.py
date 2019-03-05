@@ -255,7 +255,9 @@ def celebrity_request_notification():
                     'important_info': request_data['important_info'] if 'important_info' in request_data else '',
                     'to_name': request_data['stargramto'] if 'stargramto' in request_data else '',
                     'from_name': request_data['stargramfrom'] if 'stargramfrom' in request_data else '',
-                    'date': datetime.datetime.strptime(request_data['date'], "%Y-%m-%dT%H:%M:%S.%fZ").strftime('%B %d, %Y'),
+                    'date': datetime.datetime.strptime(
+                        request_data['date'], "%Y-%m-%dT%H:%M:%S.%fZ"
+                    ).strftime('%B %d, %Y') if ('date' in request_data and request_data['date']) else '',
                     'event_title': request_data['event_title'] if 'event_title' in request_data else '',
                     'expire_tomorrow': True if (expiring_date - current_date).days == ONE else False,
                     'live_qa_request': True if request.request_type == REQUEST_TYPES.live_question_answer else False
