@@ -450,8 +450,7 @@ def create_payout_records():
         records = StarsonaTransaction.objects.filter(
             transaction_status=TRANSACTION_STATUS.captured,
             starsona__request_status=STATUS_TYPES.completed,
-            amount__gt=1,
-            payment_type=PAYMENT_TYPES.stripe
+            amount__gt=1
         ).exclude(transaction_payout__status__in=PAYOUT_STATUS.get_key_values())[:1]
 
         for record in records:
