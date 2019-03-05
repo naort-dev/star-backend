@@ -47,7 +47,7 @@ class StarsonaTransactionSerializer(serializers.ModelSerializer):
         from job.tasks import verify_referee_discount
         referee_discount = verify_referee_discount(obj.celebrity_id)
         net_amount = float(obj.amount) * (referee_discount / 100.0)
-        return round(net_amount, 2)
+        return str(round(net_amount, 2))
 
 
 class BookingValidate(serializers.ModelSerializer):
