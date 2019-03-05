@@ -427,17 +427,22 @@ class EarningsList(GenericViewSet, ResponseViewMixin):
             result = {}
             paid_stasonas_transactions = paid_starsonas[:5]
             result['Paid'] = self.get_serializer(paid_stasonas_transactions, many=True).data
-            result['Paid_amount'] = round(paid_amount, 2)
-            result['referral_payed_out'] = referral_payed_out
-            result['Total_amount'] = round(total_amount + referral_payed_out, 2)
+            result['Paid_amount'] = str(round(paid_amount, 2))
+            result['referral_payed_out'] = str(round(referral_payed_out, 2))
+            result['Total_amount'] = str(round(total_amount + referral_payed_out, 2))
             pending_starsonas_transactions = pending_starsonas[:5]
             result['Pending'] = self.get_serializer(pending_starsonas_transactions, many=True).data
-            result['Pending_amount'] = round(pending_amount, 2)
+            result['Pending_amount'] = str(round(pending_amount, 2))
             return self.jp_response('HTTP_200_OK', data=result)
 
         page = self.paginate_queryset(query_set.distinct())
         serializer = self.get_serializer(page, many=True)
-        amounts = {'Paid_amount': paid_amount, 'Total_amount': total_amount, 'Pending_amount': pending_amount}
+        amounts = {
+            'Paid_amount': str(round(paid_amount, 2)),
+            'Total_amount': str(round(total_amount + referral_payed_out, 2)),
+            'referral_payed_out': str(round(referral_payed_out, 2)),
+            'Pending_amount': str(round(pending_amount, 2))
+        }
         return self.paginator.get_paginated_response(serializer.data, key_name='earning_list', amounts=amounts)
 
 
