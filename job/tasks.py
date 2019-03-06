@@ -813,11 +813,17 @@ def send_email_notification(request_id):
         except Exception:
             data = ''
         date = ''
-        if 'date' in data:
+        if 'date' in data and data['date']:
             try:
                 date = datetime.strptime(data['date'], "%Y-%m-%dT%H:%M:%S.%fZ").strftime('%B %d, %Y')
             except Exception:
                 pass
+        if request.request_type == REQUEST_TYPES.personalised_video:
+            request_type = 'shout-out'
+        elif request.request_type == REQUEST_TYPES.event_announcement:
+            request_type = 'event'
+        else:
+            request_type = ''
 
         ctx = {
             'base_url': BASE_URL,
@@ -829,7 +835,8 @@ def send_email_notification(request_id):
             'to_name': data['stargramto'] if 'stargramto' in data else '',
             'from_name': data['stargramfrom'] if 'stargramfrom' in data else '',
             'date': date,
-            'relationship': data['relationship']['title'] if 'relationship' in data else ''
+            'relationship': data['relationship']['title'] if 'relationship' in data else '',
+            'request_type': request_type
         }
         video_id = None
         video_url = BASE_URL
