@@ -395,17 +395,36 @@ class EarningsList(GenericViewSet, ResponseViewMixin):
 
         filter_by_status = request.GET.get("status")
 
+        filter_by_in_app_payment = {'payment_type': PAYMENT_TYPES.in_app}
+
         paid_starsonas = query_set.filter(**paid_custom_filter).order_by('-created_date')
         completed_starsonas = query_set.filter(**completed_custom_filter).order_by('-created_date')
         pending_starsonas = completed_starsonas.exclude(**pending_custom_filter)
+
+        in_app_paid_starsonas = paid_starsonas.filter(**filter_by_in_app_payment).order_by('-created_date')
+        in_app_completed_starsonas = completed_starsonas.filter(**filter_by_in_app_payment).order_by('-created_date')
+        in_app_pending_starsonas = pending_starsonas.filter(**filter_by_in_app_payment)
 
         paid_starsonas_amount = paid_starsonas.aggregate(Sum('amount'))
         completed_stasonas_amount = completed_starsonas.aggregate(Sum('amount'))
         pending_starsonas_amount = pending_starsonas.aggregate(Sum('amount'))
 
+        in_app_paid_starsonas_amount = in_app_paid_starsonas.aggregate(Sum('amount'))
+        in_app_completed_starsonas_amount = in_app_completed_starsonas.aggregate(Sum('amount'))
+        in_app_pending_starsonas_amount = in_app_pending_starsonas.aggregate(Sum('amount'))
+
         paid_amount = float(paid_starsonas_amount['amount__sum']) if paid_starsonas_amount['amount__sum'] else 0
         total_amount = float(completed_stasonas_amount['amount__sum']) if completed_stasonas_amount['amount__sum'] else 0
         pending_amount = float(pending_starsonas_amount['amount__sum']) if pending_starsonas_amount['amount__sum'] else 0
+
+        in_app_paid_amount = float(in_app_paid_starsonas_amount['amount__sum']) if in_app_paid_starsonas_amount['amount__sum'] else 0
+        in_app_total_amount = float(in_app_completed_starsonas_amount['amount__sum']) if in_app_completed_starsonas_amount['amount__sum'] else 0
+        in_app_pending_amount = float(in_app_pending_starsonas_amount['amount__sum']) if in_app_pending_starsonas_amount['amount__sum'] else 0
+
+        paid_amount = (paid_amount - in_app_paid_amount) + (in_app_paid_amount * 70.0 / 100.0)
+        total_amount = (total_amount - in_app_total_amount) + (in_app_total_amount * 70.0 / 100.0)
+        pending_amount = (pending_amount - in_app_pending_amount) + (in_app_pending_amount * 70.0 / 100.0)
+
         referee_discount = verify_referee_discount(user.id)
         paid_amount = paid_amount * (referee_discount / 100.0)
         pending_amount = pending_amount * (referee_discount / 100.0)

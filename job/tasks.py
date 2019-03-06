@@ -31,6 +31,7 @@ from utilities.konstants import NOTIFICATION_TYPES, ROLES
 from django.db.models import Sum
 from twilio.rest import Client
 from django_slack import slack_message
+from payments.utils import in_app_price_reduction
 imageio.plugins.ffmpeg.download()
 
 hashids = Hashids(min_length=8)
@@ -466,8 +467,8 @@ def create_payout_records():
                     'celebrity': user,
                     'fan_charged': float(round(record.amount, 2)),
                     'stripe_processing_fees': 0,
-                    'starsona_company_charges': 0.00 if referee_discount == 100 else float(record.amount)*(25.0/100.0),
-                    'fund_payed_out': float(record.amount)*(referee_discount/100.0),
+                    'starsona_company_charges': 0.00 if referee_discount == 100 else float(in_app_price_reduction(record))*(25.0/100.0),
+                    'fund_payed_out': float(round((in_app_price_reduction(record)*(referee_discount/100.0)), 2)),
                     'status': PAYOUT_STATUS.check_pending if user.check_payments else PAYOUT_STATUS.pending
                 }
                 PaymentPayout.objects.update_or_create(
@@ -545,7 +546,7 @@ def create_referral_payouts(record):
 
         # validate campaign
         if datetime.now().date() < campaign.valid_till and float(referral_payed_out) <= float(campaign.max_referral_amount):
-            referral_amount = float(record.amount) * (75.0 / 100.0) * (int(campaign.discount)/100)
+            referral_amount = float(in_app_price_reduction(record)) * (75.0 / 100.0) * (int(campaign.discount)/100)
             amount = referral_payed_out + float(referral_amount)
 
             if amount > campaign.max_referral_amount:

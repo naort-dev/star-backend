@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import StarsonaTransaction, TipPayment, PaymentPayout, PAYOUT_STATUS, Stargramrequest
+from .models import StarsonaTransaction, TipPayment, PaymentPayout, PAYOUT_STATUS, Stargramrequest, PAYMENT_TYPES
 from stargramz.serializer import TransactionStargramzSerializer
 from hashids import Hashids
 hashids = Hashids(min_length=8)
@@ -45,8 +45,12 @@ class StarsonaTransactionSerializer(serializers.ModelSerializer):
 
     def get_amount(self, obj):
         from job.tasks import verify_referee_discount
+        if obj.payment_type is PAYMENT_TYPES.in_app:
+            amount = float(obj.amount) * (70.0 / 100.0)
+        else:
+            amount = float(obj.amount)
         referee_discount = verify_referee_discount(obj.celebrity_id)
-        net_amount = float(obj.amount) * (referee_discount / 100.0)
+        net_amount = float(amount) * (referee_discount / 100.0)
         return str(round(net_amount, 2))
 
 
