@@ -25,15 +25,13 @@ phases:
       - echo New hotfix branch ${HOTFIX}
       - export CODEPIPELINE=`cat .codepipeline`
       - echo Codepipeline version ${CODEPIPELINE}
-  post_build:
-    commands:
-    - echo Writing artifacts...
-    - cat parameters.json | jq ".Parameters.Version = \"${CODEPIPELINE}\"" > codepipeline.json
-    - aws ssm get-parameter --name /codepipeline/backend/hotfix.json | jq -r .Parameter.Value | jq ".Parameters.Version = \"${HOTFIX}\" | .Parameters.GitBranch = \"${HOTFIX}\" | .Parameters.BaseImageTag = \"${BASE_IMAGE_TAG}\"" > hotfix.json
-    - cat codepipeline.json hotfix.json
-    - echo Updating SSM...
-    - aws ssm put-parameter --name /codepipeline/backend/codepipeline.json --type String --overwrite --value file://./codepipeline.json
-    - aws ssm put-parameter --name /codepipeline/backend/hotfix.json --type String --overwrite --value file://./hotfix.json
+      - echo Writing artifacts...
+      - cat parameters.json | jq ".Parameters.Version = \"${CODEPIPELINE}\"" > codepipeline.json
+      - aws ssm get-parameter --name /codepipeline/backend/hotfix.json | jq -r .Parameter.Value | jq ".Parameters.Version = \"${HOTFIX}\" | .Parameters.GitBranch = \"${HOTFIX}\" | .Parameters.BaseImageTag = \"${BASE_IMAGE_TAG}\"" > hotfix.json
+      - cat codepipeline.json hotfix.json
+      - echo Updating SSM...
+      - aws ssm put-parameter --name /codepipeline/backend/codepipeline.json --type String --overwrite --value file://./codepipeline.json
+      - aws ssm put-parameter --name /codepipeline/backend/hotfix.json --type String --overwrite --value file://./hotfix.json
 artifacts:
   files:
   - hotfix.json
