@@ -17,7 +17,7 @@ phases:
       - echo Reading parameters from SSM...
       - aws ssm get-parameter --name ${PARAMETERS} | jq -r .Parameter.Value > parameters.json
       - cat parameters.json
-      - export VERSION=`cat parameters.json | jq -r .Parameters.Version`
+      - export VERSION=1.3
       - export GIT_BRANCH=`cat parameters.json | jq -r .Parameters.GitBranch`
       - export BASE_IMAGE_TAG=`cat parameters.json | jq -r .Parameters.BaseImageTag`
       - aws/scripts/release.sh 'git@github.com:Starsona/backend.git'
