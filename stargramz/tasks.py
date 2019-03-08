@@ -46,8 +46,13 @@ def cancel_starsona_celebrity_no_response():
     requests = Stargramrequest.objects.filter(
         Q(request_status__in=[2, 3]) &
         Q(created_date__lt=timezone.now() - datetime.timedelta(days=REQUEST_CANCEL_DAYS)))
+    non_expiring_request_count = Stargramrequest.objects.filter(request_status__in=[2, 3]).exclude(created_date__lt=timezone.now() - datetime.timedelta(days=REQUEST_CANCEL_DAYS)).count()
     for request in requests:
         print(request.id)
+        if request.celebrity.unseen_bookings > 0:
+            if request.celebrity.unseen_bookings > non_expiring_request_count:
+                request.celebrity.unseen_bookings = request.celebrity.unseen_bookings - 1
+                request.celebrity.save()
         Stargramrequest.objects.filter(pk=request.id).update(
             request_status=STATUS_TYPES.cancelled,
             comment=REQUEST_CANCEL_COMMENT % request.celebrity.get_short_name()
