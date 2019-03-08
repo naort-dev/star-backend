@@ -40,7 +40,7 @@ def get_user_role_details(user):
     if mappings:
         mapping = mappings[0]
         role = {
-            'id': mapping.id,
+            'id': encode_pk(mapping.id),
             'role_code': mapping.role.code,
             'role_name': mapping.role.role_display(),
             'is_complete': mapping.is_complete

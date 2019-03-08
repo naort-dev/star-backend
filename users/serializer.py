@@ -18,7 +18,7 @@ from django.utils import timezone
 from .constants import LINK_EXPIRY_DAY, ROLE_ERROR_CODE, EMAIL_ERROR_CODE, NEW_OLD_SAME_ERROR_CODE, \
     OLD_PASSWORD_ERROR_CODE, PROFILE_PHOTO_REMOVED, MAX_RATING_VALUE, MIN_RATING_VALUE, FIRST_NAME_ERROR_CODE
 from utilities.utils import CustomModelSerializer, get_pre_signed_get_url, datetime_range, get_s3_public_url,\
-    get_user_id, get_bucket_url
+    get_user_id, get_bucket_url, encode_pk
 import re
 from utilities.permissions import CustomValidationError, error_function
 from rest_framework import status
@@ -33,7 +33,7 @@ hashids = Hashids(min_length=8)
 
 
 class ProfilePictureSerializer(serializers.ModelSerializer):
-    id = serializers.CharField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
     photo = serializers.CharField(read_only=True)
     thumbnail = serializers.CharField(read_only=True)
     image_url = serializers.SerializerMethodField('get_s3_image_url')
@@ -58,6 +58,9 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
         else:
             return None
 
+    def get_id(self, obj):
+        return encode_pk(obj.id)
+
 
 class RoleDetailSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=True)
@@ -70,6 +73,7 @@ class RoleDetailSerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    id = serializers.SerializerMethodField(read_only=True)
     email = serializers.EmailField(required=True, allow_blank=False)
     password = serializers.CharField(required=True, allow_blank=False, write_only=True)
     authentication_token = serializers.CharField(read_only=True)
@@ -125,6 +129,9 @@ class RegisterSerializer(serializers.ModelSerializer):
             return VanityUrl.objects.values_list('name', flat=True).get(user=obj.id)
         except Exception:
             return ''
+
+    def get_id(self, obj):
+        return encode_pk(obj.id)
 
     def get_images(self, obj):
         exclude_ids = []
@@ -218,6 +225,7 @@ def create_referral(referral_code, user):
 
 
 class LoginSerializer(serializers.ModelSerializer):
+    id = serializers.SerializerMethodField(read_only=True)
     username = serializers.CharField(required=True, allow_blank=False, write_only=True)
     password = serializers.CharField(required=True, allow_blank=False, write_only=True)
     first_name = serializers.CharField(read_only=True)
@@ -236,6 +244,9 @@ class LoginSerializer(serializers.ModelSerializer):
 
     def validate_username(self, value):
         return value.lower()
+
+    def get_id(self, obj):
+        return encode_pk(obj.id)
 
     def validate(self, data):
         user = authenticate(username=data.get('username'), password=data['password'])
@@ -733,6 +744,7 @@ class HasGroupAccountSerializer(serializers.BooleanField):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    id = serializers.SerializerMethodField(read_only=True)
     celebrity_user = CelebritySerializer(read_only=True)
     celebrity_follow = serializers.SerializerMethodField(read_only=True, required=False)
     celebrity_profession = CelebrityProfessionSerializer(read_only=True, many=True)
@@ -762,11 +774,36 @@ class UserSerializer(serializers.ModelSerializer):
                 return False
         return None
 
+    def get_id(self, obj):
+        return encode_pk(obj.id)
+
     class Meta:
         model = StargramzUser
         fields = ('id', 'first_name', 'last_name', 'nick_name', 'celebrity_user', 'images', 'celebrity_profession',
                   'celebrity_follow', 'avatar_photo', 'show_nick_name', 'get_short_name', 'featured_photo', 'user_id',
                   'group_type', 'has_group_account')
+
+
+class CelebrityRatingSerializerEncoder(serializers.ModelSerializer):
+    celebrity = serializers.SerializerMethodField(read_only=True)
+    fan = serializers.SerializerMethodField(read_only=True)
+    starsona = serializers.SerializerMethodField(read_only=True)
+    comments = serializers.CharField(max_length=260, allow_blank=True, required=False)
+    overall_rating = serializers.DecimalField(read_only=True, max_digits=6, decimal_places=2,
+                                              source="celebrity.celebrity_user.rating")
+
+    class Meta:
+        model = FanRating
+        fields = ('fan', 'celebrity', 'comments', 'reason', 'overall_rating', 'fan_rate', 'starsona')
+
+    def get_celebrity(self, obj):
+        return encode_pk(obj.celebrity.id)
+
+    def get_fan(self, obj):
+        return encode_pk(obj.fan.id)
+
+    def get_starsona(self, obj):
+        return encode_pk(obj.starsona.id)
 
 
 class CelebrityRatingSerializer(serializers.ModelSerializer):
@@ -807,11 +844,15 @@ class SuggestionSerializer(serializers.ModelSerializer):
     user_id = serializers.CharField(read_only=True, source="vanity_urls.name")
     has_group_account = HasGroupAccountSerializer(read_only=True)
     group_type = serializers.CharField(read_only=True, source="group_account.group_type")
+    id = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = StargramzUser
         fields = ('id', 'first_name', 'last_name', 'nick_name', 'get_short_name', 'celebrity_profession',
                   'avatar_photo', 'user_id', 'has_group_account', 'group_type')
+
+    def get_id(self, obj):
+        return encode_pk(obj.id)
 
 
 class DeviceTokenSerializer(serializers.ModelSerializer):
@@ -819,6 +860,17 @@ class DeviceTokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = DeviceTokens
         fields = ('device_type', 'device_id', 'device_token')
+
+
+class NotificationSettingsSerializerEncode(CustomModelSerializer):
+    user = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = SettingsNotifications
+        fields = '__all__'
+
+    def get_user(self, obj):
+        return encode_pk(obj.user.id)
 
 
 class NotificationSettingsSerializer(CustomModelSerializer):

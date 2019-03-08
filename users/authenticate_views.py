@@ -6,7 +6,7 @@ from users.models import StargramzUser, Profession, CelebrityFollow, CelebrityVi
     CelebrityAvailableAlert, GroupType, SocialMediaLinks, TwitterKey
 from utilities.utils import SendMail, get_user_role_details, ROLES, check_user_role, change_fcm_device_status, \
     check_celebrity_profile_exist, generate_branch_io_url, get_pre_signed_post_url, check_group_account_profile_exist,\
-    is_following_group_account
+    is_following_group_account, decode_pk
 from django.template.loader import get_template
 import uuid
 from users.constants import EMAIL_HOST_USER
@@ -55,7 +55,7 @@ class UserRegister(APIView, ResponseViewMixin):
                 role_details = get_user_role_details(user)
                 data = RegisterSerializer(user).data
                 (notifications, created) = SettingsNotifications.objects.get_or_create(user_id=user.id)
-                data['notification_settings'] = NotificationSettingsSerializer(notifications).data
+                data['notification_settings'] = NotificationSettingsSerializerEncode(notifications).data
                 data['role_details'] = role_details
                 return self.jp_response(s_code='HTTP_200_OK', data={'user': data})
             else:
@@ -82,7 +82,7 @@ class UserLogin(APIView, ResponseViewMixin):
             data['celebrity'] = check_celebrity_profile_exist(user)
 
             (notifications, created) = SettingsNotifications.objects.get_or_create(user_id=user.id)
-            data['notification_settings'] = NotificationSettingsSerializer(notifications).data
+            data['notification_settings'] = NotificationSettingsSerializerEncode(notifications).data
             if check_user_role(user, ROLES.celebrity) and data['role_details']['is_complete']:
                 celebrity_details = CelebrityManagement.retrieve_celebrity(self, user.id)
                 if getattr(status, celebrity_details['status']) == 200:
@@ -138,7 +138,7 @@ class SocialSignup(APIView, ResponseViewMixin):
                 data['role_details'] = role_details
                 data['celebrity'] = check_celebrity_profile_exist(user)
                 (notifications, created) = SettingsNotifications.objects.get_or_create(user_id=user.id)
-                data['notification_settings'] = NotificationSettingsSerializer(notifications).data
+                data['notification_settings'] = NotificationSettingsSerializerEncode(notifications).data
                 if check_user_role(user, ROLES.celebrity) and data['role_details']['is_complete']:
                     celebrity_details = CelebrityManagement.retrieve_celebrity(self, user.id)
                     if getattr(status, celebrity_details['status']) == 200:
@@ -211,7 +211,7 @@ class ResetPassword(APIView, ResponseViewMixin):
             Token.objects.filter(user=user).delete()
             (token, created) = Token.objects.get_or_create(user=user)
             data['authentication_token'] = token.key
-            data['id'] = user.id
+            data['id'] = encode_pk(user.id)
             data['user_id'] = hashids.encode(user.id)
             return self.jp_response(s_code='HTTP_200_OK', data={"details": data})
         else:
@@ -346,7 +346,7 @@ class NotificationSettings(APIView, ResponseViewMixin):
                                                                                         defaults=field_defaults)
             except Exception:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE', 'email already exist')
-            data = NotificationSettingsSerializer(notifications).data
+            data = NotificationSettingsSerializerEncode(notifications).data
             return self.jp_response(s_code='HTTP_200_OK', data={'notification_settings': data})
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE',
@@ -419,7 +419,7 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
             data['authentication_token'] = token.key
             data['unseen_bookings'] = user.unseen_bookings if user_logged_in == user.id else 0
             (notifications, created) = SettingsNotifications.objects.get_or_create(user_id=user.id)
-            data['notification_settings'] = NotificationSettingsSerializer(notifications).data
+            data['notification_settings'] = NotificationSettingsSerializerEncode(notifications).data
             celebrity_representatives = Representative.objects.filter(celebrity=pk)
             celebrity_data = CelebrityRepresentativeViewSerializer(celebrity_representatives, many=True).data
             data['celebrity_representatives'] = celebrity_data
@@ -478,7 +478,7 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
                         (token, created) = Token.objects.get_or_create(user=user.id)
                         data['authentication_token'] = token.key
                         (notifications, created) = SettingsNotifications.objects.get_or_create(user_id=user.id)
-                        data['notification_settings'] = NotificationSettingsSerializer(notifications).data
+                        data['notification_settings'] = NotificationSettingsSerializerEncode(notifications).data
                         response_data = {'user': data}
 
                         if check_celebrity_profile_exist(user):
@@ -503,7 +503,11 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
             user_id = VanityUrl.objects.values_list('user', flat=True).get(name=pk)
             return int(user_id)
         except Exception:
-            return pk
+            try:
+                pk = decode_pk(pk)
+                return pk
+            except Exception:
+                return pk
 
 
 
@@ -632,7 +636,11 @@ class AlertFan(APIView, ResponseViewMixin):
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
-        celebrity_id = request.data.get('celebrity', '')
+        try:
+            celebrity_id = request.data.get('celebrity', '')
+            celebrity_id = decode_pk(celebrity_id)
+        except Exception:
+            pass
         if celebrity_id and check_celebrity_profile_exist(celebrity_id):
             try:
                 CelebrityAvailableAlert.objects.get(Q(fan_id=request.user.id) &
@@ -959,7 +967,7 @@ class TwitterLogin(APIView, ResponseViewMixin):
             data['role_details'] = get_user_role_details(user)
             data['celebrity'] = check_celebrity_profile_exist(user)
             (notifications, created) = SettingsNotifications.objects.get_or_create(user_id=user.id)
-            data['notification_settings'] = NotificationSettingsSerializer(notifications).data
+            data['notification_settings'] = NotificationSettingsSerializerEncode(notifications).data
             user_data = {'login_details': data}
         except Exception:
             if not user_data.get('email'):
