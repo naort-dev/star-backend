@@ -1,0 +1,25 @@
+image: atlassian/default-image:2
+
+pipelines:
+  branches:
+    '{master,release/[0-9]*.[0-9]*}':
+    - step:
+        name: ZIP
+        script:
+          - rm -rf .artifacts && mkdir -p .artifacts/$(dirname ${BITBUCKET_BRANCH})
+          - mkdir .bitbucket
+          - echo ${BITBUCKET_COMMIT} > .bitbucket/BITBUCKET_COMMIT
+          - echo ${BITBUCKET_GIT_SSH_ORIGIN} > .bitbucket/BITBUCKET_GIT_SSH_ORIGIN
+          - zip -r .artifacts/${BITBUCKET_BRANCH}.zip . -x \*.artifacts\* -x \*.git\*
+        artifacts: 
+          - .artifacts/**
+    - step:
+        name: S3
+        script:
+          - pipe: atlassian/aws-s3-deploy:0.2.1
+            variables:
+              AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+              AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+              AWS_DEFAULT_REGION: "us-east-1"
+              S3_BUCKET: $S3_BUCKET_PATH/$BITBUCKET_REPO_SLUG
+              LOCAL_PATH: .artifacts

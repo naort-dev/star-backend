@@ -38,13 +38,14 @@ major=$(echo ${version} | cut -d. -f1)
 minor=$(echo ${version} | cut -d. -f2)
 patch=$(echo ${version} | cut -d. -f3)
 release=${major}.${minor}
+branch=release/${release}
 
 echo "Latest version on ${GIT_BRANCH}: ${major}.${minor}.${patch}"
-echo "Create hotfix branch: ${release} off ${major}.${minor}.${patch}"
-git checkout -b ${release} "${major}.${minor}.${patch}"
+echo "Create hotfix branch: ${branch} off ${major}.${minor}.${patch}"
+git checkout -b ${branch} "${major}.${minor}.${patch}"
 
-echo "Push hotfix branch ${release} to remote"
-git push origin ${release}
+echo "Push hotfix branch ${branch} to remote"
+git push origin ${branch}
 
 echo "Checkout ${GIT_BRANCH}"
 git checkout ${GIT_BRANCH}
@@ -63,5 +64,7 @@ rm -rf $(pwd)
 cd -
 
 echo "Writing artifacts file in current directory"
-echo "${major}.${minor}" > .codepipeline
-echo "${release}" > .hotfix
+echo "${major}.${minor}" > .master-version
+echo "${release}" > .hotfix-version
+echo "${branch}" > .hotfix-branch
+

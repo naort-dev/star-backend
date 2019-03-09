@@ -22,12 +22,14 @@ phases:
       - export VERSION=`cat parameters.json | jq -r .Parameters.Version`
       - export GIT_BRANCH=`cat parameters.json | jq -r .Parameters.GitBranch`
       - export BASE_IMAGE_TAG=`cat parameters.json | jq -r .Parameters.BaseImageTag`
+      - export CODEBUILD_RESOLVED_SOURCE_VERSION=`cat .bitbucket/BITBUCKET_COMMIT`
+      - export BITBUCKET_GIT_SSH_ORIGIN=`cat .bitbucket/BITBUCKET_GIT_SSH_ORIGIN`
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region ${AWS_DEFAULT_REGION})
   build:
     commands:
       - chmod +x aws/scripts/version.sh
-      - aws/scripts/version.sh 'git@github.com:Starsona/backend.git'
+      - aws/scripts/version.sh "${BITBUCKET_GIT_SSH_ORIGIN}"
       - export IMAGE_TAG=:`cat .version`
       - echo Building the Docker images version${IMAGE_TAG}...
       - chmod +x docker/build-docker-images.sh

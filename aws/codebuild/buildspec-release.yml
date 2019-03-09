@@ -20,14 +20,17 @@ phases:
       - export VERSION=`cat parameters.json | jq -r .Parameters.Version`
       - export GIT_BRANCH=`cat parameters.json | jq -r .Parameters.GitBranch`
       - export BASE_IMAGE_TAG=`cat parameters.json | jq -r .Parameters.BaseImageTag`
-      - aws/scripts/release.sh 'git@github.com:Starsona/backend.git'
-      - export HOTFIX=`cat .hotfix`
-      - echo New hotfix branch ${HOTFIX}
-      - export CODEPIPELINE=`cat .codepipeline`
+      - export CODEBUILD_RESOLVED_SOURCE_VERSION=`cat .bitbucket/BITBUCKET_COMMIT`
+      - export BITBUCKET_GIT_SSH_ORIGIN=`cat .bitbucket/BITBUCKET_GIT_SSH_ORIGIN`
+      - aws/scripts/release.sh "${BITBUCKET_GIT_SSH_ORIGIN}"
+      - export HOTFIX_VERSION=`cat .hotfix-version`
+      - export HOTFIX_BRANCH=`cat .hotfix-branch`
+      - echo New hotfix branch ${BRANCH} version ${HOTFIX}
+      - export MASTER_VERSION=`cat .master-version`
       - echo Codepipeline version ${CODEPIPELINE}
       - echo Writing artifacts...
-      - cat parameters.json | jq ".Parameters.Version = \"${CODEPIPELINE}\"" > codepipeline.json
-      - aws ssm get-parameter --name /codepipeline/backend/hotfix.json | jq -r .Parameter.Value | jq ".Parameters.Version = \"${HOTFIX}\" | .Parameters.GitBranch = \"${HOTFIX}\" | .Parameters.BaseImageTag = \"${BASE_IMAGE_TAG}\"" > hotfix.json
+      - cat parameters.json | jq ".Parameters.Version = \"${MASTER_VERSION}\"" > codepipeline.json
+      - aws ssm get-parameter --name /codepipeline/backend/hotfix.json | jq -r .Parameter.Value | jq ".Parameters.Version = \"${HOTFIX_VERSION}\" | .Parameters.GitBranch = \"${HOTFIX_BRANCH}\" | .Parameters.BaseImageTag = \"${BASE_IMAGE_TAG}\"" > hotfix.json
       - cat codepipeline.json hotfix.json
       - echo Updating SSM...
       - aws ssm put-parameter --name /codepipeline/backend/codepipeline.json --type String --overwrite --value file://./codepipeline.json
