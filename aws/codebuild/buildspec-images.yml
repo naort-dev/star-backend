@@ -9,7 +9,7 @@ phases:
     commands:
       - apt-get update && apt-get install -y openssh-client jq
       - mkdir -p ~/.ssh/ && chmod 700 ~/.ssh/
-      - aws ssm get-parameter --name /codebuild/github/backend/key.pem | jq -r .Parameter.Value > ~/.ssh/id_rsa
+      - aws ssm get-parameter --name /codebuild/bitbucket/key.pem | jq -r .Parameter.Value > ~/.ssh/id_rsa
       - chmod 600 ~/.ssh/id_rsa
   pre_build:
     commands:
