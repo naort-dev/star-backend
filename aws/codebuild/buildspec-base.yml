@@ -18,8 +18,6 @@ phases:
       - echo Building the Docker images...
       - chmod +x docker/build-docker-base.sh
       - docker/build-docker-base.sh
-  post_build:
-    commands:
       - echo Build completed on `date`
       - echo Pushing the Docker images...
       - docker push ${REGISTRY}base-os${IMAGE_TAG}

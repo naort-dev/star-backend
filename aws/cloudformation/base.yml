@@ -13,10 +13,6 @@ Parameters:
     Type: String
     Description: Git branch
 
-  GithubToken:
-    Type: String
-    Description: Github OAuth token
-
   CodebuildDockerImage:
     Type: String
     Description: Base image for codebuild - Docker
@@ -54,20 +50,18 @@ Resources:
           Name: Source
           Actions:
             -
-              Name: github
+              Name: bitbucket
               ActionTypeId:
                 Category: Source
-                Owner: ThirdParty
+                Owner: AWS
                 Version: 1
-                Provider: GitHub
+                Provider: S3
               OutputArtifacts:
                 - Name: source
               Configuration:
-                Owner: Starsona
-                Repo: backend
+                S3Bucket: bitbucket-us-east-1-219080120354
+                S3ObjectKey: !Join ['', ['backend/', !Ref 'GitBranch', '.zip']]
                 PollForSourceChanges: false
-                Branch: !Ref 'GitBranch'
-                OAuthToken: !Ref 'GithubToken'
               RunOrder: 1
         -
           Name: Approvals
