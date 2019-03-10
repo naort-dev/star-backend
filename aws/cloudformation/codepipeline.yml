@@ -13,10 +13,6 @@ Parameters:
     Type: String
     Description: Git branch
 
-  GithubToken:
-    Type: String
-    Description: Github OAuth token
-
   CodebuildDockerImage:
     Type: String
     Description: Base image for codebuild - Docker
@@ -153,7 +149,7 @@ Resources:
                 - Name: source
               Configuration:
                 S3Bucket: bitbucket-us-east-1-219080120354
-                S3ObjectKey: backend/master.zip
+                S3ObjectKey: !Join ['', ['backend/', !Ref 'GitBranch', '.zip']]
                 PollForSourceChanges: false
               RunOrder: 1
         -
