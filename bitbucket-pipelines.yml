@@ -10,6 +10,8 @@ pipelines:
           - mkdir .bitbucket
           - echo ${BITBUCKET_COMMIT} > .bitbucket/BITBUCKET_COMMIT
           - echo ${BITBUCKET_GIT_SSH_ORIGIN} > .bitbucket/BITBUCKET_GIT_SSH_ORIGIN
+          - echo ${BITBUCKET_GIT_HTTP_ORIGIN} > .bitbucket/BITBUCKET_GIT_HTTP_ORIGIN
+          - git show --stat ${BITBUCKET_COMMIT} > .bitbucket/BITBUCKET_COMMIT_STAT
           - zip -r .artifacts/${BITBUCKET_BRANCH}.zip . -x \*.artifacts\* -x \*.git\*
         artifacts: 
           - .artifacts/**
