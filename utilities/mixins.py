@@ -74,6 +74,8 @@ class ResponseViewMixin(object):
             if isinstance(v, dict):
                 v = self.error_msg_list(v)
             for msg in v:
+                msg = msg.replace("']", "")
+                msg = msg.replace("['", "")
                 errors_string = ''.join(str(msg))
         return errors_string
 
