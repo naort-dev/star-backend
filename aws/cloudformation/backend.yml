@@ -341,6 +341,7 @@ Resources:
     Properties:
       DBName: !Ref 'DatabaseName'
       AllocatedStorage: 5
+      StorageType: 'gp2'
       DBInstanceClass: !Ref 'DBInstanceClass'
       Engine: 'postgres'
       AllowMajorVersionUpgrade: True
