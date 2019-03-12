@@ -111,7 +111,7 @@ Resources:
         Type: S3
         Location: bitbucket-us-east-1-219080120354/backend/master.zip
         BuildSpec: aws/codebuild/buildspec-performance.yml
-      TimeoutInMinutes: 15
+      TimeoutInMinutes: 60
 
   RunMigrationsProduction:
     Type: AWS::CodeBuild::Project
