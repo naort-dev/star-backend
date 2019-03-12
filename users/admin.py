@@ -4,7 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib import admin
 from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profession, GroupAccountUser, GroupAccount,\
     UserRoleMapping, Celebrity, CelebrityProfession, SettingsNotifications, FanRating, Campaign, Referral, VanityUrl, \
-    CelebrityAvailableAlert, GroupType, CelebrityGroupAccount, Representative
+    CelebrityAvailableAlert, GroupType, CelebrityGroupAccount, Representative, AdminReferral
 from role.models import Role
 from payments.models import PaymentPayout, TipPayment
 from utilities.konstants import ROLES
@@ -556,6 +556,11 @@ class ReferralAdmin(ReadOnlyModelAdmin):
         return obj.referrer.get_short_name()
 
 
+class AdminReferralAdmin(ReadOnlyModelAdmin):
+    model = AdminReferral
+    list_display = ('id', 'referral_code', 'activate', 'created_date')
+
+
 admin.site.register(GroupType, GroupTypeAdmin)
 admin.site.register(Profession, ProfessionAdmin)
 admin.site.register(StargramzUser, StargramzUserAdmin)
@@ -568,3 +573,4 @@ admin.site.register(Campaign, CampaignAdmin)
 admin.site.register(Referral, ReferralAdmin)
 admin.site.register(CelebrityGroupAccount, JoinGroupAdmin)
 admin.site.register(CelebrityAvailableAlert, CelebrityAvailabilityAlertAdmin)
+admin.site.register(AdminReferral, AdminReferralAdmin)
