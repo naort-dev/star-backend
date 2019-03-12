@@ -70,7 +70,7 @@ Resources:
     Type: AWS::CodeBuild::Project
     Properties:
       Name: !Join ['-', [!Ref 'AWS::StackName', 'tests-staging']]
-      Description: Run migrations
+      Description: Run tests
       ServiceRole: arn:aws:iam::376169159073:role/service-role/codebuild-starsona-service-role
       Artifacts:
         Type: CODEPIPELINE
@@ -85,6 +85,31 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: aws/codebuild/buildspec-tests.yml
+      TimeoutInMinutes: 15
+
+  RunPerformanceStaging:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Join ['-', [!Ref 'AWS::StackName', 'performance-staging']]
+      Description: Run performance tests
+      ServiceRole: arn:aws:iam::376169159073:role/service-role/codebuild-starsona-service-role
+      Artifacts:
+        Type: S3
+        Location: performance-us-east-1-219080120354
+        Packaging: ZIP
+        NamespaceType: BUILD_ID
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: !Ref 'CodebuildUbuntuImage'
+        PrivilegedMode: false
+        EnvironmentVariables:
+        - { Name: ENV, Value: staging }
+
+      Source:
+        Type: S3
+        Location: bitbucket-us-east-1-219080120354/backend/master.zip
+        BuildSpec: aws/codebuild/buildspec-performance.yml
       TimeoutInMinutes: 15
 
   RunMigrationsProduction:

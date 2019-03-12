@@ -1,0 +1,24 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - apt-get update && apt-get install -y jq
+      - python3 -m pip install locustio
+      - chmod +x aws/scripts/run-ecs-task.sh
+  build:
+    commands:
+      - >
+        locust --locustfile=tests/locustfile.py \
+               --host='https://app.staging.starsona.com' \
+               --clients=10 --hatch-rate=1 \
+               --only-summary --no-web \
+               --csv=actual \
+               --run-time=10m
+      - python3 tests/report.py 'arn:aws:sns:us-east-1:376169159073:CodePipeline'
+artifacts:
+  files:
+  - actual_distribution.csv
+  - actual_requests.csv
+  - report_requests.html
+  discard-paths: yes
