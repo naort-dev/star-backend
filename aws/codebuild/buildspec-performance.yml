@@ -21,4 +21,5 @@ artifacts:
   - actual_distribution.csv
   - actual_requests.csv
   - report_requests.html
+  - .bitbucket/*
   discard-paths: yes

@@ -98,6 +98,7 @@ Resources:
         Location: performance-us-east-1-219080120354
         Packaging: ZIP
         NamespaceType: BUILD_ID
+        Name: performance.zip
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL

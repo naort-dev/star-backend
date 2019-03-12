@@ -1,5 +1,7 @@
 import jinja2, csv, boto3, sys, os
 from collections import OrderedDict
+from pathlib import Path
+
 CHARSET = "UTF-8"
 __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -102,9 +104,11 @@ if __name__ == '__main__':
 
     templateLoader = jinja2.FileSystemLoader(searchpath=__location__)
     templateEnv = jinja2.Environment(loader=templateLoader)
+    revision_url = '%s/commits/%s' % (Path('.bitbucket/BITBUCKET_GIT_HTTP_ORIGIN').read_text().strip(), Path('.bitbucket/BITBUCKET_COMMIT').read_text().strip())
+    commit_stat = Path('.bitbucket/BITBUCKET_COMMIT_STAT').read_text()
 
     template = templateEnv.get_template('template.html.jinja2')
-    outputText = template.render(lines=actual_lines, fieldnames=fieldnames1, diffs=diffs, result=result, threshold=threshold_percent)
+    outputText = template.render(lines=actual_lines, fieldnames=fieldnames1, diffs=diffs, result=result, threshold=threshold_percent, revision_url=revision_url, commit_stat=commit_stat)
     with open("report_requests.html", "w") as output:
         output.write(outputText)
     send('build@starsona.com', topic_arn, 'Performance test %s' % ('SUCCESSFUL' if result else 'FAILED'), outputText)
