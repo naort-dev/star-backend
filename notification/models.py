@@ -3,7 +3,7 @@ from users.models import StargramzUser, GroupType
 
 
 class Notification(models.Model):
-    user = models.ForeignKey(StargramzUser, related_name='notifcation_user', on_delete=models.PROTECT)
+    user = models.ForeignKey(StargramzUser, related_name='notifcation_user', on_delete=models.CASCADE)
     title = models.CharField(max_length=150)
     body = models.CharField(max_length=150)
     send_notification = models.BooleanField(default=False)
@@ -13,7 +13,7 @@ class Notification(models.Model):
 
 
 class GroupAdminNotification(models.Model):
-    user = models.ForeignKey(StargramzUser, related_name='group_requested_user', on_delete=models.PROTECT)
+    user = models.ForeignKey(StargramzUser, related_name='group_requested_user', on_delete=models.CASCADE)
     group_name = models.CharField(max_length=150, blank=True, null=True)
     content = models.TextField('contents', max_length=300, blank=True, null=True)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)

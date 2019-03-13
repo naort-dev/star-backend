@@ -213,7 +213,7 @@ class CelebrityUser(StargramzUser):
 
 
 class UserRoleMapping(models.Model):
-    user = models.ForeignKey(StargramzUser, related_name='stargramz_user', on_delete=models.PROTECT)
+    user = models.ForeignKey(StargramzUser, related_name='stargramz_user', on_delete=models.CASCADE)
     role = models.ForeignKey(Role, related_name='stargramz_role', on_delete=models.PROTECT)
     is_complete = models.BooleanField('Register Completed', default=False)
 
@@ -253,7 +253,7 @@ class Profession(models.Model):
 
 
 class Celebrity(models.Model):
-    user = models.OneToOneField('StargramzUser', related_name='celebrity_user', blank=False, on_delete=models.PROTECT)
+    user = models.OneToOneField('StargramzUser', related_name='celebrity_user', blank=False, on_delete=models.CASCADE)
     rate = models.DecimalField('Rate', max_digits=7, decimal_places=2, blank=False)
     in_app_price = models.DecimalField('Inapp Price', max_digits=7, decimal_places=2, blank=True, default=0.00,
                                       null=True)
@@ -332,7 +332,7 @@ class ProfessionsManager(models.Manager):
 
 
 class CelebrityProfession(models.Model):
-    user = models.ForeignKey('StargramzUser', related_name='celebrity_profession', blank=False, on_delete=models.PROTECT)
+    user = models.ForeignKey('StargramzUser', related_name='celebrity_profession', blank=False, on_delete=models.CASCADE)
     profession = models.ForeignKey('Profession', related_name='profession', blank=False, on_delete=models.PROTECT)
     created_date = models.DateTimeField(auto_now=True)
 
@@ -342,7 +342,7 @@ class CelebrityProfession(models.Model):
 
 
 class ProfileImage(models.Model):
-    user = models.ForeignKey('StargramzUser', related_name='images', on_delete=models.PROTECT)
+    user = models.ForeignKey('StargramzUser', related_name='images', on_delete=models.CASCADE)
     photo = models.CharField('Upload Image', max_length=600, null=True, blank=True)
     status = models.BooleanField(default=True)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
@@ -384,15 +384,15 @@ def save_rating_count(sender, instance, **kwargs):
 
 
 class CelebrityFollow(models.Model):
-    celebrity = models.ForeignKey('StargramzUser', related_name='celebrity_follow', on_delete=models.PROTECT)
-    fan = models.ForeignKey('StargramzUser', related_name='fan_user_follow', on_delete=models.PROTECT)
+    celebrity = models.ForeignKey('StargramzUser', related_name='celebrity_follow', on_delete=models.CASCADE)
+    fan = models.ForeignKey('StargramzUser', related_name='fan_user_follow', on_delete=models.CASCADE)
     is_group = models.BooleanField('Is Group account', default=False)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
 
 
 class CelebrityView(models.Model):
-    celebrity = models.ForeignKey('StargramzUser', related_name='celebrity_view', on_delete=models.PROTECT)
-    fan = models.ForeignKey('StargramzUser', related_name='fan_user_view', on_delete=models.PROTECT)
+    celebrity = models.ForeignKey('StargramzUser', related_name='celebrity_view', on_delete=models.CASCADE)
+    fan = models.ForeignKey('StargramzUser', related_name='fan_user_view', on_delete=models.CASCADE)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
 
 
@@ -402,15 +402,15 @@ def save_profile_view_count(sender, instance, **kwargs):
 
 
 class CelebrityAbuse(models.Model):
-    celebrity = models.ForeignKey('StargramzUser', related_name='celebrity_abuse', on_delete=models.PROTECT)
-    fan = models.ForeignKey('StargramzUser', related_name='fan_user_abuse', on_delete=models.PROTECT)
+    celebrity = models.ForeignKey('StargramzUser', related_name='celebrity_abuse', on_delete=models.CASCADE)
+    fan = models.ForeignKey('StargramzUser', related_name='fan_user_abuse', on_delete=models.CASCADE)
     abuse_comment = models.CharField(max_length=260)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
     status = models.BooleanField(default=False)
 
 
 class DeviceTokens(models.Model):
-    user = models.ForeignKey('StargramzUser', related_name='device_user', on_delete=models.PROTECT)
+    user = models.ForeignKey('StargramzUser', related_name='device_user', on_delete=models.CASCADE)
     device_type = models.CharField('Device Type', max_length=50)
     device_id = models.CharField('Device ID', max_length=255)
     device_token = models.CharField('Device Token', max_length=255)
@@ -418,7 +418,7 @@ class DeviceTokens(models.Model):
 
 
 class Notifications(models.Model):
-    user = models.ForeignKey('StargramzUser', related_name='notification_user', on_delete=models.PROTECT)
+    user = models.ForeignKey('StargramzUser', related_name='notification_user', on_delete=models.CASCADE)
     notification_type = models.IntegerField('Notification Type', choices=NOTIFICATION_TYPES.choices(), db_index=True)
     message_title = models.CharField('Message title', max_length=100)
     message_content = models.CharField('Message Content', max_length=255)
@@ -428,7 +428,7 @@ class Notifications(models.Model):
 
 
 class SettingsNotifications(models.Model):
-    user = models.ForeignKey('StargramzUser', related_name='settings_user', on_delete=models.PROTECT)
+    user = models.ForeignKey('StargramzUser', related_name='settings_user', on_delete=models.CASCADE)
     celebrity_starsona_request = models.BooleanField(default=True)
     celebrity_starsona_message = models.BooleanField(default=True)
     celebrity_account_updates = models.BooleanField(default=True)
@@ -446,8 +446,8 @@ class SettingsNotifications(models.Model):
 
 
 class CelebrityAvailableAlert(models.Model):
-    celebrity = models.ForeignKey('StargramzUser', related_name='alert_celebrity', on_delete=models.PROTECT)
-    fan = models.ForeignKey('StargramzUser', related_name='alert_fan', on_delete=models.PROTECT)
+    celebrity = models.ForeignKey('StargramzUser', related_name='alert_celebrity', on_delete=models.CASCADE)
+    fan = models.ForeignKey('StargramzUser', related_name='alert_fan', on_delete=models.CASCADE)
     notification_send = models.BooleanField('Notification Send', default=False)
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
@@ -471,8 +471,8 @@ class Campaign(models.Model):
 
 
 class Referral(models.Model):
-    referrer = models.ForeignKey('StargramzUser', related_name='refer_referrer', on_delete=models.PROTECT)
-    referee = models.ForeignKey('StargramzUser', related_name='refer_referee', on_delete=models.PROTECT)
+    referrer = models.ForeignKey('StargramzUser', related_name='refer_referrer', on_delete=models.CASCADE)
+    referee = models.ForeignKey('StargramzUser', related_name='refer_referee', on_delete=models.CASCADE)
     source = models.CharField('Source', max_length=100)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
 
@@ -482,7 +482,7 @@ class Referral(models.Model):
 
 class VanityUrl(models.Model):
     name = models.CharField('Name', unique=True, max_length=100)
-    user = models.OneToOneField('StargramzUser', related_name='vanity_urls', blank=False, on_delete=models.PROTECT)
+    user = models.OneToOneField('StargramzUser', related_name='vanity_urls', blank=False, on_delete=models.CASCADE)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
 
 
@@ -515,7 +515,7 @@ class GroupType(models.Model):
 
 
 class GroupAccount(models.Model):
-    user = models.OneToOneField('StargramzUser', related_name='group_account', blank=False, on_delete=models.PROTECT)
+    user = models.OneToOneField('StargramzUser', related_name='group_account', blank=False, on_delete=models.CASCADE)
     contact_first_name = models.CharField('Contact first name', max_length=260, blank=True, null=True)
     contact_last_name = models.CharField('Contact last name', max_length=260, blank=True, null=True)
     follow_count = models.IntegerField('Followers', default=0, blank=True)
@@ -565,8 +565,8 @@ class GroupAccountUser(StargramzUser):
 
 
 class CelebrityGroupAccount(models.Model):
-    user = models.ForeignKey('StargramzUser', related_name='celebrity_account', blank=False, on_delete=models.PROTECT)
-    account = models.ForeignKey('StargramzUser', related_name='account_user', blank=False, on_delete=models.PROTECT)
+    user = models.ForeignKey('StargramzUser', related_name='celebrity_account', blank=False, on_delete=models.CASCADE)
+    account = models.ForeignKey('StargramzUser', related_name='account_user', blank=False, on_delete=models.CASCADE)
     approved = models.BooleanField('Admin Approved', default=False)
     celebrity_invite = models.BooleanField('Celebrity Invitation', default=False)
     order = models.IntegerField('list order', blank=True, null=True)
@@ -594,7 +594,7 @@ def group_notification_updater(sender, instance, created, **kwargs):
 
 
 class SocialMediaLinks(models.Model):
-    user = models.ForeignKey('StargramzUser', related_name='user_social_links', blank=False, on_delete=models.PROTECT)
+    user = models.ForeignKey('StargramzUser', related_name='user_social_links', blank=False, on_delete=models.CASCADE)
     social_link_key = models.CharField('Social media name', blank=False, max_length=255)
     social_link_value = models.CharField('Social media URL', blank=True, max_length=255)
     created_date = models.DateTimeField('Created date', auto_now_add=True)
@@ -605,7 +605,7 @@ class SocialMediaLinks(models.Model):
 
 
 class Representative(models.Model):
-    celebrity = models.ForeignKey('StargramzUser', related_name='celebrity_representative', blank=False, on_delete=models.PROTECT)
+    celebrity = models.ForeignKey('StargramzUser', related_name='celebrity_representative', blank=False, on_delete=models.CASCADE)
     first_name = models.CharField('First Name', max_length=128)
     last_name = models.CharField('Last Name', max_length=128, blank=True, null=True)
     email = models.EmailField('Email', blank=True, null=True, db_index=True)

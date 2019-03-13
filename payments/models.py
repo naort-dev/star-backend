@@ -49,8 +49,8 @@ class LogEvent(models.Model):
 
 class StarsonaTransaction(models.Model):
     starsona = models.ForeignKey(Stargramrequest, related_name='request_transaction', blank=False, null=False, on_delete=models.PROTECT)
-    fan = models.ForeignKey(StargramzUser, related_name='charge_fan_user', on_delete=models.PROTECT)
-    celebrity = models.ForeignKey(StargramzUser, related_name='charge_celebrity_user', on_delete=models.PROTECT)
+    fan = models.ForeignKey(StargramzUser, related_name='charge_fan_user', on_delete=models.CASCADE)
+    celebrity = models.ForeignKey(StargramzUser, related_name='charge_celebrity_user', on_delete=models.CASCADE)
     amount = models.DecimalField('amount', max_digits=7, decimal_places=2, blank=False, null=False)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
     modified_date = models.DateTimeField('Modified Date', auto_now=True)
@@ -75,7 +75,7 @@ class StarsonaTransaction(models.Model):
 
 class StripeAccount(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    celebrity = models.ForeignKey(StargramzUser, related_name='stripe_celebrity_user', on_delete=models.PROTECT)
+    celebrity = models.ForeignKey(StargramzUser, related_name='stripe_celebrity_user', on_delete=models.CASCADE)
     status = models.BooleanField('Status', default=False)
     response = models.TextField('Response', max_length=1500, blank=True)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
@@ -85,7 +85,7 @@ class PaymentPayout(models.Model):
     transaction = models.ForeignKey('StarsonaTransaction', related_name='transaction_payout', on_delete=models.PROTECT)
     status = models.IntegerField('Transaction Status', choices=PAYOUT_STATUS.choices(),
                                  default=PAYOUT_STATUS.pending, db_index=True)
-    celebrity = models.ForeignKey(StargramzUser, related_name='payout_celebrity', on_delete=models.PROTECT)
+    celebrity = models.ForeignKey(StargramzUser, related_name='payout_celebrity', on_delete=models.CASCADE)
     fan_charged = models.DecimalField('Fan Charged', max_digits=7, decimal_places=2)
     stripe_processing_fees = models.DecimalField('Stripe charges', max_digits=7, decimal_places=2)
     starsona_company_charges = models.DecimalField('Starsona company charges', max_digits=7, decimal_places=2)
@@ -103,8 +103,8 @@ class PaymentPayout(models.Model):
 
 class TipPayment(models.Model):
     booking = models.ForeignKey(Stargramrequest, related_name='tip_payment', blank=False, null=False, on_delete=models.PROTECT)
-    fan = models.ForeignKey(StargramzUser, related_name='tip_fan', on_delete=models.PROTECT)
-    celebrity = models.ForeignKey(StargramzUser, related_name='tip_celebrity', on_delete=models.PROTECT)
+    fan = models.ForeignKey(StargramzUser, related_name='tip_fan', on_delete=models.CASCADE)
+    celebrity = models.ForeignKey(StargramzUser, related_name='tip_celebrity', on_delete=models.CASCADE)
     amount = models.DecimalField('amount', max_digits=7, decimal_places=2, blank=False, null=False)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
     modified_date = models.DateTimeField('Modified Date', auto_now=True)
