@@ -5,7 +5,8 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from utilities.pagination import CustomOffsetPagination
-from .models import StargramzUser, Celebrity, UserRoleMapping, Role, CelebrityProfession, Campaign, Representative
+from .models import StargramzUser, Celebrity, UserRoleMapping, Role, CelebrityProfession, Campaign, Representative,\
+    AdminReferral
 from config.models import Config
 from .serializer import CelebrityProfileSerializer, CelebrityProfessionSerializer, ReferralUserSerializer, \
     CelebrityRepresentativeSerializer, CelebrityRepresentativeViewSerializer
@@ -51,7 +52,11 @@ class CelebrityManagement(APIView, ResponseViewMixin):
                 if roles_mapping.role.code == ROLES.fan:
                     celebrity.has_fan_account = True
                 # Celebrity approval by default
-                celebrity.admin_approval = True
+                try:
+                    AdminReferral.objects.get(referral_code=user.admin_approval_referral_code, activate=True)
+                    celebrity.admin_approval = True
+                except Exception:
+                    pass
                 celebrity.save()
                 roles_mapping.is_complete = True
                 roles_mapping.role_id = role_id
