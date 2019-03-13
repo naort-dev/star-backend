@@ -384,6 +384,8 @@ Resources:
     Type: "AWS::CertificateManager::Certificate"
     Properties:
       DomainName: 'hotfix.starsona.com'
+      SubjectAlternativeNames:
+      - 'www.hotfix.starsona.com'
       DomainValidationOptions:
       - DomainName: 'hotfix.starsona.com'
         ValidationDomain: !Ref 'ValidationDomain'
