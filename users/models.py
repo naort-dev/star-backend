@@ -134,7 +134,8 @@ class StargramzUser(AbstractBaseUser, PermissionsMixin):
     stripe_user_id = models.CharField('Stripe User ID', max_length=150, blank=True, null=True)
     check_payments = models.BooleanField('Check Payment', default=False)
     group_notification = models.IntegerField('Group invite/support count', default=0)
-    admin_approval_referral_code = models.CharField('Approval referral code', max_length=100, blank=True, null=True)
+    admin_approval_referral_code = models.ForeignKey('AdminReferral', blank=True, null=True,
+                                                     related_name='admin_referral', on_delete=models.PROTECT)
 
     objects = StargramzUserManager()
 

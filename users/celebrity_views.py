@@ -53,7 +53,7 @@ class CelebrityManagement(APIView, ResponseViewMixin):
                     celebrity.has_fan_account = True
                 # Celebrity approval by default
                 try:
-                    AdminReferral.objects.get(referral_code=user.admin_approval_referral_code, activate=True)
+                    AdminReferral.objects.get(id=user.admin_approval_referral_code_id, activate=True)
                     celebrity.admin_approval = True
                 except Exception:
                     pass
@@ -235,6 +235,8 @@ class ReferralValidate(APIView, ResponseViewMixin):
     def post(self, request):
         try:
             referral_code = request.data.get('referral_code').upper() if request.data.get('referral_code', None) else None
+            if AdminReferral.objects.filter(referral_code=referral_code, activate=True).count() > 0:
+                return self.jp_response(s_code='HTTP_200_OK', data={'message': 'Valid promo code'})
             StargramzUser.objects.values_list('id', flat=True).get(referral_code=referral_code, referral_active=True)
             return self.jp_response(s_code='HTTP_200_OK', data={'message': 'Valid promo code'})
         except StargramzUser.DoesNotExist:

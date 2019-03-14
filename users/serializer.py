@@ -10,7 +10,7 @@ from config.models import Config
 from config.constants import *
 from .models import StargramzUser, SIGN_UP_SOURCE_CHOICES, Celebrity, Profession, UserRoleMapping, ProfileImage, \
     CelebrityAbuse, CelebrityProfession, CelebrityFollow, DeviceTokens, SettingsNotifications, FanRating, Referral,\
-    VanityUrl, GroupAccount, GroupType, CelebrityGroupAccount, SocialMediaLinks, Representative
+    VanityUrl, GroupAccount, GroupType, CelebrityGroupAccount, SocialMediaLinks, Representative, AdminReferral
 from .impersonators import IMPERSONATOR
 from role.models import Role
 from datetime import datetime, timedelta
@@ -148,8 +148,14 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         try:
             user = StargramzUser.objects.create(username=email, email=email, nick_name=nick_name,
-                                                first_name=first_name, last_name=last_name,
-                                                admin_approval_referral_code=referral_code)
+                                                first_name=first_name, last_name=last_name)
+
+            try:
+                referral = AdminReferral.objects.get(referral_code=referral_code, activate=True)
+                user.admin_approval_referral_code = referral
+                user.save()
+            except Exception:
+                pass
             user.show_nick_name = True if nick_name else False
             if dob:
                 user.date_of_birth = dob
@@ -343,8 +349,15 @@ class SocialSignupSerializer(serializers.ModelSerializer):
                 user = StargramzUser.objects.create(username=email, email=email, first_name=first_name,
                                                     last_name=last_name, sign_up_source=sign_up_source,
                                                     profile_photo=profile_photo, nick_name=nick_name,
-                                                    fb_id=fb_id, gp_id=gp_id, in_id=in_id, tw_id=tw_id,
-                                                    admin_approval_referral_code=referral_code)
+                                                    fb_id=fb_id, gp_id=gp_id, in_id=in_id, tw_id=tw_id)
+
+                try:
+                    referral = AdminReferral.objects.get(referral_code=referral_code, activate=True)
+                    user.admin_approval_referral_code = referral
+                    user.save()
+                except Exception:
+                    pass
+
                 if dob:
                     user.date_of_birth = dob
                 user.show_nick_name = True if nick_name else False
