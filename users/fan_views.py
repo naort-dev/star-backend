@@ -6,10 +6,10 @@ from .models import StargramzUser, UserRoleMapping, FanRating, Celebrity, Celebr
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 from .serializer import CelebrityRatingSerializer, UserSerializer, CelebrityFollowSerializer, \
-    CelebrityAbuseSerializer, SuggestionSerializer
+    CelebrityAbuseSerializer, SuggestionSerializer, CelebrityRatingSerializerEncoder
 from decimal import Decimal
 from math import ceil
-from utilities.utils import ROLES
+from utilities.utils import ROLES, decode_pk, encode_pk
 from utilities.pagination import CustomOffsetPagination
 import ast
 from django.db.models import Q, F, Value, Case, When, Sum
@@ -189,6 +189,14 @@ class CelebrityRate(APIView, ResponseViewMixin):
         """
         celebrity_id = request.data['celebrity']
         try:
+            request.data['celebrity'] = celebrity_id = decode_pk(celebrity_id)
+        except Exception:
+            pass
+        try:
+            request.data["starsona"] = decode_pk(request.data["starsona"])
+        except Exception:
+            pass
+        try:
             fan = StargramzUser.objects.get(username=request.user)
             request.data['fan'] = fan.id
         except StargramzUser.DoesNotExist:
@@ -208,7 +216,7 @@ class CelebrityRate(APIView, ResponseViewMixin):
                 fan_id=fan.id, celebrity_id=celebrity_user.user_id, starsona_id=request.data['starsona'],
                 defaults=fields)
             self.calculate(celebrity_user)
-            data = CelebrityRatingSerializer(celebrity_fan_rating).data
+            data = CelebrityRatingSerializerEncoder(celebrity_fan_rating).data
             return self.jp_response('HTTP_200_OK', data={"fan_rating": data})
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN',
@@ -242,6 +250,11 @@ class CelebrityProfileFollow(APIView, ResponseViewMixin):
         except StargramzUser.DoesNotExist:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
         try:
+            celebrity = request.data['celebrity']
+            request.data['celebrity'] = decode_pk(request.data['celebrity'])
+        except Exception:
+            celebrity = encode_pk(request.data['celebrity'])
+        try:
             celebrity_user = Celebrity.objects.get(user_id=request.data['celebrity'])
         except Celebrity.DoesNotExist:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', 'Invalid Celebrity User')
@@ -262,7 +275,7 @@ class CelebrityProfileFollow(APIView, ResponseViewMixin):
             celebrity_user.follow_count = stargramz_count
             celebrity_user.save()
             return self.jp_response(s_code='HTTP_200_OK',
-                                    data={'follow_response': {'celebrity_user': request.data['celebrity'],
+                                    data={'follow_response': {'celebrity_user': celebrity,
                                           'follow': follow, 'total_fans': stargramz_count}})
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CREATE',
@@ -283,6 +296,11 @@ class CelebrityFanAbuse(APIView, ResponseViewMixin):
         except StargramzUser.DoesNotExist:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
         try:
+            celebrity = request.data['celebrity']
+            request.data['celebrity'] = decode_pk(request.data['celebrity'])
+        except Exception:
+            celebrity = encode_pk(request.data['celebrity'])
+        try:
             celebrity_user = Celebrity.objects.get(user_id=request.data['celebrity'])
         except Celebrity.DoesNotExist:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', 'Invalid Celebrity User')
@@ -295,7 +313,7 @@ class CelebrityFanAbuse(APIView, ResponseViewMixin):
         if serializer.is_valid():
             celebirty_abuse = serializer.save()
             return self.jp_response(s_code='HTTP_200_OK',
-                                    data={'celebrity_abuse_response': {'celebrity_user': celebirty_abuse.celebrity_id,
+                                    data={'celebrity_abuse_response': {'celebrity_user': celebrity,
                                                                        'abuse_comment': celebirty_abuse.abuse_comment}})
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CREATE',

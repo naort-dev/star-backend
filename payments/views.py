@@ -26,6 +26,7 @@ from .tasks import change_request_status_to_pending, tip_payments_payout, transa
     credit_card_maintenance_notification
 from datetime import datetime, timedelta
 from config.constants import *
+from utilities.utils import decode_pk
 
 API_KEY = SECRET_KEY
 stripe.api_key = API_KEY
@@ -101,6 +102,10 @@ class CreateChargeFan(APIView, ResponseViewMixin):
         """
         customer = StargramzUser.objects.get(username=request.user)
         request.data['fan'] = customer.id
+        try:
+            request.data['starsona'] = decode_pk(request.data['starsona'])
+        except:
+            pass
         serializer = ChargeSerializer(data=request.data)
         if serializer.is_valid():
             try:
@@ -536,6 +541,12 @@ class TipPayments(APIView, ResponseViewMixin):
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', str(e))
         request.data['fan'] = customer.id
+
+        try:
+            request.data['booking'] = decode_pk(request.data['booking'])
+        except Exception:
+            pass
+
         serializer = BookingValidate(data=request.data)
         if serializer.is_valid():
             try:

@@ -4,13 +4,13 @@ from .models import Occasion, Stargramrequest, StargramVideo, OccasionRelationsh
 from config.models import Config
 from config.constants import *
 import json
-from utilities.utils import CustomModelSerializer, get_pre_signed_get_url, get_s3_public_url, get_bucket_url
+from utilities.utils import CustomModelSerializer, get_pre_signed_get_url, get_s3_public_url, get_bucket_url, encode_pk
 from .constants import REQUEST_STATUS_CHOICES, REQUEST_EDIT_ALLOWED_TIME
 from utilities.constants import BASE_URL, SHORT_BASE_URL, SHORT_WEB_URL
 from payments.models import StarsonaTransaction
 from django.utils import timezone
 import datetime
-from users.serializer import ProfilePictureSerializer, CelebrityRatingSerializer, CelebrityProfessionSerializer
+from users.serializer import ProfilePictureSerializer, CelebrityRatingSerializerEncoder, CelebrityProfessionSerializer
 from users.models import ProfileImage, FanRating, CelebrityProfession, StargramzUser, CelebrityFollow, VanityUrl
 from payments.models import StarsonaTransaction, TipPayment
 from django.db.models import Q
@@ -56,7 +56,7 @@ class StargramzVideoSerializer(CustomModelSerializer):
     last_name = serializers.CharField(read_only=True, source="stragramz_request.celebrity.last_name")
     full_name = serializers.CharField(read_only=True, source="stragramz_request.celebrity.get_short_name")
     fan_name = serializers.CharField(read_only=True, source="stragramz_request.fan.get_short_name")
-    celebrity_id = serializers.IntegerField(read_only=True, source="stragramz_request.celebrity.id")
+    celebrity_id = serializers.SerializerMethodField(read_only=True)
     booking_id = serializers.SerializerMethodField(read_only=True)
     booking_type = serializers.IntegerField(read_only=True, source="stragramz_request.request_type")
     avatar_photo = ProfilePictureSerializer(read_only=True, source="stragramz_request.celebrity.avatar_photo")
@@ -153,6 +153,9 @@ class StargramzVideoSerializer(CustomModelSerializer):
                 pass
         return occasion.title
 
+    def get_celebrity_id(self, obj):
+        return encode_pk(obj.stragramz_request.celebrity.id)
+
 
 class StargramzSerializer(serializers.ModelSerializer):
     from_audio_file = serializers.FileField(required=False)
@@ -175,6 +178,8 @@ class StargramzSerializer(serializers.ModelSerializer):
     created_date = serializers.SerializerMethodField(read_only=True)
     booking_id = serializers.SerializerMethodField(read_only=True)
     request_status = serializers.SerializerMethodField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
+    celebrity_id = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Stargramrequest
@@ -279,11 +284,18 @@ class StargramzSerializer(serializers.ModelSerializer):
                 query = FanRating.objects.filter(Q(fan_id=obj.fan_id) &
                                                  Q(celebrity_id=obj.celebrity_id) &
                                                  Q(starsona_id=obj.id))[0]
-                serializer = CelebrityRatingSerializer(query)
+                serializer = CelebrityRatingSerializerEncoder(query)
                 return serializer.data
             except Exception:
                 return None
         return None
+
+    def get_id(self, obj):
+        return encode_pk(obj.id)
+
+    def get_celebrity_id(self, obj):
+        return encode_pk(obj.celebrity.id)
+
 
 class StargramzRetrieveSerializer(StargramzSerializer):
     from_audio_file = serializers.SerializerMethodField()
@@ -312,6 +324,7 @@ class StargramzRetrieveSerializer(StargramzSerializer):
 
 class TransactionStargramzSerializer(serializers.ModelSerializer):
     request_details = serializers.SerializerMethodField()
+    id = serializers.SerializerMethodField(read_only=True)
     occasion = serializers.CharField(read_only=True, source="occasion.title")
     fan = serializers.CharField(read_only=True, source="fan.get_short_name")
 
@@ -323,6 +336,9 @@ class TransactionStargramzSerializer(serializers.ModelSerializer):
         if obj.request_details:
             return json.loads(obj.request_details)
         return None
+
+    def get_id(self, obj):
+        return encode_pk(obj.id)
 
 
 class RequestStatusSerializer(serializers.Serializer):

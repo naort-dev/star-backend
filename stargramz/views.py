@@ -13,7 +13,7 @@ from config.models import Config
 from config.constants import *
 from utilities.constants import BASE_URL
 from users.models import StargramzUser, Celebrity, UserRoleMapping, ProfileImage, VanityUrl, FanRating
-from users.serializer import CelebrityRatingSerializer
+from users.serializer import CelebrityRatingSerializer, CelebrityRatingSerializerEncoder
 import json
 from .models import Stargramrequest, StargramVideo, OccasionRelationship, Occasion, STATUS_TYPES, REQUEST_TYPES,\
     VIDEO_STATUS, Comment, Reaction, ReactionAbuse
@@ -21,7 +21,7 @@ from rest_framework.viewsets import ViewSet, GenericViewSet
 from utilities.pagination import CustomOffsetPagination
 import datetime
 from utilities.utils import datetime_range, get_pre_signed_get_url, check_user_role, upload_image_s3,\
-    get_s3_public_url, sent_email, decode_pk
+    get_s3_public_url, sent_email, decode_pk, encode_pk
 from utilities.permissions import CustomPermission
 from rest_framework.decorators import action
 from django.db.models import Q
@@ -65,6 +65,10 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
         """
             Create a Stargramz Request and Audio file save
         """
+        try:
+            request.data['celebrity'] = decode_pk(request.data['celebrity'])
+        except Exception:
+            pass
         mutable = request.data._mutable
         request.data._mutable = True
         request.data['occasion'] = request.data['occasion'] if 'occasion' in request.data and\
@@ -159,6 +163,12 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
         """
             Update a Stargramz Request
         """
+
+        try:
+            pk = hashids.decode(pk)[0]
+        except Exception:
+            pk = pk
+
         mutable = request.data._mutable
         request.data._mutable = True
         request.data['occasion'] = request.data['occasion'] if 'occasion' in request.data and \
@@ -290,6 +300,11 @@ class ChangeRequestStatus(APIView, ResponseViewMixin):
             user = StargramzUser.objects.get(username=request.user)
         except StargramzUser.DoesNotExist:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
+
+        try:
+            request.data['id'] = decode_pk(request.data['id'])
+        except Exception:
+            pass
         serializer = RequestStatusSerializer(data=request.data)
         if serializer.is_valid():
             try:
@@ -330,14 +345,14 @@ class ChangeRequestStatus(APIView, ResponseViewMixin):
                         starsona_transaction.transaction_status = TRANSACTION_STATUS.cancelled
                         starsona_transaction.save()
                 if user.id == star_request.celebrity.id:
-                    data = {'id': star_request.id, 'type': NOTIFICATION_TYPES.fan_celebrity_cancelled_details,
+                    data = {'id': encode_pk(star_request.id), 'type': NOTIFICATION_TYPES.fan_celebrity_cancelled_details,
                             'role': ROLES.fan}
                     send_notification.delay(star_request.fan.id,
                                             NOTIFICATION_REQUEST_CELEBRITY_CANCEL_TITLE,
                                             NOTIFICATION_REQUEST_CELEBRITY_CANCEL_BODY,
                                             data, field='fan_starsona_videos')
                 else:
-                    data = {'id': star_request.id, 'type': NOTIFICATION_TYPES.fan_celebrity_cancelled_details,
+                    data = {'id': encode_pk(star_request.id), 'type': NOTIFICATION_TYPES.fan_celebrity_cancelled_details,
                             'role': ROLES.celebrity}
                     send_notification.delay(star_request.celebrity.id,
                                             NOTIFICATION_REQUEST_FAN_CANCEL_TITLE,
@@ -494,6 +509,10 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
         """
             Create an Stargramz Video
         """
+        try:
+            request.data['stragramz_request'] = decode_pk(request.data['stragramz_request'])
+        except Exception:
+            pass
         try:
             booking = Stargramrequest.objects.get(id=request.data['stragramz_request'])
         except Stargramrequest.DoesNotExist:
@@ -802,7 +821,10 @@ class RequestReportAbuse(APIView, ResponseViewMixin):
             user = StargramzUser.objects.get(username=request.user)
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.error_msg_string(str(e)))
-
+        try:
+            request.data['request'] = decode_pk(request.data['request'])
+        except:
+            pass
         try:
             Stargramrequest.objects.get(
                 Q(id=request.data['request'])
@@ -1006,12 +1028,17 @@ class BookingFeedbackView(APIView, ResponseViewMixin):
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
 
         try:
+            request.data['booking'] = decode_pk(request.data['booking'])
+        except:
+            pass
+
+        try:
             booking, celebrity = Stargramrequest.objects.values_list('id', 'celebrity').get(id=request.data.get('booking'))
         except Stargramrequest.DoesNotExist as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
         try:
             fan_rated = FanRating.objects.filter(starsona=booking)[0]
-            data = CelebrityRatingSerializer(fan_rated).data
+            data = CelebrityRatingSerializerEncoder(fan_rated).data
             return self.jp_response('HTTP_200_OK', data={"feedback": data})
         except Exception:
             request.data['user'] = user.id
@@ -1032,7 +1059,7 @@ class BookingFeedbackView(APIView, ResponseViewMixin):
                     fan_id=user.id, celebrity_id=celebrity, starsona_id=booking,
                     defaults=fields)
                 booking_feedback_celebrity_notification.delay(booking, fields)
-                data = CelebrityRatingSerializer(rating_record).data
+                data = CelebrityRatingSerializerEncoder(rating_record).data
                 return self.jp_response('HTTP_200_OK', data={"feedback": data})
             else:
                 errors = reaction.errors if reaction.errors else rating.errors
