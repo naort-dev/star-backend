@@ -66,64 +66,68 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
             Create a Stargramz Request and Audio file save
         """
         try:
-            request.data['celebrity'] = decode_pk(request.data['celebrity'])
-        except Exception:
-            pass
-        mutable = request.data._mutable
-        request.data._mutable = True
-        request.data['occasion'] = request.data['occasion'] if 'occasion' in request.data and\
-                                                               len(request.data['occasion']) > 0 else 34
-        try:
-            occasions = Occasion.objects.get(id=request.data['occasion']).title
-        except Exception:
-            occasions = 'Occasion'
-        request.data['public_request'] = True if 'public_request' not in request.data \
-            else request.data['public_request'].title()
-        try:
-            fanuser = StargramzUser.objects.get(username=request.user)
-            request.data['fan'] = fanuser.id
-        except StargramzUser.DoesNotExist:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
-        try:
-            celebrity = Celebrity.objects.get(user_id=request.data['celebrity'])
-        except Celebrity.DoesNotExist:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Not an celebrity user')
+            try:
+                request.data['celebrity'] = decode_pk(request.data['celebrity'])
+            except Exception:
+                pass
+            mutable = request.data._mutable
+            request.data._mutable = True
+            request.data['occasion'] = request.data['occasion'] if 'occasion' in request.data and\
+                                                                   len(request.data['occasion']) > 0 else 34
+            try:
+                occasions = Occasion.objects.get(id=request.data['occasion']).title
+            except Exception:
+                occasions = 'Occasion'
+            request.data['public_request'] = True if 'public_request' not in request.data \
+                else request.data['public_request'].title()
+            try:
+                fanuser = StargramzUser.objects.get(username=request.user)
+                request.data['fan'] = fanuser.id
+            except StargramzUser.DoesNotExist:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
+            try:
+                celebrity = Celebrity.objects.get(user_id=request.data['celebrity'])
+            except Celebrity.DoesNotExist:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Not an celebrity user')
 
-        if celebrity.remaining_limit == 0:
-            return self.jp_error_response(
-                'HTTP_400_BAD_REQUEST',
-                'INVALID_SIGNUP',
-                'Celebrities booking limit has reached.'
-            )
+            if celebrity.remaining_limit == 0:
+                return self.jp_error_response(
+                    'HTTP_400_BAD_REQUEST',
+                    'INVALID_SIGNUP',
+                    'Celebrities booking limit has reached.'
+                )
 
-        request.data['booking_title'] = self.generate_title(request.data, celebrity, occasions)
-        request.POST._mutable = mutable
-        serializer = StargramzSerializer(data=request.data)
-        if serializer.is_valid():
-            request_created = serializer.save()
-            process_audio = False
+            request.data['booking_title'] = self.generate_title(request.data, celebrity, occasions)
+            request.POST._mutable = mutable
+            serializer = StargramzSerializer(data=request.data)
+            if serializer.is_valid():
+                request_created = serializer.save()
+                process_audio = False
 
-            for INPUT_FILE_LABEL in INPUT_FILE_LABELS:
-                if INPUT_FILE_LABEL in request.FILES:
-                    file = request.FILES[INPUT_FILE_LABEL]
-                    # file_extension = self.mime_type_validation_and_extension(file)
-                    filename, file_extension = os.path.splitext(str(file))
-                    if not file_extension:
-                        request_created.delete()
-                        return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CREATE',
-                                                      'File Type not of able choices')
-                    file_name = self.handle_uploaded_file(file, str(file_extension))
-                    if str(file_extension) == '.webm':
-                        process_audio = True
-                    setattr(request_created, INPUT_FILE_LABEL, file_name)
-                    request_created.save()
-            if process_audio:
-                convert_audio.delay(request_created.id)
-            data = StargramzRetrieveSerializer(request_created).data
-            return self.jp_response('HTTP_200_OK', data={'stargramz_response': data})
-        else:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN',
-                                          self.error_msg_string(serializer.errors))
+                for INPUT_FILE_LABEL in INPUT_FILE_LABELS:
+                    if INPUT_FILE_LABEL in request.FILES:
+                        file = request.FILES[INPUT_FILE_LABEL]
+                        # file_extension = self.mime_type_validation_and_extension(file)
+                        filename, file_extension = os.path.splitext(str(file))
+                        if not file_extension:
+                            request_created.delete()
+                            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CREATE',
+                                                          'File Type not of able choices')
+                        file_name = self.handle_uploaded_file(file, str(file_extension))
+                        if str(file_extension) == '.webm':
+                            process_audio = True
+                        setattr(request_created, INPUT_FILE_LABEL, file_name)
+                        request_created.save()
+                if process_audio:
+                    convert_audio.delay(request_created.id)
+                data = StargramzRetrieveSerializer(request_created).data
+                return self.jp_response('HTTP_200_OK', data={'stargramz_response': data})
+            else:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN',
+                                              self.error_msg_string(serializer.errors))
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', str(e))
+
 
     def handle_uploaded_file(self, file, file_extension):
         FILE_SAVE = AUDIO_SAVE
