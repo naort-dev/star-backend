@@ -226,6 +226,7 @@ class UserRoleMapping(models.Model):
 
 class Profession(models.Model):
     title = models.CharField('title', max_length=250)
+    description = models.CharField('description', max_length=350, blank=True, null=True)
     file = models.FileField(blank=True, null=True)
     parent = models.ForeignKey('self', blank=True, null=True, related_name='child', on_delete=models.CASCADE)
     order = models.IntegerField('list order', blank=True, null=True)

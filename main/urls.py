@@ -56,6 +56,7 @@ urlpatterns = [
     url(r'^download/(?P<id>[0-9a-zA-Z]{5,8})$', utils.download_video),
     url(r'^download_reactions/(?P<id>[0-9a-zA-Z]{5,8})$', utils.download_reaction_file),
     url(r'^health', health),
+    url(r'^api/v2/', include('versioned.v2.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -241,9 +241,12 @@ class Professions(APIView, ResponseViewMixin):
     """
         Get all the Professions for Celebrities
     """
+    def __init__(self, *args, **kwargs):
+        self.profession = Profession.objects.filter(parent__isnull=True)
+        super().__init__(*args, **kwargs)
+
     def get(self, request, *args, **kwargs):
-        profession = Profession.objects.filter(parent__isnull=True)
-        profession_data = ProfessionSerializer(profession, many=True)
+        profession_data = ProfessionSerializer(self.profession, many=True)
         return self.jp_response(s_code='HTTP_200_OK', data={'professions': profession_data.data})
 
 
@@ -251,10 +254,13 @@ class FilterProfessions(GenericViewSet, ResponseViewMixin):
     """
         Get the filtered list of Profession
     """
-    def list(self, request):
+    def __init__(self, *args, **kwargs):
         query_set = CelebrityProfession.active_professions.all()
-        profession = Profession.objects.filter(id__in=query_set, parent__isnull=True)
-        profession_data = ProfessionFilterSerializer(profession, many=True)
+        self.profession = Profession.objects.filter(id__in=query_set, parent__isnull=True)
+        super().__init__(*args, **kwargs)
+
+    def list(self, request):
+        profession_data = ProfessionFilterSerializer(self.profession, many=True)
         return self.jp_response(s_code='HTTP_200_OK', data={'filtered-professions': profession_data.data})
 
 
