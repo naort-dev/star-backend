@@ -171,6 +171,10 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
 
         mutable = request.data._mutable
         request.data._mutable = True
+        try:
+            request.data['celebrity'] = decode_pk(request.data['celebrity'])
+        except Exception:
+            pass
         request.data['occasion'] = request.data['occasion'] if 'occasion' in request.data and \
                                                                len(request.data['occasion']) > 0 else 34
         request.data['public_request'] = True if 'public_request' not in request.data \
