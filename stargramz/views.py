@@ -65,12 +65,12 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
         """
             Create a Stargramz Request and Audio file save
         """
+        mutable = request.data._mutable
+        request.data._mutable = True
         try:
             request.data['celebrity'] = decode_pk(request.data['celebrity'])
         except Exception:
             pass
-        mutable = request.data._mutable
-        request.data._mutable = True
         request.data['occasion'] = request.data['occasion'] if 'occasion' in request.data and\
                                                                len(request.data['occasion']) > 0 else 34
         try:
