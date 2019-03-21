@@ -399,14 +399,14 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
 
 
 class ProfessionAdmin(ReadOnlyModelAdmin):
-    list_display = ('id', 'title', 'parent', 'order')
+    list_display = ('id', 'title', 'description', 'parent', 'order')
     search_fields = ('title',)
     ordering = ('title',)
     list_per_page = 10
     ordering = ['order', ]
 
     def get_fieldsets(self, request, obj=None):
-        fields = ('title', 'parent', 'file')
+        fields = ('title', 'description', 'parent', 'file')
         fields = fields + ('order',) if not obj else fields
         if obj and not obj.parent:
             fields = fields + ('order',)
