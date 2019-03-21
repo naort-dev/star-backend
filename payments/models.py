@@ -48,7 +48,7 @@ class LogEvent(models.Model):
 
 
 class StarsonaTransaction(models.Model):
-    starsona = models.ForeignKey(Stargramrequest, related_name='request_transaction', blank=False, null=False, on_delete=models.PROTECT)
+    starsona = models.ForeignKey(Stargramrequest, related_name='request_transaction', blank=False, null=False, on_delete=models.CASCADE)
     fan = models.ForeignKey(StargramzUser, related_name='charge_fan_user', on_delete=models.CASCADE)
     celebrity = models.ForeignKey(StargramzUser, related_name='charge_celebrity_user', on_delete=models.CASCADE)
     amount = models.DecimalField('amount', max_digits=7, decimal_places=2, blank=False, null=False)
@@ -82,7 +82,7 @@ class StripeAccount(models.Model):
 
 
 class PaymentPayout(models.Model):
-    transaction = models.ForeignKey('StarsonaTransaction', related_name='transaction_payout', on_delete=models.PROTECT)
+    transaction = models.ForeignKey('StarsonaTransaction', related_name='transaction_payout', on_delete=models.CASCADE)
     status = models.IntegerField('Transaction Status', choices=PAYOUT_STATUS.choices(),
                                  default=PAYOUT_STATUS.pending, db_index=True)
     celebrity = models.ForeignKey(StargramzUser, related_name='payout_celebrity', on_delete=models.CASCADE)
@@ -102,7 +102,7 @@ class PaymentPayout(models.Model):
 
 
 class TipPayment(models.Model):
-    booking = models.ForeignKey(Stargramrequest, related_name='tip_payment', blank=False, null=False, on_delete=models.PROTECT)
+    booking = models.ForeignKey(Stargramrequest, related_name='tip_payment', blank=False, null=False, on_delete=models.CASCADE)
     fan = models.ForeignKey(StargramzUser, related_name='tip_fan', on_delete=models.CASCADE)
     celebrity = models.ForeignKey(StargramzUser, related_name='tip_celebrity', on_delete=models.CASCADE)
     amount = models.DecimalField('amount', max_digits=7, decimal_places=2, blank=False, null=False)
