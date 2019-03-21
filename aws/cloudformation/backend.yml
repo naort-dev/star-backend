@@ -159,6 +159,21 @@ Parameters:
     MaxValue: 10
     Description: "The number of Cache Nodes the Cache Cluster should have"
 
+  ESInstanceType:
+    Description: The instance type for elasticsearch.
+    Type: String
+    Default: t2.small.elasticsearch
+
+  ESClusterInstanceCount:
+    Description: The number of data nodes for elasticsearch
+    Type: Number
+    Default: 2
+
+  ESDedicatedMasterCount:
+    Description: The number of dedicated master nodes for elasticsearch
+    Type: Number
+    Default: 2
+
 Conditions:
   ManagedBucket: !Not [ !Equals [!Ref 'BucketName', 'starsona'] ]
   ManagedIdentityPool:  !Equals [!Ref 'IdentityPoolId', '']
@@ -396,6 +411,56 @@ Resources:
            - Fn::GetAZs: {Ref: 'AWS::Region'}
 
   #--------------------------------------------------------------------------------------------------------------------
+  # ELASTICSEARCH
+  #
+  #--------------------------------------------------------------------------------------------------------------------
+
+  ElasticsearchSLR:
+    Type: 'AWS::IAM::ServiceLinkedRole'
+    Properties:
+      AWSServiceName: es.amazonaws.com
+      Description: 'Role for ES to access resources in my VPC'
+
+  ElasticsearchDomain:
+    Type: 'AWS::Elasticsearch::Domain'
+    DependsOn: ElasticsearchSLR
+    Properties:
+      AccessPolicies:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            AWS: '*'
+          Action:
+          - 'es:ESHttp*'
+          Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${AWS::StackName}/*'
+      DomainName: !Ref 'AWS::StackName'
+      EBSOptions:
+        EBSEnabled: true
+        VolumeSize: 10
+        VolumeType: gp2
+      ElasticsearchClusterConfig:
+        DedicatedMasterCount: !Ref ESDedicatedMasterCount
+        DedicatedMasterEnabled: true
+        DedicatedMasterType: !Ref ESInstanceType
+        InstanceCount: !Ref ESClusterInstanceCount
+        InstanceType: !Ref ESInstanceType
+        ZoneAwarenessEnabled: true
+      ElasticsearchVersion: '6.4'
+      SnapshotOptions:
+        AutomatedSnapshotStartHour: 0
+      VPCOptions:
+        SecurityGroupIds:
+        - Fn::ImportValue:
+            !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
+        SubnetIds:
+        - Fn::ImportValue:
+            !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
+        - Fn::ImportValue:
+            !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
+
+
+  #--------------------------------------------------------------------------------------------------------------------
   # GUNICORN
   # Backend running behind InternalLB:9003
   #--------------------------------------------------------------------------------------------------------------------
@@ -458,6 +523,7 @@ Resources:
           - { Name: SLACK_USERNAME, Value: !Ref 'SlackUsername' }
           - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
           - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
+          - { Name: ELASTICSEARCH_ENDPOINT, !GetAtt 'ElasticsearchDomain.DomainEndpoint' }
 
   BackendService:
     Type: AWS::ECS::Service
@@ -609,6 +675,7 @@ Resources:
           - { Name: SLACK_USERNAME, Value: !Ref 'SlackUsername' }
           - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
           - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
+          - { Name: ELASTICSEARCH_ENDPOINT, !GetAtt 'ElasticsearchDomain.DomainEndpoint' }
 
   CeleryBeatService:
     Type: AWS::ECS::Service
@@ -688,6 +755,7 @@ Resources:
           - { Name: SLACK_USERNAME, Value: !Ref 'SlackUsername' }
           - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
           - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
+          - { Name: ELASTICSEARCH_ENDPOINT, !GetAtt 'ElasticsearchDomain.DomainEndpoint' }
 
   CeleryWorkerService:
     Type: AWS::ECS::Service
@@ -767,6 +835,7 @@ Resources:
            - { Name: SLACK_USERNAME, Value: !Ref 'SlackUsername' }
            - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
            - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
+           - { Name: ELASTICSEARCH_ENDPOINT, !GetAtt 'ElasticsearchDomain.DomainEndpoint' }
            - { Name: MAX_IDLE, Value: 300 }
            - { Name: MIN_COUNT, Value: 0 }
            - Name: ECS_CLUSTER
@@ -904,6 +973,7 @@ Resources:
           - { Name: DATABASE_USER, Value: !Ref 'DatabaseUser' }
           - { Name: DATABASE_PASSWORD, Value: !Ref 'DatabasePassword' }
           - { Name: AWS_STORAGE_BUCKET_NAME, Value: !Ref 'BucketName' }
+          - { Name: ELASTICSEARCH_ENDPOINT, !GetAtt 'ElasticsearchDomain.DomainEndpoint' }
 
   LoadDataTaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -937,6 +1007,7 @@ Resources:
           - { Name: AWS_STORAGE_BUCKET_NAME, Value: !Ref 'BucketName' }
           - { Name: ADMIN_USERNAME, Value: !Ref 'AdminUsername' }
           - { Name: ADMIN_PASSWORD, Value: !Ref 'AdminPassword' }
+          - { Name: ELASTICSEARCH_ENDPOINT, !GetAtt 'ElasticsearchDomain.DomainEndpoint' }
 
   RunTestsTaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -991,6 +1062,7 @@ Resources:
         - { Name: SLACK_USERNAME, Value: !Ref 'SlackUsername' }
         - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
         - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
+        - { Name: ELASTICSEARCH_ENDPOINT, !GetAtt 'ElasticsearchDomain.DomainEndpoint' }
 
   #--------------------------------------------------------------------------------------------------------------------
   # S3 Bucket
@@ -1011,10 +1083,10 @@ Resources:
           AllowedHeaders: [ "Authorization" ]
           MaxAge: "3000"
     DeletionPolicy: Delete
-  
+
   PublicProfileImages:
     Type: AWS::S3::BucketPolicy
-    Properties: 
+    Properties:
       Bucket: !Ref 'BucketName'
       PolicyDocument:
         Statement:
@@ -1225,3 +1297,8 @@ Outputs:
     Condition: ManagedIdentityPool
     Export:
       Name: !Join [ ':', [ !Ref 'AWS::StackName', 'CognitoIdentityPool' ] ]
+  ElasticsearchEndpoint:
+    Description: "Amazon ES domain endpoint"
+    Value: !GetAtt 'ElasticsearchDomain.DomainEndpoint'
+    Export:
+      Name: !Join [ ':', [ !Ref 'AWS::StackName', 'ElasticsearchEndpoint' ] ]
