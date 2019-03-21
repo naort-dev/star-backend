@@ -98,8 +98,8 @@ class Occasion(models.Model):
 
 
 class OrderRelationship(models.Model):
-    relation = models.ForeignKey('OccasionRelationship', related_name='through_relation', on_delete=models.PROTECT)
-    occasion = models.ForeignKey('Occasion', related_name='through_occasion', on_delete=models.PROTECT)
+    relation = models.ForeignKey('OccasionRelationship', related_name='through_relation', on_delete=models.CASCADE)
+    occasion = models.ForeignKey('Occasion', related_name='through_occasion', on_delete=models.CASCADE)
     order = models.IntegerField(default=0)
 
     class Meta:
@@ -108,7 +108,7 @@ class OrderRelationship(models.Model):
 
 class Stargramrequest(models.Model):
     booking_title = models.CharField('Booking title', max_length=255, blank=True, null=True)
-    occasion = models.ForeignKey('Occasion', related_name='request_occasion', blank=True, null=True, on_delete=models.PROTECT)
+    occasion = models.ForeignKey('Occasion', related_name='request_occasion', blank=True, null=True, on_delete=models.CASCADE)
     fan = models.ForeignKey('users.StargramzUser', related_name='request_fan', on_delete=models.CASCADE)
     celebrity = models.ForeignKey('users.StargramzUser', related_name='request_celebrity', on_delete=models.CASCADE)
     request_details = models.TextField(name='request_details')
@@ -214,7 +214,7 @@ def update_remaining_limits(sender, instance, **kwargs):
 
 
 class StargramVideo(models.Model):
-    stragramz_request = models.ForeignKey('Stargramrequest', related_name='request_video', on_delete=models.PROTECT)
+    stragramz_request = models.ForeignKey('Stargramrequest', related_name='request_video', on_delete=models.CASCADE)
     video = models.CharField('Request Video', max_length=600, null=True, blank=True)
     thumbnail = models.CharField('Thumbnail Image', max_length=600, null=True, blank=True)
     duration = models.TimeField('Duration', blank=True, null=True)
@@ -240,9 +240,9 @@ class StargramVideo(models.Model):
 
 
 class ReportAbuse(models.Model):
-    request = models.ForeignKey('Stargramrequest', related_name='request_abuse', on_delete=models.PROTECT)
+    request = models.ForeignKey('Stargramrequest', related_name='request_abuse', on_delete=models.CASCADE)
     comments = models.TextField('Comments')
-    reported_by = models.ForeignKey('users.StargramzUser', related_name='reported_user', on_delete=models.PROTECT)
+    reported_by = models.ForeignKey('users.StargramzUser', related_name='reported_user', on_delete=models.CASCADE)
     read_flag = models.BooleanField('Verified abuse', default=False)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
 
@@ -257,10 +257,10 @@ def verify_abuse_reported(sender, instance, **kwargs):
 
 
 class Comment(models.Model):
-    video = models.ForeignKey('StargramVideo', related_name='comment_video', on_delete=models.PROTECT)
+    video = models.ForeignKey('StargramVideo', related_name='comment_video', on_delete=models.CASCADE)
     comments = models.TextField('Comments')
-    user = models.ForeignKey('users.StargramzUser', related_name='commented_user', on_delete=models.PROTECT)
-    reply = models.ForeignKey('self', blank=True, null=True, related_name='reply_comment', on_delete=models.PROTECT)
+    user = models.ForeignKey('users.StargramzUser', related_name='commented_user', on_delete=models.CASCADE)
+    reply = models.ForeignKey('self', blank=True, null=True, related_name='reply_comment', on_delete=models.CASCADE)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
 
     def __str__(self):
@@ -279,7 +279,7 @@ def update_comments_count(sender, instance, **kwargs):
 
 
 class Reaction(models.Model):
-    booking = models.ForeignKey('Stargramrequest', related_name='booking_reaction', on_delete=models.PROTECT)
+    booking = models.ForeignKey('Stargramrequest', related_name='booking_reaction', on_delete=models.CASCADE)
     user = models.ForeignKey('users.StargramzUser', related_name='user_reaction', on_delete=models.CASCADE)
     file_type = models.IntegerField('File type', choices=FILE_TYPES.choices())
     reaction_file = models.CharField('Reaction File', max_length=600, blank=False)
@@ -310,7 +310,7 @@ class BookingAdminAdd(Stargramrequest):
 
 
 class ReactionAbuse(models.Model):
-    reaction = models.ForeignKey('Reaction', related_name='reaction_abuse', on_delete=models.PROTECT)
+    reaction = models.ForeignKey('Reaction', related_name='reaction_abuse', on_delete=models.CASCADE)
     comments = models.TextField('Comments')
     reported_by = models.ForeignKey('users.StargramzUser', related_name='abuse_reported_user', on_delete=models.CASCADE)
     read_flag = models.BooleanField('Verified abuse', default=False)

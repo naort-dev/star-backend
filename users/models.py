@@ -129,7 +129,7 @@ class StargramzUser(AbstractBaseUser, PermissionsMixin):
     order = models.IntegerField('list order', blank=True, null=True)
     referral_active = models.BooleanField('Activate referral for this user', default=False)
     referral_code = models.CharField('Referral Code', max_length=25, blank=True, null=True)
-    referral_campaign = models.ForeignKey('Campaign', blank=True, null=True, related_name='campaign', on_delete=models.PROTECT)
+    referral_campaign = models.ForeignKey('Campaign', blank=True, null=True, related_name='campaign', on_delete=models.CASCADE)
     has_requested_referral = models.BooleanField('Referral requested', default=False)
     stripe_user_id = models.CharField('Stripe User ID', max_length=150, blank=True, null=True)
     check_payments = models.BooleanField('Check Payment', default=False)
@@ -214,7 +214,7 @@ class CelebrityUser(StargramzUser):
 
 class UserRoleMapping(models.Model):
     user = models.ForeignKey(StargramzUser, related_name='stargramz_user', on_delete=models.CASCADE)
-    role = models.ForeignKey(Role, related_name='stargramz_role', on_delete=models.PROTECT)
+    role = models.ForeignKey(Role, related_name='stargramz_role', on_delete=models.CASCADE)
     is_complete = models.BooleanField('Register Completed', default=False)
 
     class Meta:
@@ -227,7 +227,7 @@ class UserRoleMapping(models.Model):
 class Profession(models.Model):
     title = models.CharField('title', max_length=250)
     file = models.FileField(blank=True, null=True)
-    parent = models.ForeignKey('self', blank=True, null=True, related_name='child', on_delete=models.PROTECT)
+    parent = models.ForeignKey('self', blank=True, null=True, related_name='child', on_delete=models.CASCADE)
     order = models.IntegerField('list order', blank=True, null=True)
 
     class Meta:
@@ -333,7 +333,7 @@ class ProfessionsManager(models.Manager):
 
 class CelebrityProfession(models.Model):
     user = models.ForeignKey('StargramzUser', related_name='celebrity_profession', blank=False, on_delete=models.CASCADE)
-    profession = models.ForeignKey('Profession', related_name='profession', blank=False, on_delete=models.PROTECT)
+    profession = models.ForeignKey('Profession', related_name='profession', blank=False, on_delete=models.CASCADE)
     created_date = models.DateTimeField(auto_now=True)
 
     objects = models.Manager()
@@ -361,7 +361,7 @@ class FanRating(models.Model):
     fan_rate = models.DecimalField('Fan rating', max_digits=4, decimal_places=2, blank=True, default=0.00,
                                    validators=[MinValueValidator(MIN_RATING_VALUE),
                                                MaxValueValidator(MAX_RATING_VALUE)])
-    starsona = models.ForeignKey(Stargramrequest, related_name='request_rating', on_delete=models.PROTECT)
+    starsona = models.ForeignKey(Stargramrequest, related_name='request_rating', on_delete=models.CASCADE)
     reason = models.CharField('Reason', max_length=260, blank=True)
     comments = models.CharField('Comments', max_length=260, blank=True)
     created_date = models.DateTimeField('Created date', auto_now_add=True)
@@ -519,7 +519,7 @@ class GroupAccount(models.Model):
     contact_first_name = models.CharField('Contact first name', max_length=260, blank=True, null=True)
     contact_last_name = models.CharField('Contact last name', max_length=260, blank=True, null=True)
     follow_count = models.IntegerField('Followers', default=0, blank=True)
-    group_type = models.ForeignKey(GroupType, related_name='group_account_type', blank=False, on_delete=models.PROTECT)
+    group_type = models.ForeignKey(GroupType, related_name='group_account_type', blank=False, on_delete=models.CASCADE)
     description = models.TextField('Description', blank=True)
     tags = models.CharField('Tags', max_length=260, blank=True, null=True)
     website = models.CharField('Website', max_length=260, blank=True, null=True)
