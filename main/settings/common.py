@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     'metrics',
     'django_nose',
     'django_slack',
-    'versioned.v2',
+    'versioned.v2.users',
 ]
 
 MIDDLEWARE = [
