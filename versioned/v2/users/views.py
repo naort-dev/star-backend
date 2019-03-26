@@ -36,7 +36,7 @@ class CelebritySuggestionListV2(APIView, ResponseViewMixin):
     """
     def get(self, request):
         filter_by_name = request.GET.get('s', None)
-        connections.create_connection()
+        connections.create_connection(hosts=[os.environ.get('ELASTICSEARCH_ENDPOINT')])
         client = Elasticsearch(hosts=[os.environ.get('ELASTICSEARCH_ENDPOINT')])
         if filter_by_name:
             query_str = Q(
