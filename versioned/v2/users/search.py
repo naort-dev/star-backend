@@ -28,8 +28,8 @@ class Celebrities(DocType):
 
 
 def bulk_indexing():
-    Professions.init(index=ES_PROFESSION_INDEX)
     es = Elasticsearch(hosts=[os.environ.get('ELASTICSEARCH_ENDPOINT')])
+    Professions.init(index=ES_PROFESSION_INDEX)
     bulk(client=es, actions=(profession_indexing(profession) for profession in Profession.objects.all().iterator()))
     Celebrities.init(index=ES_CELEBRITY_INDEX)
     bulk(client=es, actions=(
