@@ -462,7 +462,7 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
 
         if logged_in_user != pk:
             try:
-                CelebrityView.objects.filter(fan_id=logged_in_user, celebrity_id=pk)
+                CelebrityView.objects.get(fan_id=logged_in_user, celebrity_id=pk)
             except CelebrityView.DoesNotExist:
                 CelebrityView.objects.create(fan_id=logged_in_user, celebrity_id=pk)
 

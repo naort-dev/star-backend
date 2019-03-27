@@ -269,6 +269,7 @@ class CelebrityProfileFollow(APIView, ResponseViewMixin):
             if follow:
                 if not celebrity_exist:
                     CelebrityFollow.objects.create(celebrity_id=celebrity_user.user_id, fan_id=fan_user.id)
+                    celebrity_user.trending_star_score = F('trending_star_score') + 5
             elif celebrity_exist:
                 celebrity_exist.delete()
             stargramz_count = CelebrityFollow.objects.filter(celebrity_id=celebrity_user.user_id).count()

@@ -278,6 +278,7 @@ class Celebrity(models.Model):
     # check_payments need to be removed after the migrations
     check_payments = models.BooleanField('Check Payment', default=False)
     has_fan_account = models.BooleanField('User has fan Account', default=False)
+    trending_star_score = models.IntegerField('Star Score', default=0, blank=True)
 
     def __str__(self):
         return 'Celebrity Details'
@@ -400,6 +401,7 @@ class CelebrityView(models.Model):
 @receiver(post_save, sender=CelebrityView)
 def save_profile_view_count(sender, instance, **kwargs):
     Celebrity.objects.filter(user_id=instance.celebrity_id).update(view_count=F('view_count') + 1)
+    Celebrity.objects.filter(user_id=instance.celebrity_id).update(trending_star_score=F('trending_star_score') + 1)
 
 
 class CelebrityAbuse(models.Model):
