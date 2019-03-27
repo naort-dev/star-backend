@@ -33,7 +33,7 @@ def get_elasticsearch_connection_params():
     region = endpoint.hostname.split('.')[-4]
     use_ssl = endpoint.scheme == 'https'
     credentials = boto3.Session().get_credentials()
-    awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, region, service)
+    awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, region, service, session_token=credentials.token)
     
     return dict(
         hosts=[{'host': endpoint.hostname, 'port': endpoint.port}],
