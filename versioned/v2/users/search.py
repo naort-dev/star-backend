@@ -10,8 +10,6 @@ from utilities.utils import get_bucket_url
 from .constants import *
 import os
 
-connections.create_connection()
-
 
 class Professions(DocType):
     title = Text()
