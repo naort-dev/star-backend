@@ -5,6 +5,7 @@
 </div>
 {% endif %}
 {% if results %}
+<div id="celebrity_display_image"></div>
 <div class="results box-body table-responsive no-padding">
 <table id="result_list" class="table table-hover">
 <thead>
@@ -36,3 +37,12 @@
 </table>
 </div>
 {% endif %}
+<script>
+    var url = window.location.href;
+    url_array = url.split("/");
+    data = url_array[url_array.length-2];
+    if(data == "celebritydisplay")
+    {
+        document.getElementById('celebrity_display_image').innerHTML="<p style='font-size: larger;'>Image below shows the order in which Stars will be arranged in web app landing page.<br/>Please assign stars to corresponding sequence numbers in the image</p><br/><img src='/media/web-images/celebrity_display_position.png' width='95%' />"
+    }
+</script>

@@ -1,13 +1,13 @@
-from django.shortcuts import render
 from users.authenticate_views import FilterProfessions, Professions
-from users.models import CelebrityProfession, Profession
-from .serializer import ProfessionFilterSerializerV2, ProfessionSerializerV2, SearchSerializer
-from rest_framework.views import APIView
-from utilities.mixins import ResponseViewMixin
+from .serializer import ProfessionFilterSerializerV2, ProfessionSerializerV2, SearchSerializer,\
+    CelebrityDisplaySerializer
 from elasticsearch_dsl.connections import connections
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
 from .constants import *
+from rest_framework.views import APIView
+from utilities.utils import ResponseViewMixin
+from .models import CelebrityDisplay
 import os
 
 
@@ -74,3 +74,13 @@ class CelebritySuggestionListV2(APIView, ResponseViewMixin):
                 search_data = SearchSerializer(search_response).data
             return self.jp_response(s_code='HTTP_200_OK', data={'suggestion_list': search_data})
         return self.jp_response(s_code='HTTP_200_OK', data={'suggestion_list': {}})
+
+
+class CelebrityDisplayView(APIView, ResponseViewMixin):
+    """
+        Get the 9 stars which is used for display in the homepage in version 2
+    """
+    def get(self, request):
+        celebrity_display = CelebrityDisplay.objects.all().order_by('id')
+        celebrity_data = CelebrityDisplaySerializer(celebrity_display, many=True)
+        return self.jp_response(s_code='HTTP_200_OK', data={'celebrity_display': celebrity_data.data})

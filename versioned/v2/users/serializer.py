@@ -1,8 +1,7 @@
-
-from users.serializer import ProfessionSerializer, ProfessionFilterSerializer
-from rest_framework import serializers
 from utilities.utils import encode_pk
-
+from rest_framework import serializers
+from users.serializer import ProfessionSerializer, ProfessionFilterSerializer, ProfilePictureSerializer
+from .models import CelebrityDisplay
 
 class ProfessionSerializerV2(ProfessionSerializer):
     class Meta(ProfessionSerializer.Meta):
@@ -39,3 +38,21 @@ class SearchCelebritySerializer(serializers.Serializer):
 class SearchSerializer(serializers.Serializer):
     professions = SearchProfessionSerializer(many=True)
     celebrities = SearchCelebritySerializer(many=True)
+
+
+class CelebrityDisplaySerializer(serializers.ModelSerializer):
+
+    name = serializers.SerializerMethodField(read_only=True)
+    avatar_photo = serializers.SerializerMethodField(read_only=True)
+    rate = serializers.CharField(read_only=True, source="celebrity.celebrity_user.rate")
+    in_app_price = serializers.CharField(read_only=True, source="celebrity.celebrity_user.in_app_price")
+
+    class Meta:
+        model = CelebrityDisplay
+        fields = ('id', 'name', 'avatar_photo', 'in_app_price', 'rate')
+
+    def get_name(self, obj):
+        return obj.celebrity.get_short_name()
+
+    def get_avatar_photo(self, obj):
+        return ProfilePictureSerializer(obj.celebrity.avatar_photo).data
