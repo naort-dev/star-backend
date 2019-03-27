@@ -430,11 +430,17 @@ Resources:
         Statement:
         - Effect: Allow
           Principal:
-            AWS: '*'
+            AWS: !GetAtt 'InstanceRole.Arn'
           Action:
           - 'es:ESHttp*'
           Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${AWS::StackName}/*'
-      DomainName: !Ref 'AWS::StackName'
+        - Effect: Allow
+          Principal:
+            AWS: '*'
+          Action:
+          - 'es:ESHttpGet'
+          - 'es:ESHttpHead'
+          Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${AWS::StackName}/*'
       EBSOptions:
         EBSEnabled: true
         VolumeSize: 10
@@ -449,15 +455,6 @@ Resources:
       ElasticsearchVersion: '6.4'
       SnapshotOptions:
         AutomatedSnapshotStartHour: 0
-      VPCOptions:
-        SecurityGroupIds:
-        - Fn::ImportValue:
-            !Join [':', [!Ref 'StackName', 'FargateContainerSecurityGroup']]
-        SubnetIds:
-        - Fn::ImportValue:
-            !Join [':', [!Ref 'StackName', 'PrivateSubnetOne']]
-        - Fn::ImportValue:
-            !Join [':', [!Ref 'StackName', 'PrivateSubnetTwo']]
 
 
   #--------------------------------------------------------------------------------------------------------------------
