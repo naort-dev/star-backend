@@ -212,7 +212,8 @@ class StargramzUserAdmin(UserAdmin, ReadOnlyModelAdmin):
         (_('Personal info'), {'fields': ('first_name', 'last_name', 'date_of_birth')}),
         (_('Status info'), {'fields': ('status',)}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', )}),
-        (_('Important dates'), {'fields': ('last_login', 'created_date', 'modified_date', )})
+        (_('Important dates'), {'fields': ('last_login', 'created_date', 'modified_date', )}),
+        (_('Admin referral code'), {'fields': ('admin_approval_referral_code',)})
     )
     search_fields = ('first_name', 'last_name', 'email', )
     add_fieldsets = (
@@ -222,7 +223,7 @@ class StargramzUserAdmin(UserAdmin, ReadOnlyModelAdmin):
         }),
     )
     ordering = ('email', )
-    readonly_fields = ('created_date', 'modified_date', )
+    readonly_fields = ('created_date', 'modified_date', 'admin_approval_referral_code')
     list_per_page = 10
     inlines = [RoleInline, ReferralInline, VanityUrlInline]
     ordering = ['-id', ]
@@ -326,6 +327,7 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
         (_('Referral Details'), {'fields': ('referral_active', 'referral_code', 'referral_campaign',
                                             'has_requested_referral', 'is_ambassador')}),
         (_('Ambassador'), {'fields': ('ambassador',)}),
+        (_('Admin referral code'), {'fields': ('admin_approval_referral_code',)}),
         (_('Important dates'), {'fields': ('last_login', 'created_date', 'modified_date',)}),
         (_('Payments'), {'fields': ('stripe_customer_id', 'stripe_user_id', 'check_payments')}),
         (_('Images'), {'fields': ('profile_images',)}),
@@ -345,7 +347,7 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     )
     ordering = ('email',)
     readonly_fields = ('created_date', 'modified_date', 'profile_images', 'profile_video',
-                       'stripe_customer_id', 'featured_image', 'stripe_user_id')
+                       'stripe_customer_id', 'featured_image', 'stripe_user_id', 'admin_approval_referral_code')
     list_per_page = 10
     inlines = [RoleInline, ReferralInline, VanityUrlInline, CelebrityInline, ProfessionInline, NotificationSettingInline, PayoutsTabular,
                RatingInline, ReferralTabular, TipPaymentAdmin, RepresentativeInline]
