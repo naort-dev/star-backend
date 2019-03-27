@@ -9,6 +9,7 @@ from config.constants import *
 from utilities.utils import get_bucket_url
 from .constants import *
 import os
+import boto3
 
 
 class Professions(DocType):
