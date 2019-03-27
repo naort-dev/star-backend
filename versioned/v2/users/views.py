@@ -8,6 +8,7 @@ from .constants import *
 from rest_framework.views import APIView
 from utilities.utils import ResponseViewMixin
 from .models import CelebrityDisplay
+from .search import get_elasticsearch_connection_params
 import os
 
 
@@ -36,8 +37,9 @@ class CelebritySuggestionListV2(APIView, ResponseViewMixin):
     """
     def get(self, request):
         filter_by_name = request.GET.get('s', None)
-        connections.create_connection(hosts=[os.environ.get('ELASTICSEARCH_ENDPOINT')])
-        client = Elasticsearch(hosts=[os.environ.get('ELASTICSEARCH_ENDPOINT')])
+        connection_params = get_elasticsearch_connection_params()
+        connections.create_connection(**connection_params)
+        client = Elasticsearch(**connection_params)
         if filter_by_name:
             query_str = Q(
                 "multi_match", query=filter_by_name,
