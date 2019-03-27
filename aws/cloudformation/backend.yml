@@ -441,6 +441,7 @@ Resources:
           - 'es:ESHttpGet'
           - 'es:ESHttpHead'
           Resource: !Sub 'arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/${AWS::StackName}/*'
+      DomainName: !Ref 'AWS::StackName'
       EBSOptions:
         EBSEnabled: true
         VolumeSize: 10
