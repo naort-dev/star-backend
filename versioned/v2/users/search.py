@@ -58,9 +58,9 @@ def celebrity_indexing(celebrity):
         first_name=celebrity.user.first_name,
         last_name=celebrity.user.last_name,
         nick_name=celebrity.user.get_short_name(),
-        avatar_photo=celebrity.user.avatar_photo.photo,
-        image_url=get_s3_image_url(celebrity.user.avatar_photo),
-        thumbnail_url=get_s3_thumbnail_url(celebrity.user.avatar_photo),
+        avatar_photo=celebrity.user.avatar_photo.photo if celebrity.user.avatar_photo else '',
+        image_url=get_s3_image_url(celebrity.user.avatar_photo) if celebrity.user.avatar_photo else '',
+        thumbnail_url=get_s3_thumbnail_url(celebrity.user.avatar_photo) if celebrity.user.avatar_photo else '',
         professions=','.join([cp.profession.title for cp in celebrity.user.celebrity_profession.all()])
     )
     obj.save(index='celebrities', op_type='index')
