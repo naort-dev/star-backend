@@ -566,8 +566,14 @@ def representative_notify(celebrity, fan, occasion):
                 sent_email(representative.email, 'Starsona Request Notification', 'representative_notify', ctx)
     return True
 
+import http
+http.client._MAXHEADERS = 1000
+
 def get_elasticsearch_connection_params():
     endpoint = urlparse(os.environ.get('ELASTICSEARCH_ENDPOINT'))
+    if endpoint.hostname == 'localhost':
+        return dict(hosts=[{'host': endpoint.hostname, 'port': endpoint.port}])
+
     service = endpoint.hostname.split('.')[-3]
     region = endpoint.hostname.split('.')[-4]
     use_ssl = endpoint.scheme == 'https'

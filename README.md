@@ -61,6 +61,13 @@ memcached
 
 ```
 
+### Elasticsearch
+```
+brew install elasticsearch
+elasticsearch
+
+```
+
 ### AWS config
 Using staging credentials
 
@@ -148,6 +155,7 @@ GUNICORN_CMD_ARGS	--name=starsona --workers=1 --bind=0.0.0.0:9003 --worker-class
 DJANGO_SETTINGS_MODULE	main.settings.common
 OBJC_DISABLE_INITIALIZE_FORK_SAFETY	YES
 DEBUG	True
+ELASTICSEARCH_ENDPOINT=http://localhost:9200/
 ```
 
 ### Running Migrations under Intellij
