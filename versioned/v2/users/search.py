@@ -1,15 +1,11 @@
 from elasticsearch_dsl.connections import connections
 from elasticsearch_dsl import DocType, Text, Search, Integer, Q
 from elasticsearch.helpers import bulk
-from elasticsearch import Elasticsearch, RequestsHttpConnection
-from requests_aws4auth import AWS4Auth
-from urllib.parse import urlparse
+from elasticsearch import Elasticsearch
 from users.models import Profession, Celebrity
 from config.constants import *
-from utilities.utils import get_bucket_url
+from utilities.utils import get_bucket_url, get_elasticsearch_connection_params
 from .constants import *
-import os
-import boto3
 
 
 class Professions(DocType):
@@ -26,22 +22,6 @@ class Celebrities(DocType):
     avatar_photo = Text()
     image_url = Text()
     thumbnail_url = Text()
-
-def get_elasticsearch_connection_params():
-    endpoint = urlparse(os.environ.get('ELASTICSEARCH_ENDPOINT'))
-    service = endpoint.hostname.split('.')[-3]
-    region = endpoint.hostname.split('.')[-4]
-    use_ssl = endpoint.scheme == 'https'
-    credentials = boto3.Session().get_credentials()
-    awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, region, service, session_token=credentials.token)
-    
-    return dict(
-        hosts=[{'host': endpoint.hostname, 'port': endpoint.port}],
-        http_auth=awsauth,
-        use_ssl=use_ssl,
-        verify_certs=use_ssl,
-        connection_class = RequestsHttpConnection,
-        timeout=300)
 
 def bulk_indexing():
     connection_params = get_elasticsearch_connection_params()

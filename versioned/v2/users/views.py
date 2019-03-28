@@ -6,10 +6,8 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
 from .constants import *
 from rest_framework.views import APIView
-from utilities.utils import ResponseViewMixin
+from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params
 from .models import CelebrityDisplay
-from .search import get_elasticsearch_connection_params
-import os
 
 
 class FilterProfessionsV2(FilterProfessions):

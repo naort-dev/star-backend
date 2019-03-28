@@ -31,6 +31,10 @@ from django.template.loader import get_template
 import urllib.request
 from stargramz.models import StargramVideo, Reaction
 from hashids import Hashids
+from requests_aws4auth import AWS4Auth
+from urllib.parse import urlparse
+from elasticsearch import RequestsHttpConnection
+
 hashids = Hashids(min_length=8)
 
 
@@ -561,3 +565,20 @@ def representative_notify(celebrity, fan, occasion):
                 }
                 sent_email(representative.email, 'Starsona Request Notification', 'representative_notify', ctx)
     return True
+
+def get_elasticsearch_connection_params():
+    endpoint = urlparse(os.environ.get('ELASTICSEARCH_ENDPOINT'))
+    service = endpoint.hostname.split('.')[-3]
+    region = endpoint.hostname.split('.')[-4]
+    use_ssl = endpoint.scheme == 'https'
+    credentials = boto3.Session().get_credentials()
+    awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, region, service, session_token=credentials.token)
+
+    return dict(
+        hosts=[{'host': endpoint.hostname, 'port': endpoint.port}],
+        http_auth=awsauth,
+        use_ssl=use_ssl,
+        verify_certs=use_ssl,
+        connection_class = RequestsHttpConnection,
+        timeout=300)
+
