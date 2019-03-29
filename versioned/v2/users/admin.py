@@ -3,11 +3,11 @@ from .models import CelebrityDisplay
 from utilities.admin_utils import ReadOnlyModelAdmin
 
 class CelebrityDisplayAdmin(ReadOnlyModelAdmin):
-    list_display = ('id', 'celebrity', 'name')
+    list_display = ('id', 'celebrity', 'email')
     ordering = ('id',)
 
-    def name(self, instance):
-        return instance.celebrity.get_short_name()
+    def email(self, instance):
+        return instance.celebrity.email
 
 
 admin.site.register(CelebrityDisplay, CelebrityDisplayAdmin)
