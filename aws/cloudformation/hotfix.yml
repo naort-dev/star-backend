@@ -64,7 +64,7 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: aws/codebuild/buildspec-migrations.yml
-      TimeoutInMinutes: 15
+      TimeoutInMinutes: 60
 
   RunTestsStaging:
     Type: AWS::CodeBuild::Project
@@ -106,7 +106,7 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: aws/codebuild/buildspec-migrations.yml
-      TimeoutInMinutes: 15
+      TimeoutInMinutes: 60
 
   Pipeline:
     Type: "AWS::CodePipeline::Pipeline"

@@ -18,7 +18,11 @@ aws ecs run-task --cluster $CLUSTER \
     > $run_task_output
 
 TASK_ID=`jq -r '.tasks[0].taskArn' $run_task_output | cut -d/ -f2`
-aws ecs wait tasks-stopped --cluster $CLUSTER --tasks $TASK_ID
+until aws ecs wait tasks-stopped --cluster $CLUSTER --tasks $TASK_ID
+do
+    echo "waiting for task completion..."
+    sleep 10
+done
 
 EXIT_CODE=`aws ecs describe-tasks --cluster $CLUSTER --tasks $TASK_ID | jq -r '.tasks[0].containers[0].exitCode'`
 rm $run_task_output
