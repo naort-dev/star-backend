@@ -30,7 +30,8 @@ def app_list(request):
         'fcm_django': 'fa-flag',
         'news': 'fa-newspaper-o',
         'stargramz': 'fa-random',
-        'notification': 'fa-commenting-o'
+        'notification': 'fa-commenting-o',
+        'users2': 'fas fa-tv',
     }
     user = request.user
     app_dict = {}
