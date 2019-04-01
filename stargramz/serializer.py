@@ -11,9 +11,10 @@ from payments.models import StarsonaTransaction
 from django.utils import timezone
 import datetime
 from users.serializer import ProfilePictureSerializer, CelebrityRatingSerializerEncoder, CelebrityProfessionSerializer
-from users.models import ProfileImage, FanRating, CelebrityProfession, StargramzUser, CelebrityFollow, VanityUrl
+from users.models import ProfileImage, FanRating, CelebrityProfession, StargramzUser, CelebrityFollow, VanityUrl,\
+    Celebrity
 from payments.models import StarsonaTransaction, TipPayment
-from django.db.models import Q
+from django.db.models import Q, F
 from hashids import Hashids
 hashids = Hashids(min_length=8)
 
@@ -200,6 +201,7 @@ class StargramzSerializer(serializers.ModelSerializer):
                                                          occasion=occasion, request_details=request_details,
                                                          request_type=request_type, public_request=public_request)
         stargramrequest.save()
+        Celebrity.objects.filter(user_id=celebrity).update(trending_star_score=F('trending_star_score') + 10)
         return stargramrequest
 
     def get_request_status(self, obj):

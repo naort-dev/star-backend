@@ -115,8 +115,8 @@ class CelebrityInline(ReadOnlyStackedInline):
     model = Celebrity
     fields = ('rate', 'availability', 'admin_approval', 'rating', 'in_app_price', 'weekly_limits', 'remaining_limit', 'follow_count',
               'featured', 'description', 'charity', 'has_fan_account',
-              'check_payments', 'check_comments')
-    readonly_fields = ('rating', 'follow_count', 'remaining_limit')
+              'check_payments', 'check_comments', 'view_count', 'trending_star_score')
+    readonly_fields = ('rating', 'follow_count', 'remaining_limit', 'view_count', 'trending_star_score')
     max_num = 1
     verbose_name_plural = 'Celebrity Details'
     can_delete = False

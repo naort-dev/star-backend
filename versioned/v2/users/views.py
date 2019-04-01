@@ -8,6 +8,9 @@ from .constants import *
 from rest_framework.views import APIView
 from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params
 from .models import CelebrityDisplay
+import os
+from users.serializer import UserSerializer
+from users.models import StargramzUser
 
 
 class FilterProfessionsV2(FilterProfessions):
@@ -84,3 +87,20 @@ class CelebrityDisplayView(APIView, ResponseViewMixin):
         celebrity_display = CelebrityDisplay.objects.all().order_by('id')
         celebrity_data = CelebrityDisplaySerializer(celebrity_display, many=True)
         return self.jp_response(s_code='HTTP_200_OK', data={'celebrity_display': celebrity_data.data})
+
+
+class TrendingStars(APIView, ResponseViewMixin):
+    """
+        This API will list 10 celebrities according to their popularity
+    """
+    def get(self, request):
+
+        trending_celebrity = StargramzUser.objects.filter(celebrity_user__admin_approval=True).order_by('-celebrity_user__trending_star_score')[:10]
+        data = UserSerializer(trending_celebrity, many=True, context={"request": request}).data
+        return self.jp_response(s_code='HTTP_200_OK', data={'trending_celebrity': data})
+
+
+
+
+
+
