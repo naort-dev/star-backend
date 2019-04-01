@@ -38,11 +38,32 @@
 </div>
 {% endif %}
 <script>
+    window.onload=current_title
     var url = window.location.href;
     url_array = url.split("/");
     data = url_array[url_array.length-2];
     if(data == "celebritydisplay")
     {
-        document.getElementById('celebrity_display_image').innerHTML="<p style='font-size: larger;'>Image below shows the order in which Stars will be arranged in web app landing page.<br/>Please assign stars to corresponding sequence numbers in the image</p><br/><img src='/media/web-images/celebrity_display_position.png' width='95%' />"
+        document.getElementById('celebrity_display_image').innerHTML="<p style='font-size: larger;'>Image below shows the order in which Stars will be arranged in web app landing page.<br/>Please assign stars to corresponding sequence numbers in the image</p><br/>"
+        + "<img src='/media/web-images/celebrity_display_position.png' width='95%' /><br/><label>Title: <input type='text' id='celebrity_display_title' style='height:25px;'></label>  <input type='button' style='height:25px; padding:3px; width:70px;' value='Save' id='title_save_button' onclick=title_save()></label><br/>"
+        + "<div id='current_title' style='padding-left:35px'></div>"
+    }
+    function title_save(){
+      $.ajax({
+      url: "/star_title?title="+document.getElementById("celebrity_display_title").value,
+      success: function(data, status) {
+        document.getElementById("current_title").innerHTML="Current Title : "+document.getElementById("celebrity_display_title").value
+        document.getElementById("celebrity_display_title").value=''
+      }
+    });
+    }
+     function current_title() {
+        $.ajax({
+      url: "/api/v2/user/celebrity_display/?title=true",
+      headers: {"version":"1.0", "device":"web"},
+      success: function(data, status) {
+        document.getElementById("current_title").innerHTML="Current Title : "+data.data.display_title
+      }
+    });
     }
 </script>

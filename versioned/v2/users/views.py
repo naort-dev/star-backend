@@ -10,6 +10,8 @@ from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_para
 from .models import CelebrityDisplay
 import os
 from users.models import StargramzUser
+from config.models import Config
+from django.http import HttpResponse
 
 
 class FilterProfessionsV2(FilterProfessions):
@@ -83,6 +85,13 @@ class CelebrityDisplayView(APIView, ResponseViewMixin):
         Get the 9 stars which is used for display in the homepage in version 2
     """
     def get(self, request):
+        celebrity_display_title = Config.objects.get(key='celebrity_display_title').value
+        title = request.GET.get('title', None)
+        if title:
+            return self.jp_response(
+                s_code='HTTP_200_OK',
+                data={'display_title': celebrity_display_title}
+            )
         celebrity_display = CelebrityDisplay.objects.all().order_by('id')
         celebrity_data = CelebrityDisplaySerializer(celebrity_display, many=True)
         return self.jp_response(s_code='HTTP_200_OK', data={'celebrity_display': celebrity_data.data})
@@ -99,7 +108,12 @@ class TrendingStars(APIView, ResponseViewMixin):
         return self.jp_response(s_code='HTTP_200_OK', data={'trending_celebrity': data})
 
 
-
-
+def CelebrityDisplatTitleSave(request):
+    title = request.GET.get('title', None)
+    if title:
+        config = Config.objects.get(key='celebrity_display_title')
+        config.value = title
+        config.save()
+    return HttpResponse("successfull")
 
 
