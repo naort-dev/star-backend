@@ -1,6 +1,6 @@
 from users.authenticate_views import FilterProfessions, Professions
 from .serializer import ProfessionFilterSerializerV2, ProfessionSerializerV2, SearchSerializer,\
-    CelebrityDisplaySerializer
+    CelebrityDisplaySerializer, TrendingCelebritySerializer
 from elasticsearch_dsl.connections import connections
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
@@ -9,7 +9,6 @@ from rest_framework.views import APIView
 from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params
 from .models import CelebrityDisplay
 import os
-from users.serializer import UserSerializer
 from users.models import StargramzUser
 
 
@@ -96,7 +95,7 @@ class TrendingStars(APIView, ResponseViewMixin):
     def get(self, request):
 
         trending_celebrity = StargramzUser.objects.filter(celebrity_user__admin_approval=True).order_by('-celebrity_user__trending_star_score')[:10]
-        data = UserSerializer(trending_celebrity, many=True, context={"request": request}).data
+        data = TrendingCelebritySerializer(trending_celebrity, many=True).data
         return self.jp_response(s_code='HTTP_200_OK', data={'trending_celebrity': data})
 
 

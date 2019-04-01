@@ -2,6 +2,8 @@ from utilities.utils import encode_pk
 from rest_framework import serializers
 from users.serializer import ProfessionSerializer, ProfessionFilterSerializer, ProfilePictureSerializer
 from .models import CelebrityDisplay
+from users.serializer import UserSerializer
+
 
 class ProfessionSerializerV2(ProfessionSerializer):
     class Meta(ProfessionSerializer.Meta):
@@ -56,3 +58,9 @@ class CelebrityDisplaySerializer(serializers.ModelSerializer):
 
     def get_avatar_photo(self, obj):
         return ProfilePictureSerializer(obj.celebrity.avatar_photo).data
+
+
+class TrendingCelebritySerializer(UserSerializer):
+    class Meta(UserSerializer.Meta):
+        fields = ('id', 'first_name', 'last_name', 'nick_name', 'celebrity_user', 'images', 'celebrity_profession',
+                  'avatar_photo', 'show_nick_name', 'get_short_name', 'featured_photo', 'user_id')
