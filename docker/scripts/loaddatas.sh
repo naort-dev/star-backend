@@ -28,6 +28,6 @@ python manage.py loaddata stargramz/fixtures/orderrelations.json
 python manage.py loaddata users/fixtures/profession.json
 
 echo 'Elasticseach indexing...'
-python manage.py set_es_indexing
+#python manage.py set_es_indexing
 
 echo 'All done'
