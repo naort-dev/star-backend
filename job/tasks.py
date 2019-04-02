@@ -209,26 +209,30 @@ def generate_video_thumbnail(**kwargs):
     total_duration = '00:00:00'
     width = height = 0
     for request_video in videos:
+        print("selected video is %s" % request_video)
         if check_file_exist_in_s3(s3folder + request_video.video) is not False:
-
+            print("video exist in s3")
             try:
                 video_name = request_video.video
-
+                print("video_name is %s" % video_name)
                 # Generating the pre-signed s3 URL
                 video_url = get_pre_signed_get_url(video_name, s3folder)
                 video_original = delete_original_video = your_media_root+video_name
-
+                print("video_url is %s" % video_url)
+                print("video in download folder in server : %s" % video_original)
                 # Downloading video from s3
                 urllib.request.urlretrieve(video_url, video_original)
-
+                print("video downloaded")
                 name = video_name.split(".", 1)[0]
-
+                print("video_name is %s" % name)
                 video_thumbnail_name = name+"_sg_thumbnail.jpg"
                 video_thumb = your_media_root + video_thumbnail_name
-
+                print("video thumbnail path : %s" % video_thumb)
                 try:
+                    print("trying video file clip")
                     VideoFileClip(video_original)
                 except Exception:
+                    print("video file clip exception")
                     new_file = your_media_root + 'DUP_%s.mp4' % name
                     fix_corrupted_video(video_original, new_file)
                     if not request_video.visibility:
@@ -240,21 +244,28 @@ def generate_video_thumbnail(**kwargs):
 
                 try:
                     # Creating the image thumbnail from the video
+                    print("cliping started")
                     clip = VideoFileClip(video_original)
+                    print("cliping successfull")
                     if clip.rotation in [90, 270]:
                         clip = clip.resize(clip.size[::-1])
                         clip.rotation = 0
+                    print("first frame cutting started")
                     clip.save_frame(video_thumb, t=0.00)
+                    print("first frame successfully selected and stored in : %s" % video_thumb)
                     width, height = clip.size
-
+                    print("width : %s, height : %s" % (width, height))
                     duration = clip.duration
+                    print("duration: %s" % duration)
                 except Exception as e:
+                    print("video file clip exception")
                     print(str(e))
                     continue
-
+                print("starting watermarking, visibility : %s" % request_video.visibility)
                 if request_video.visibility:
                     # Creating a water mark for video
                     if watermark_videos(video_original, name, your_media_root):
+                        print("successfull watermarked")
                         if os.path.exists(watermark_location + "%s.mp4" % name):
                             for i in range(0, 3):
                                 try:
@@ -305,8 +316,8 @@ def generate_video_thumbnail(**kwargs):
                 if delete_logo:
                     list_to_delete.append(delete_logo)
                 delete(list_to_delete)
-            except (AttributeError, KeyError, IndexError):
-                print('Video file not available in S3 bucket')
+            except Exception as e:
+                print(str(e))
         else:
             thumbnail_name = 'novideo.png'
             total_duration = '00:00:00'
@@ -1119,6 +1130,7 @@ def fix_corrupted_video(video_file, new_video_file):
     :param new_video_file: New video path
     :return:
     """
+    print("in fix_corrupted_video with video file : %s" % video_file)
     if os.path.exists(video_file) and os.path.getsize(video_file) > 10:
         sender_email = Config.objects.get(key='sender_email').value
         SendMail('Fixing Corrupted video', 'Fixing Corrupted video %s' % video_file, sender_email=sender_email, to='akhilns@qburst.com')
