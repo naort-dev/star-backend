@@ -94,7 +94,7 @@ class CelebrityDisplayView(APIView, ResponseViewMixin):
             )
         celebrity_display = CelebrityDisplay.objects.all().order_by('id')
         celebrity_data = CelebrityDisplaySerializer(celebrity_display, many=True)
-        return self.jp_response(s_code='HTTP_200_OK', data={'celebrity_display': celebrity_data.data})
+        return self.jp_response(s_code='HTTP_200_OK', data={'display_title': celebrity_display_title, 'celebrity_display': celebrity_data.data})
 
 
 class TrendingStars(APIView, ResponseViewMixin):
