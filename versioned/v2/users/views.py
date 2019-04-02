@@ -110,7 +110,7 @@ class TrendingStars(APIView, ResponseViewMixin):
 
 def CelebrityDisplatTitleSave(request):
     title = request.GET.get('title', None)
-    if title:
+    if title and request.user.is_superuser:
         config = Config.objects.get(key='celebrity_display_title')
         config.value = title
         config.save()
