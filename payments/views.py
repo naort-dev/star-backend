@@ -27,6 +27,8 @@ from .tasks import change_request_status_to_pending, tip_payments_payout, transa
 from datetime import datetime, timedelta
 from config.constants import *
 from utilities.utils import decode_pk
+from .utils import has_ambassador
+from job.tasks import verify_referee_discount
 
 API_KEY = SECRET_KEY
 stripe.api_key = API_KEY
@@ -125,11 +127,21 @@ class CreateChargeFan(APIView, ResponseViewMixin):
                 request_charge = stripe.Source.retrieve(request.data['source'], api_key=API_KEY)
             except Exception as e:
                 return self.stripe_exception_response(str(e))
+            actual_amount = stargram_request.celebrity.celebrity_user.rate
+            ambassador_amount = 0.0
+            if has_ambassador(stargram_request.celebrity.id):
+                ambassador_amount = round((float(actual_amount) * (20.0 / 100.0)), 2)
+                actual_amount = round((float(actual_amount) * (60.0 / 100.0)), 2)
+            else:
+                referee_discount = verify_referee_discount(obj.celebrity_id)
+                actual_amount = round((float(actual_amount) * (referee_discount / 100.0)), 2)
             transaction = StarsonaTransaction.objects.create(
                 starsona_id=request.data['starsona'],
                 fan_id=customer.id,
                 celebrity_id=stargram_request.celebrity.id,
                 amount=stargram_request.celebrity.celebrity_user.rate,
+                actual_amount = actual_amount,
+                ambassador_amount = ambassador_amount,
                 transaction_status=TRANSACTION_STATUS.pending,
                 source_id=request.data['source']
             )
@@ -400,45 +412,30 @@ class EarningsList(GenericViewSet, ResponseViewMixin):
 
         filter_by_status = request.GET.get("status")
 
-        filter_by_in_app_payment = {'payment_type': PAYMENT_TYPES.in_app}
-
         paid_starsonas = query_set.filter(**paid_custom_filter).order_by('-created_date')
         completed_starsonas = query_set.filter(**completed_custom_filter).order_by('-created_date')
         pending_starsonas = completed_starsonas.exclude(**pending_custom_filter)
 
-        in_app_paid_starsonas = paid_starsonas.filter(**filter_by_in_app_payment).order_by('-created_date')
-        in_app_completed_starsonas = completed_starsonas.filter(**filter_by_in_app_payment).order_by('-created_date')
-        in_app_pending_starsonas = pending_starsonas.filter(**filter_by_in_app_payment)
+        paid_starsonas_amount = paid_starsonas.aggregate(Sum('actual_amount'))
+        completed_stasonas_amount = completed_starsonas.aggregate(Sum('actual_amount'))
+        pending_starsonas_amount = pending_starsonas.aggregate(Sum('actual_amount'))
 
-        paid_starsonas_amount = paid_starsonas.aggregate(Sum('amount'))
-        completed_stasonas_amount = completed_starsonas.aggregate(Sum('amount'))
-        pending_starsonas_amount = pending_starsonas.aggregate(Sum('amount'))
 
-        in_app_paid_starsonas_amount = in_app_paid_starsonas.aggregate(Sum('amount'))
-        in_app_completed_starsonas_amount = in_app_completed_starsonas.aggregate(Sum('amount'))
-        in_app_pending_starsonas_amount = in_app_pending_starsonas.aggregate(Sum('amount'))
+        paid_amount = float(paid_starsonas_amount['actual_amount__sum']) if paid_starsonas_amount['actual_amount__sum'] else 0
+        total_amount = float(completed_stasonas_amount['actual_amount__sum']) if completed_stasonas_amount['actual_amount__sum'] else 0
+        pending_amount = float(pending_starsonas_amount['actual_amount__sum']) if pending_starsonas_amount['actual_amount__sum'] else 0
 
-        paid_amount = float(paid_starsonas_amount['amount__sum']) if paid_starsonas_amount['amount__sum'] else 0
-        total_amount = float(completed_stasonas_amount['amount__sum']) if completed_stasonas_amount['amount__sum'] else 0
-        pending_amount = float(pending_starsonas_amount['amount__sum']) if pending_starsonas_amount['amount__sum'] else 0
-
-        in_app_paid_amount = float(in_app_paid_starsonas_amount['amount__sum']) if in_app_paid_starsonas_amount['amount__sum'] else 0
-        in_app_total_amount = float(in_app_completed_starsonas_amount['amount__sum']) if in_app_completed_starsonas_amount['amount__sum'] else 0
-        in_app_pending_amount = float(in_app_pending_starsonas_amount['amount__sum']) if in_app_pending_starsonas_amount['amount__sum'] else 0
-
-        paid_amount = (paid_amount - in_app_paid_amount) + (in_app_paid_amount * 70.0 / 100.0)
-        total_amount = (total_amount - in_app_total_amount) + (in_app_total_amount * 70.0 / 100.0)
-        pending_amount = (pending_amount - in_app_pending_amount) + (in_app_pending_amount * 70.0 / 100.0)
-
-        referee_discount = verify_referee_discount(user.id)
-        paid_amount = paid_amount * (referee_discount / 100.0)
-        pending_amount = pending_amount * (referee_discount / 100.0)
-        total_amount = total_amount * (referee_discount / 100.0)
 
         # Referral amount
         users_amount = PaymentPayout.objects.filter(celebrity=user, referral_payout=True)\
             .aggregate(payed_out=Sum('fund_payed_out'))
         referral_payed_out = float(0 if not users_amount.get('payed_out', None) else users_amount.get('payed_out'))
+
+        ambassador_transaction = StarsonaTransaction.objects.filter(celebrity__ambassador=user, transaction_status=TRANSACTION_STATUS.captured)
+        ambassador_amount = 0.0
+        if ambassador_transaction:
+            ambassador_amount = ambassador_transaction.aggregate(ambassador_amount=Sum('ambassador_amount'))
+            ambassador_amount = float(0 if not ambassador_amount.get('ambassador_amount', None) else ambassador_amount.get('ambassador_amount'))
 
         if filter_by_status:
             if filter_by_status == PENDING_TRANSACTIONS:
@@ -453,7 +450,7 @@ class EarningsList(GenericViewSet, ResponseViewMixin):
             result['Paid'] = self.get_serializer(paid_stasonas_transactions, many=True).data
             result['Paid_amount'] = round(paid_amount, 2)
             result['referral_payed_out'] = round(referral_payed_out, 2)
-            result['Total_amount'] = round(total_amount + referral_payed_out, 2)
+            result['Total_amount'] = round(total_amount + referral_payed_out + ambassador_amount, 2)
             pending_starsonas_transactions = pending_starsonas[:5]
             result['Pending'] = self.get_serializer(pending_starsonas_transactions, many=True).data
             result['Pending_amount'] = round(pending_amount, 2)
@@ -463,7 +460,7 @@ class EarningsList(GenericViewSet, ResponseViewMixin):
         serializer = self.get_serializer(page, many=True)
         amounts = {
             'Paid_amount': round(paid_amount, 2),
-            'Total_amount': round(total_amount + referral_payed_out, 2),
+            'Total_amount': round(total_amount + referral_payed_out + ambassador_amount, 2),
             'referral_payed_out': round(referral_payed_out, 2),
             'Pending_amount': round(pending_amount, 2)
         }
@@ -666,11 +663,21 @@ class InAppPurchase(APIView, ResponseViewMixin):
                 return self.jp_error_response(
                     'HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY',
                     'The amount has been updated to %s' % stargram_request.celebrity.celebrity_user.in_app_price)
+            actual_amount = round((float(stargram_request.celebrity.celebrity_user.in_app_price) * (70.0/100.0)), 2)
+            ambassador_amount = 0.0
+            if has_ambassador(stargram_request.celebrity.id):
+                ambassador_amount = round((float(actual_amount) * (20.0 / 100.0)), 2)
+                actual_amount = round((float(actual_amount) * (60.0 / 100.0)), 2)
+            else:
+                referee_discount = verify_referee_discount(obj.celebrity_id)
+                actual_amount = round((float(actual_amount) * (referee_discount / 100.0)), 2)
             StarsonaTransaction.objects.create(
                 starsona_id=serializer.validated_data.get('starsona', ''),
                 fan_id=serializer.validated_data.get('fan'),
                 celebrity_id=stargram_request.celebrity.id,
                 amount=stargram_request.celebrity.celebrity_user.in_app_price,
+                actual_amount=actual_amount,
+                ambassador_amount=ambassador_amount,
                 transaction_status=TRANSACTION_STATUS.captured,
                 source_id='in_app',
                 stripe_transaction_id=serializer.validated_data.get('stripe_transaction_id'),
