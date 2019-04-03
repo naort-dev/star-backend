@@ -4,7 +4,19 @@
         "details": [
             {
                 "appID": "2RAH5ZZCTZ.com.starsona.app",
-                "paths": ["/applinks/*"]
+                "paths": [
+                    "NOT /not-found",
+                    "NOT /myStar",
+                    "NOT /resetpassword",
+                    "NOT /settings",
+                    "NOT /privacy-policy",
+                    "NOT /terms-service",
+                    "NOT /contact",
+                    "NOT /faq",
+                    "NOT /referral-program",
+                    "NOT /user/*",
+                    "*"
+                ]
             }
         ]
     },
