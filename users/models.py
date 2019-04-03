@@ -152,7 +152,7 @@ class StargramzUser(AbstractBaseUser, PermissionsMixin):
         ]
 
     def __str__(self):
-        return self.get_short_name()
+        return self.username
 
     def get_short_name(self):
         """

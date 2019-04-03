@@ -487,7 +487,7 @@ class StripeDashboard(APIView, ResponseViewMixin):
                     else '%s xxxx-%s' % (acc_details.bank_name, acc_details.last4)
                 stripe_details = account.login_links.create()
             else:
-                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', "Stripe not configured")
+                return self.jp_response('HTTP_200_OK', data={'message': "Stripe not configured"})
 
             return self.jp_response('HTTP_200_OK', data={
                 'stripe_details': stripe_details,
