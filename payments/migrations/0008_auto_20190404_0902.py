@@ -14,7 +14,7 @@ def actual_amount_initializer(apps, schema_editor):
             else:
                 amount = float(transaction.amount)
             referee_discount = verify_referee_discount(transaction.celebrity.id)
-            transaction.actual_amount = round((float(amount) * (referee_discount / 100.0)), 2)
+            transaction.actual_amount = float(round(((amount) * (referee_discount / 100.0)), 2))
         else:
             transaction.actual_amount = 0.0
         transaction.ambassador_amount = 0.0
