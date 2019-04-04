@@ -74,6 +74,9 @@ class StarsonaTransaction(models.Model):
     def order_id(self):
         return 'OR-%s' % str(self.pk)
 
+    def save(self, *args, **kwargs):
+        super(StarsonaTransaction, self).save(*args, **kwargs)
+
 
 class StripeAccount(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
