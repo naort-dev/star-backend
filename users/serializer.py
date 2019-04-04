@@ -219,10 +219,6 @@ def create_referral(referral_code, user):
             referrer_id = StargramzUser.objects.values_list('id', flat=True) \
                 .get(referral_code=referral_code.upper(), referral_active=True)
             Referral.objects.create(referrer_id=referrer_id, referee=user, source="branch.io")
-            referrer = StargramzUser.objects.get(id=referrer_id)
-            if referrer.is_ambassador:
-                user.ambassador = referrer
-                user.save()
         except StargramzUser.DoesNotExist:
             pass
     return True

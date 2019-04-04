@@ -136,8 +136,6 @@ class StargramzUser(AbstractBaseUser, PermissionsMixin):
     group_notification = models.IntegerField('Group invite/support count', default=0)
     admin_approval_referral_code = models.ForeignKey('AdminReferral', blank=True, null=True,
                                                      related_name='admin_referral', on_delete=models.PROTECT)
-    ambassador = models.ForeignKey('self', blank=True, null=True, related_name='ambassador_star', on_delete=models.CASCADE)
-    is_ambassador = models.BooleanField('Is Ambassador', default=False)
 
     objects = StargramzUserManager()
 
