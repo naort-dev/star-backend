@@ -18,7 +18,7 @@ def actual_amount_initializer(apps, schema_editor):
         else:
             transaction.actual_amount = 0.0
         transaction.ambassador_amount = 0.0
-        transaction.save(force_update=True)
+        transaction.save()
 
 class Migration(migrations.Migration):
 
