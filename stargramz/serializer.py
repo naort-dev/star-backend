@@ -326,6 +326,7 @@ class StargramzRetrieveSerializer(StargramzSerializer):
 
 class TransactionStargramzSerializer(serializers.ModelSerializer):
     request_details = serializers.SerializerMethodField()
+    booking_title = serializers.SerializerMethodField()
     id = serializers.SerializerMethodField(read_only=True)
     occasion = serializers.CharField(read_only=True, source="occasion.title")
     fan = serializers.CharField(read_only=True, source="fan.get_short_name")
@@ -341,6 +342,19 @@ class TransactionStargramzSerializer(serializers.ModelSerializer):
 
     def get_id(self, obj):
         return encode_pk(obj.id)
+
+    def get_booking_title(self, obj):
+        user = self.context.get("request").user
+        try:
+            transaction = StarsonaTransaction.objects.get(starsona_id=obj.id, celebrity_id=user.id)
+            if transaction.ambassador_transaction:
+                return "Ambassador Earnings : %s" % obj.booking_title
+            else:
+                return obj.booking_title
+        except Exception as e:
+            print(str(e))
+            return obj.booking_title
+
 
 
 class RequestStatusSerializer(serializers.Serializer):
