@@ -251,7 +251,7 @@ class StargramzSerializer(serializers.ModelSerializer):
 
     def get_order_details(self, obj):
         try:
-            starsona_transaction = StarsonaTransaction.objects.get(starsona_id=obj.id)
+            starsona_transaction = StarsonaTransaction.objects.get(starsona_id=obj.id, ambassador_transaction=False)
             return {'order': starsona_transaction.order_id(), 'amount': float(starsona_transaction.amount)}
         except StarsonaTransaction.DoesNotExist:
             return {'order': '', 'amount': float(obj.celebrity.celebrity_user.rate)}
@@ -273,7 +273,7 @@ class StargramzSerializer(serializers.ModelSerializer):
             edit_time = REQUEST_EDIT_ALLOWED_TIME
 
         try:
-            transaction = StarsonaTransaction.objects.get(starsona_id=obj.id)
+            transaction = StarsonaTransaction.objects.get(starsona_id=obj.id, ambassador_transaction=False)
             if timezone.now() > transaction.created_date + datetime.timedelta(minutes=int(edit_time)):
                 return False
             return True
@@ -346,7 +346,7 @@ class TransactionStargramzSerializer(serializers.ModelSerializer):
     def get_booking_title(self, obj):
         user = self.context.get("request").user
         try:
-            transaction = StarsonaTransaction.objects.get(starsona_id=obj.id, celebrity_id=user.id)
+            transaction = StarsonaTransaction.objects.get(starsona_id=obj.id, celebrity_id=user.id, ambassador_transaction=True)
             if transaction.ambassador_transaction:
                 return "Ambassador Earnings : %s" % obj.booking_title
             else:
