@@ -26,8 +26,7 @@ def change_request_status_to_pending(request_id):
     try:
         starsona = Stargramrequest.objects.get(
             id=request_id,
-            request_status=STATUS_TYPES.approval_pending,
-            request_transaction__transaction_status__in=[2, 3]
+            request_status=STATUS_TYPES.approval_pending
         )
 
         starsona.request_status = STATUS_TYPES.pending
