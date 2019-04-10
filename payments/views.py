@@ -133,7 +133,7 @@ class CreateChargeFan(APIView, ResponseViewMixin):
                 ambassador_amount = round((float(actual_amount) * (20.0 / 100.0)), 2)
                 actual_amount = round((float(actual_amount) * (60.0 / 100.0)), 2)
             else:
-                referee_discount = verify_referee_discount(stargram_request.celebrity.id)
+                referee_discount = verify_referee_discount(obj.celebrity_id)
                 actual_amount = round((float(actual_amount) * (referee_discount / 100.0)), 2)
             transaction = StarsonaTransaction.objects.create(
                 starsona_id=request.data['starsona'],
@@ -669,7 +669,7 @@ class InAppPurchase(APIView, ResponseViewMixin):
                 ambassador_amount = round((float(actual_amount) * (20.0 / 100.0)), 2)
                 actual_amount = round((float(actual_amount) * (60.0 / 100.0)), 2)
             else:
-                referee_discount = verify_referee_discount(stargram_request.celebrity.id)
+                referee_discount = verify_referee_discount(obj.celebrity_id)
                 actual_amount = round((float(actual_amount) * (referee_discount / 100.0)), 2)
             StarsonaTransaction.objects.create(
                 starsona_id=serializer.validated_data.get('starsona', ''),
