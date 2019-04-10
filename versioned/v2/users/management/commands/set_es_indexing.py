@@ -3,7 +3,7 @@ from versioned.v2.users.search import bulk_indexing
 
 
 class Command(BaseCommand):
-    help = 'Bulk index professions and celebrities in Elastic Search'
+    help = 'Displays current time'
 
     def handle(self, *args, **kwargs):
         bulk_indexing()

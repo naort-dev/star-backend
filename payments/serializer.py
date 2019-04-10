@@ -44,7 +44,13 @@ class StarsonaTransactionSerializer(serializers.ModelSerializer):
             return PAYOUT_STATUS.get_label(1)
 
     def get_amount(self, obj):
-        net_amount = float(obj.actual_amount)
+        from job.tasks import verify_referee_discount
+        if obj.payment_type is PAYMENT_TYPES.in_app:
+            amount = float(obj.amount) * (70.0 / 100.0)
+        else:
+            amount = float(obj.amount)
+        referee_discount = verify_referee_discount(obj.celebrity_id)
+        net_amount = float(amount) * (referee_discount / 100.0)
         return str(round(net_amount, 2))
 
 

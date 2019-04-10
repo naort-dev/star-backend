@@ -58,7 +58,6 @@ class StargramzVideoSerializer(CustomModelSerializer):
     full_name = serializers.CharField(read_only=True, source="stragramz_request.celebrity.get_short_name")
     fan_name = serializers.CharField(read_only=True, source="stragramz_request.fan.get_short_name")
     celebrity_id = serializers.SerializerMethodField(read_only=True)
-    celebrity_vanity = serializers.SerializerMethodField(read_only=True)
     booking_id = serializers.SerializerMethodField(read_only=True)
     booking_type = serializers.IntegerField(read_only=True, source="stragramz_request.request_type")
     avatar_photo = ProfilePictureSerializer(read_only=True, source="stragramz_request.celebrity.avatar_photo")
@@ -158,12 +157,6 @@ class StargramzVideoSerializer(CustomModelSerializer):
     def get_celebrity_id(self, obj):
         return encode_pk(obj.stragramz_request.celebrity.id)
 
-    def get_celebrity_vanity(self, obj):
-        try:
-            return VanityUrl.objects.values_list('name', flat=True).get(user=obj.stragramz_request.celebrity.id)
-        except Exception:
-            return ''
-
 
 class StargramzSerializer(serializers.ModelSerializer):
     from_audio_file = serializers.FileField(required=False)
@@ -258,7 +251,7 @@ class StargramzSerializer(serializers.ModelSerializer):
 
     def get_order_details(self, obj):
         try:
-            starsona_transaction = StarsonaTransaction.objects.get(starsona_id=obj.id, ambassador_transaction=False)
+            starsona_transaction = StarsonaTransaction.objects.get(starsona_id=obj.id)
             return {'order': starsona_transaction.order_id(), 'amount': float(starsona_transaction.amount)}
         except StarsonaTransaction.DoesNotExist:
             return {'order': '', 'amount': float(obj.celebrity.celebrity_user.rate)}
@@ -280,7 +273,7 @@ class StargramzSerializer(serializers.ModelSerializer):
             edit_time = REQUEST_EDIT_ALLOWED_TIME
 
         try:
-            transaction = StarsonaTransaction.objects.get(starsona_id=obj.id, ambassador_transaction=False)
+            transaction = StarsonaTransaction.objects.get(starsona_id=obj.id)
             if timezone.now() > transaction.created_date + datetime.timedelta(minutes=int(edit_time)):
                 return False
             return True
@@ -333,7 +326,6 @@ class StargramzRetrieveSerializer(StargramzSerializer):
 
 class TransactionStargramzSerializer(serializers.ModelSerializer):
     request_details = serializers.SerializerMethodField()
-    booking_title = serializers.SerializerMethodField()
     id = serializers.SerializerMethodField(read_only=True)
     occasion = serializers.CharField(read_only=True, source="occasion.title")
     fan = serializers.CharField(read_only=True, source="fan.get_short_name")
@@ -349,19 +341,6 @@ class TransactionStargramzSerializer(serializers.ModelSerializer):
 
     def get_id(self, obj):
         return encode_pk(obj.id)
-
-    def get_booking_title(self, obj):
-        user = self.context.get("request").user
-        try:
-            transaction = StarsonaTransaction.objects.get(starsona_id=obj.id, celebrity_id=user.id, ambassador_transaction=True)
-            if transaction.ambassador_transaction:
-                return "Ambassador Earnings : %s" % obj.booking_title
-            else:
-                return obj.booking_title
-        except Exception as e:
-            print(str(e))
-            return obj.booking_title
-
 
 
 class RequestStatusSerializer(serializers.Serializer):
