@@ -58,7 +58,6 @@ class StargramzVideoSerializer(CustomModelSerializer):
     full_name = serializers.CharField(read_only=True, source="stragramz_request.celebrity.get_short_name")
     fan_name = serializers.CharField(read_only=True, source="stragramz_request.fan.get_short_name")
     celebrity_id = serializers.SerializerMethodField(read_only=True)
-    celebrity_vanity = serializers.SerializerMethodField(read_only=True)
     booking_id = serializers.SerializerMethodField(read_only=True)
     booking_type = serializers.IntegerField(read_only=True, source="stragramz_request.request_type")
     avatar_photo = ProfilePictureSerializer(read_only=True, source="stragramz_request.celebrity.avatar_photo")
@@ -157,12 +156,6 @@ class StargramzVideoSerializer(CustomModelSerializer):
 
     def get_celebrity_id(self, obj):
         return encode_pk(obj.stragramz_request.celebrity.id)
-
-    def get_celebrity_vanity(self, obj):
-        try:
-            return VanityUrl.objects.values_list('name', flat=True).get(user=obj.stragramz_request.celebrity.id)
-        except Exception:
-            return ''
 
 
 class StargramzSerializer(serializers.ModelSerializer):

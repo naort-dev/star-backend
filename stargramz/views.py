@@ -496,8 +496,7 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
                 video, fields=[
                     'duration', 'full_name', 'celebrity_id', 's3_video_url', 's3_thumbnail_url', 'avatar_photo',
                     'professions', 'created_date', 'booking_title', 'video_url', 'width', 'height', 'booking_id',
-                    'booking_type', 'video_status', 'comments_count', 'video_id', 'read_status', 'fan_rate', 'occasion',
-                    'celebrity_vanity'
+                    'booking_type', 'video_status', 'comments_count', 'video_id', 'read_status', 'fan_rate', 'occasion'
                 ],
                 many=True
             )
@@ -769,8 +768,7 @@ class FeaturedVideo(GenericViewSet, ResponseViewMixin):
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(
             page, fields=[
-                'duration', 'full_name', 'booking_type', 'celebrity_id', 'celebrity_vanity', 'booking_id',
-                'fan_avatar_photo', 'user_id',
+                'duration', 'full_name', 'booking_type', 'celebrity_id', 'booking_id', 'fan_avatar_photo', 'user_id',
                 's3_video_url', 's3_thumbnail_url', 'avatar_photo', 'professions', 'created_date', 'booking_title',
                 'video_url', 'width', 'height', 'question_answer_videos', 'following', 'occasion', 'fan_name',
                 'comments_count', 'video_id', 'read_status', 'fan_rate'
