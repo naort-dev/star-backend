@@ -93,7 +93,7 @@ def create_request_refund():
         .exclude(request_transaction__transaction_status=TRANSACTION_STATUS.refunded)
     for request in requests:
         try:
-            starsona = StarsonaTransaction.objects.get(starsona_id=request.id, ambassador_transaction=False)
+            starsona = StarsonaTransaction.objects.get(starsona_id=request.id)
         except StarsonaTransaction.DoesNotExist:
             pass
         if starsona:
@@ -223,7 +223,7 @@ def transaction_completed_notification(starsona_id):
         desktop_link = '%suser/myVideos' % web_url   # new desktop URL is needed
         date = datetime.datetime.now().strftime("%d/%m/%Y")
         booking = Stargramrequest.objects.get(id=starsona_id)
-        transaction = StarsonaTransaction.objects.get(starsona=booking, ambassador_transaction=False)
+        transaction = StarsonaTransaction.objects.get(starsona=booking)
         to_email = booking.fan.email
         template = "transaction_status_to_fan"
         subject = "Starsona Transaction Status"

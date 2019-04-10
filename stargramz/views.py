@@ -203,7 +203,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
             occasions = 'Occasion'
         request.data['booking_title'] = self.generate_title(request.data, celebrity, occasions)
         try:
-            transaction = StarsonaTransaction.objects.get(starsona_id=star_request.id, ambassador_transaction=False)
+            transaction = StarsonaTransaction.objects.get(starsona_id=star_request.id)
             if timezone.now() > transaction.created_date + datetime.timedelta(minutes=int(edit_time)):
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE',
                                               'Sorry; You can no longer update this request,'
@@ -339,7 +339,7 @@ class ChangeRequestStatus(APIView, ResponseViewMixin):
             star_request.save()
             if star_request.request_status == STATUS_TYPES.cancelled:
                 try:
-                    starsona_transaction = StarsonaTransaction.objects.get(starsona=star_request, ambassador_transaction=False)
+                    starsona_transaction = StarsonaTransaction.objects.get(starsona=star_request)
                 except StarsonaTransaction.DoesNotExist:
                     pass
                 if starsona_transaction:
@@ -584,7 +584,7 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
                 )
             # Payment capture process
             try:
-                transaction = StarsonaTransaction.objects.get(starsona_id=stargramz_request.id, ambassador_transaction=False)
+                transaction = StarsonaTransaction.objects.get(starsona_id=stargramz_request.id)
                 if transaction.payment_type == PAYMENT_TYPES.stripe:
                     try:
                         charge = stripe.Charge.retrieve(transaction.stripe_transaction_id)
