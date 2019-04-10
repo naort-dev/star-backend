@@ -48,6 +48,7 @@ class CelebrityDisplaySerializer(serializers.ModelSerializer):
     avatar_photo = serializers.SerializerMethodField(read_only=True)
     rate = serializers.CharField(read_only=True, source="celebrity.celebrity_user.rate")
     in_app_price = serializers.CharField(read_only=True, source="celebrity.celebrity_user.in_app_price")
+    id = serializers.IntegerField(read_only=True, source="order")
 
     class Meta:
         model = CelebrityDisplay
