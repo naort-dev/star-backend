@@ -49,12 +49,11 @@ class LogEvent(models.Model):
 
 class StarsonaTransaction(models.Model):
     starsona = models.ForeignKey(Stargramrequest, related_name='request_transaction', blank=False, null=False, on_delete=models.CASCADE)
-    fan = models.ForeignKey(StargramzUser, related_name='charge_fan_user', null=True, blank=True, on_delete=models.CASCADE)
-    celebrity = models.ForeignKey(StargramzUser, related_name='charge_celebrity_user', null=True, blank=True, on_delete=models.CASCADE)
+    fan = models.ForeignKey(StargramzUser, related_name='charge_fan_user', on_delete=models.CASCADE)
+    celebrity = models.ForeignKey(StargramzUser, related_name='charge_celebrity_user', on_delete=models.CASCADE)
     amount = models.DecimalField('amount', max_digits=7, decimal_places=2, blank=False, null=False)
     actual_amount = models.DecimalField('Actual amount', max_digits=7, decimal_places=2, blank=True, null=True, default=0.0)
     ambassador_amount = models.DecimalField('Ambassador amount', max_digits=7, decimal_places=2, blank=True, null=True, default=0.0)
-    ambassador_transaction = models.BooleanField('Ambassador Transaction', default=False)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
     modified_date = models.DateTimeField('Modified Date', auto_now=True)
     transaction_status = models.IntegerField('Transaction Status', choices=TRANSACTION_STATUS.choices(),
@@ -65,6 +64,9 @@ class StarsonaTransaction(models.Model):
     comments = models.TextField('Comments', max_length=200, blank=True)
     payment_type = models.IntegerField('Payment Type', choices=PAYMENT_TYPES.choices(),
                                        default=PAYMENT_TYPES.stripe, db_index=True)
+
+    class Meta:
+        unique_together = (("starsona", "fan"), ("starsona", "celebrity"))
 
     def __str__(self):
         return 'Transaction %d' % self.pk

@@ -145,22 +145,9 @@ class CreateChargeFan(APIView, ResponseViewMixin):
                 transaction_status=TRANSACTION_STATUS.pending,
                 source_id=request.data['source']
             )
-            if has_ambassador(stargram_request.celebrity.id):
-                ambassador_transaction = StarsonaTransaction.objects.create(
-                    starsona_id=request.data['starsona'],
-                    fan_id=customer.id,
-                    celebrity_id=stargram_request.celebrity.ambassador.id,
-                    amount=ambassador_amount,
-                    actual_amount=ambassador_amount,
-                    ambassador_amount=0.0,
-                    transaction_status=TRANSACTION_STATUS.captured,
-                    source_id=request.data['source'],
-                    ambassador_transaction=True
-                )
             if request_charge.type == 'three_d_secure':
                 if request_charge.status == 'failed':
                     transaction.transaction_status = TRANSACTION_STATUS.failed
-                    ambassador_transaction.transaction_status = TRANSACTION_STATUS.failed
                     transaction.save()
                     return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY',
                                                   'Payment has Failed')
@@ -174,7 +161,6 @@ class CreateChargeFan(APIView, ResponseViewMixin):
 
             if type(charge_id) is dict:
                 transaction.delete()
-                ambassador_transaction.delete()
                 return self.stripe_exception_response(charge_id["Exception"])
             save_transaction_details(transaction, stargram_request, charge_id)
             transaction_completed_notification.delay(stargram_request.id)
@@ -697,20 +683,6 @@ class InAppPurchase(APIView, ResponseViewMixin):
                 stripe_transaction_id=serializer.validated_data.get('stripe_transaction_id'),
                 payment_type=PAYMENT_TYPES.in_app
             )
-            if has_ambassador(stargram_request.celebrity.id):
-                ambassador_transaction = StarsonaTransaction.objects.create(
-                    starsona_id=serializer.validated_data.get('starsona', ''),
-                    fan_id=serializer.validated_data.get('fan'),
-                    celebrity_id=stargram_request.celebrity.ambassador.id,
-                    amount=ambassador_amount,
-                    actual_amount=ambassador_amount,
-                    ambassador_amount=0.0,
-                    transaction_status=TRANSACTION_STATUS.captured,
-                    source_id='in_app',
-                    stripe_transaction_id=serializer.validated_data.get('stripe_transaction_id'),
-                    payment_type=PAYMENT_TYPES.in_app,
-                    ambassador_transaction=True
-                )
             stargram_request.request_status = STATUS_TYPES.approval_pending
             stargram_request.save()
             transaction_completed_notification.delay(stargram_request.id)
