@@ -11,7 +11,7 @@ class TransactionAdmin(ReadOnlyModelAdmin):
     fieldsets = (
         (_('Starsona Details'), {'fields': ('starsona', 'fan', 'celebrity')}),
         (_('Transaction Details'), {'fields': ('transaction_status', 'source_id',
-                                               'stripe_transaction_id', 'stripe_refund_id', 'amount', 'payment_type', 'actual_amount')}),
+                                               'stripe_transaction_id', 'stripe_refund_id', 'amount', 'payment_type')}),
     )
     search_fields = ('id', 'fan__username', 'celebrity__username',)
     list_display_links = ('id',)
