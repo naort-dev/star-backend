@@ -235,7 +235,7 @@ class EventLog(APIView, ResponseViewMixin):
             if loaded_event['data']['object']['type'] == 'three_d_secure':
                 try:
                     starsona_transaction = StarsonaTransaction.objects.get(
-                        source_id=loaded_event['data']['object']['id'], ambassador_transaction=False)
+                        source_id=loaded_event['data']['object']['id'])
                 except StarsonaTransaction.DoesNotExist:
                     pass
                 try:
