@@ -416,8 +416,9 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def get_inline_instances(self, request, obj=None):
-        if obj and obj.ambassador:
-            return [inline(self.model, self.admin_site) for inline in self.inlines2]
+        if obj:
+            if obj.ambassador:
+                return [inline(self.model, self.admin_site) for inline in self.inlines2]
         return [inline(self.model, self.admin_site) for inline in self.inlines]
 
 class AmbassadorChoiceField(forms.ModelChoiceField):
