@@ -287,9 +287,6 @@ class FanUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
             'classes': ('wide',),
             'fields': ('email', 'password1', 'password2',)
         }),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'nick_name', 'date_of_birth', 'order')}),
-        (_('Referral Details'), {'fields': ('referral_active', 'referral_code', 'referral_campaign',
-                                            'has_requested_referral', 'is_ambassador')}),
     )
     ordering = ('email',)
     readonly_fields = ('created_date', 'modified_date', 'profile_images', 'stripe_customer_id', 'stripe_user_id')
@@ -338,10 +335,6 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
             'classes': ('wide',),
             'fields': ('email', 'password1', 'password2',)
         }),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'nick_name', 'date_of_birth', 'order')}),
-        (_('Referral Details'), {'fields': ('referral_active', 'referral_code', 'referral_campaign',
-                                            'has_requested_referral', 'is_ambassador')}),
-        (_('Ambassador'), {'fields': ('ambassador',)}),
     )
     ordering = ('email',)
     readonly_fields = ('created_date', 'modified_date', 'profile_images', 'profile_video',
@@ -416,9 +409,8 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def get_inline_instances(self, request, obj=None):
-        if obj:
-            if obj.ambassador:
-                return [inline(self.model, self.admin_site) for inline in self.inlines2]
+        if obj.ambassador:
+            return [inline(self.model, self.admin_site) for inline in self.inlines2]
         return [inline(self.model, self.admin_site) for inline in self.inlines]
 
 class AmbassadorChoiceField(forms.ModelChoiceField):
