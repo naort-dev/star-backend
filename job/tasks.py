@@ -31,7 +31,7 @@ from utilities.konstants import NOTIFICATION_TYPES, ROLES
 from django.db.models import Sum
 from twilio.rest import Client
 from django_slack import slack_message
-from payments.utils import in_app_price_reduction, has_ambassador
+from payments.utils import in_app_price_reduction
 imageio.plugins.ffmpeg.download()
 
 hashids = Hashids(min_length=8)
@@ -471,19 +471,14 @@ def create_payout_records():
             except Exception as e:
                 break
             if int(record.amount) > 0:
-                if has_ambassador(record.celebrity_id):
-                    starsona_charge = 20.0
-                    referee_discount = 60.0
-                else:
-                    referee_discount = verify_referee_discount(record.celebrity_id)
-                    starsona_charge = 25.0
+                referee_discount = verify_referee_discount(record.celebrity_id)
                 print("Referee discount is %d" % referee_discount)
 
                 field_defaults = {
                     'celebrity': user,
                     'fan_charged': float(round(record.amount, 2)),
                     'stripe_processing_fees': 0,
-                    'starsona_company_charges': 0.00 if referee_discount == 100 else float(in_app_price_reduction(record))*(starsona_charge/100.0),
+                    'starsona_company_charges': 0.00 if referee_discount == 100 else float(in_app_price_reduction(record))*(25.0/100.0),
                     'fund_payed_out': float(round((in_app_price_reduction(record)*(referee_discount/100.0)), 2)),
                     'status': PAYOUT_STATUS.check_pending if user.check_payments else PAYOUT_STATUS.pending
                 }
@@ -491,22 +486,7 @@ def create_payout_records():
                     transaction_id=record.id,
                     defaults=field_defaults
                 )
-                if has_ambassador(record.celebrity_id):
-                    field_defaults = {
-                        'celebrity': user.ambassador,
-                        'fan_charged': float(round(record.amount, 2)),
-                        'stripe_processing_fees': 0,
-                        'starsona_company_charges': 0.00,
-                        'fund_payed_out': float(
-                            round((in_app_price_reduction(record) * (20.0 / 100.0)), 2)),
-                        'status': PAYOUT_STATUS.check_pending if user.ambassador.check_payments else PAYOUT_STATUS.pending
-                    }
-                    PaymentPayout.objects.update_or_create(
-                        transaction_id=record.id,
-                        defaults=field_defaults
-                    )
-                else:
-                    create_referral_payouts(record)
+                create_referral_payouts(record)
             else:
                 print('Payout Amount must be greater than zero')
 
