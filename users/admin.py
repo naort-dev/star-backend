@@ -2,7 +2,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import admin
-from django import forms
 from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profession, GroupAccountUser, GroupAccount,\
     UserRoleMapping, Celebrity, CelebrityProfession, SettingsNotifications, FanRating, Campaign, Referral, VanityUrl, \
     CelebrityAvailableAlert, GroupType, CelebrityGroupAccount, Representative, AdminReferral
@@ -81,7 +80,6 @@ class ReferralInline(ReadOnlyStackedInline):
     verbose_name_plural = 'Referred by'
     fk_name = 'referee'
     max_num = 1
-    readonly_fields = ('referrer',)
 
 
 class VanityUrlInline(ReadOnlyStackedInline):
@@ -278,7 +276,7 @@ class FanUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
         (_('Important dates'), {'fields': ('last_login', 'created_date', 'modified_date',)}),
         (_('Payments'), {'fields': ('stripe_customer_id', 'stripe_user_id', 'check_payments')}),
         (_('Referral Details'), {'fields': ('referral_active', 'referral_code', 'referral_campaign',
-                                            'has_requested_referral', 'is_ambassador')}),
+                                            'has_requested_referral')}),
         (_('Images'), {'fields': ('profile_images',)})
     )
     search_fields = ('first_name', 'last_name', 'email',)
@@ -287,9 +285,6 @@ class FanUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
             'classes': ('wide',),
             'fields': ('email', 'password1', 'password2',)
         }),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'nick_name', 'date_of_birth', 'order')}),
-        (_('Referral Details'), {'fields': ('referral_active', 'referral_code', 'referral_campaign',
-                                            'has_requested_referral', 'is_ambassador')}),
     )
     ordering = ('email',)
     readonly_fields = ('created_date', 'modified_date', 'profile_images', 'stripe_customer_id', 'stripe_user_id')
@@ -324,8 +319,7 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
         (None, {'fields': ('email', 'username', 'password')}),
         (_('Personal info'), {'fields': ('first_name', 'last_name', 'nick_name', 'date_of_birth', 'order')}),
         (_('Referral Details'), {'fields': ('referral_active', 'referral_code', 'referral_campaign',
-                                            'has_requested_referral', 'is_ambassador')}),
-        (_('Ambassador'), {'fields': ('ambassador',)}),
+                                            'has_requested_referral')}),
         (_('Important dates'), {'fields': ('last_login', 'created_date', 'modified_date',)}),
         (_('Payments'), {'fields': ('stripe_customer_id', 'stripe_user_id', 'check_payments')}),
         (_('Images'), {'fields': ('profile_images',)}),
@@ -338,19 +332,12 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
             'classes': ('wide',),
             'fields': ('email', 'password1', 'password2',)
         }),
-        (_('Personal info'), {'fields': ('first_name', 'last_name', 'nick_name', 'date_of_birth', 'order')}),
-        (_('Referral Details'), {'fields': ('referral_active', 'referral_code', 'referral_campaign',
-                                            'has_requested_referral', 'is_ambassador')}),
-        (_('Ambassador'), {'fields': ('ambassador',)}),
     )
     ordering = ('email',)
     readonly_fields = ('created_date', 'modified_date', 'profile_images', 'profile_video',
                        'stripe_customer_id', 'featured_image', 'stripe_user_id')
     list_per_page = 10
     inlines = [RoleInline, ReferralInline, VanityUrlInline, CelebrityInline, ProfessionInline, NotificationSettingInline, PayoutsTabular,
-               RatingInline, ReferralTabular, TipPaymentAdmin, RepresentativeInline]
-    inlines2 = [RoleInline, VanityUrlInline, CelebrityInline, ProfessionInline,
-               NotificationSettingInline, PayoutsTabular,
                RatingInline, ReferralTabular, TipPaymentAdmin, RepresentativeInline]
     ordering = ['-id', ]
 
@@ -409,20 +396,6 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
             return self.readonly_fields + tuple([f.name for f in self.model._meta.fields])
         else:
             return self.readonly_fields
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == 'ambassador':
-            return AmbassadorChoiceField(queryset=StargramzUser.objects.filter(is_ambassador=True), required=False)
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
-    def get_inline_instances(self, request, obj=None):
-        if obj and obj.ambassador:
-            return [inline(self.model, self.admin_site) for inline in self.inlines2]
-        return [inline(self.model, self.admin_site) for inline in self.inlines]
-
-class AmbassadorChoiceField(forms.ModelChoiceField):
-    def label_from_instance(self, obj):
-        return "{}".format(obj.username)
 
 
 class ProfessionAdmin(ReadOnlyModelAdmin):

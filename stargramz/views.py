@@ -203,7 +203,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
             occasions = 'Occasion'
         request.data['booking_title'] = self.generate_title(request.data, celebrity, occasions)
         try:
-            transaction = StarsonaTransaction.objects.get(starsona_id=star_request.id, ambassador_transaction=False)
+            transaction = StarsonaTransaction.objects.get(starsona_id=star_request.id)
             if timezone.now() > transaction.created_date + datetime.timedelta(minutes=int(edit_time)):
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE',
                                               'Sorry; You can no longer update this request,'
@@ -339,7 +339,7 @@ class ChangeRequestStatus(APIView, ResponseViewMixin):
             star_request.save()
             if star_request.request_status == STATUS_TYPES.cancelled:
                 try:
-                    starsona_transaction = StarsonaTransaction.objects.get(starsona=star_request, ambassador_transaction=False)
+                    starsona_transaction = StarsonaTransaction.objects.get(starsona=star_request)
                 except StarsonaTransaction.DoesNotExist:
                     pass
                 if starsona_transaction:
@@ -496,8 +496,7 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
                 video, fields=[
                     'duration', 'full_name', 'celebrity_id', 's3_video_url', 's3_thumbnail_url', 'avatar_photo',
                     'professions', 'created_date', 'booking_title', 'video_url', 'width', 'height', 'booking_id',
-                    'booking_type', 'video_status', 'comments_count', 'video_id', 'read_status', 'fan_rate', 'occasion',
-                    'celebrity_vanity'
+                    'booking_type', 'video_status', 'comments_count', 'video_id', 'read_status', 'fan_rate', 'occasion'
                 ],
                 many=True
             )
@@ -585,7 +584,7 @@ class StargramzVideo(ViewSet, ResponseViewMixin):
                 )
             # Payment capture process
             try:
-                transaction = StarsonaTransaction.objects.get(starsona_id=stargramz_request.id, ambassador_transaction=False)
+                transaction = StarsonaTransaction.objects.get(starsona_id=stargramz_request.id)
                 if transaction.payment_type == PAYMENT_TYPES.stripe:
                     try:
                         charge = stripe.Charge.retrieve(transaction.stripe_transaction_id)
@@ -769,8 +768,7 @@ class FeaturedVideo(GenericViewSet, ResponseViewMixin):
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(
             page, fields=[
-                'duration', 'full_name', 'booking_type', 'celebrity_id', 'celebrity_vanity', 'booking_id',
-                'fan_avatar_photo', 'user_id',
+                'duration', 'full_name', 'booking_type', 'celebrity_id', 'booking_id', 'fan_avatar_photo', 'user_id',
                 's3_video_url', 's3_thumbnail_url', 'avatar_photo', 'professions', 'created_date', 'booking_title',
                 'video_url', 'width', 'height', 'question_answer_videos', 'following', 'occasion', 'fan_name',
                 'comments_count', 'video_id', 'read_status', 'fan_rate'
