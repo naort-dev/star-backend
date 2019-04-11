@@ -637,3 +637,6 @@ class AdminReferral(models.Model):
     referral_code = models.CharField("Referral code", max_length=100)
     activate = models.BooleanField("Activate", default=True)
     created_date = models.DateTimeField('Created date', auto_now_add=True)
+
+    def __str__(self):
+        return self.referral_code
