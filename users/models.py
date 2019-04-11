@@ -555,7 +555,7 @@ def group_created_notification(sender, instance, created, **kwargs):
         slack_template = "new_user_group"
         slack_ctx = {
             "group_name": instance.user.get_short_name(),
-            "group_link": "%s%s" % (web_url, instance.user.vanity_urls.name)
+            "group_link": "%sgroup-profile/%s" % (web_url, instance.user.vanity_urls.name)
         }
         send_message_to_slack.delay(slack_template, slack_ctx)
 
