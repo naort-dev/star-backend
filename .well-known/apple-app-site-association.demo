@@ -1,0 +1,26 @@
+{
+    "applinks": {
+        "apps": [],
+        "details": [
+            {
+                "appID": "2RAH5ZZCTZ.com.starsona.development.app",
+                "paths": [
+                    "NOT /not-found",
+                    "NOT /myStar",
+                    "NOT /resetpassword",
+                    "NOT /settings",
+                    "NOT /privacy-policy",
+                    "NOT /terms-service",
+                    "NOT /contact",
+                    "NOT /faq",
+                    "NOT /referral-program",
+                    "NOT /user/*",
+                    "*"
+                ]
+            }
+        ]
+    },
+    "webcredentials": {
+        "apps": ["2RAH5ZZCTZ.com.starsona.development.app"]
+    }
+}

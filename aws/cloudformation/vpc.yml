@@ -393,17 +393,17 @@ Resources:
   PublicLoadBalancerCertificate6:
     Type: "AWS::CertificateManager::Certificate"
     Properties:
-      DomainName: 'app.upgrade.starsona.com'
+      DomainName: 'app.demo.starsona.com'
       DomainValidationOptions:
-      - DomainName: 'app.upgrade.starsona.com'
+      - DomainName: 'app.demo.starsona.com'
         ValidationDomain: !Ref 'ValidationDomain'
 
   PublicLoadBalancerCertificate7:
     Type: "AWS::CertificateManager::Certificate"
     Properties:
-      DomainName: 'upgrade.starsona.com'
+      DomainName: 'demo.starsona.com'
       DomainValidationOptions:
-      - DomainName: 'upgrade.starsona.com'
+      - DomainName: 'demo.starsona.com'
         ValidationDomain: !Ref 'ValidationDomain'
 
   # This is an IAM role which authorizes ECS to manage resources on your
