@@ -491,7 +491,8 @@ class ReactionListingSerializer(serializers.ModelSerializer):
             return None
 
     def get_share_url(self, obj):
-        return "{}reaction/{}".format(BASE_URL, hashids.encode(obj.id))
+        web_url = Config.objects.get(key='web_url').value
+        return "{}reaction/{}".format(web_url, hashids.encode(obj.id))
 
     def get_reaction_id(self, obj):
         return hashids.encode(obj.id)
