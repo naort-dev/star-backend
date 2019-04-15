@@ -25,7 +25,6 @@ from health.views import health
 from users.celebrity_views import celebrity_representative_email_verification
 from django.contrib.sitemaps import views as sitemaps_views
 from .sitemaps import index as sitemap_index, VanityUrlSitemap
-from versioned.v2.users.views import CelebrityDisplatTitleSave
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -57,8 +56,7 @@ urlpatterns = [
     url(r'^download/(?P<id>[0-9a-zA-Z]{5,8})$', utils.download_video),
     url(r'^download_reactions/(?P<id>[0-9a-zA-Z]{5,8})$', utils.download_reaction_file),
     url(r'^health', health),
-    url(r'^api/v2/', include('versioned.v2.urls')),
-    url(r'^star_title/', CelebrityDisplatTitleSave),
+    url(r'^api/v2/', include('versioned.v2.urls'))
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

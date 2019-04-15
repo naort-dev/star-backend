@@ -1,20 +1,21 @@
 from django.db import models
-from django.db.models.signals import pre_delete, pre_save
-from django.dispatch.dispatcher import receiver
-from django.core.exceptions import PermissionDenied
+
+
+class CelebrityDisplayOrganizer(models.Model):
+    title = models.CharField(max_length=120, null=True, blank=True)
+    profession = models.ForeignKey('users.Profession', related_name='profession_celebrity', null=True, blank=True, on_delete=models.CASCADE)
+
+    def __str__(self):
+        if self.profession and self.profession.title:
+            return self.profession.title
+        elif self.title:
+            return self.title
+        else:
+            return "Display organizer"
 
 
 class CelebrityDisplay(models.Model):
-    celebrity = models.ForeignKey('users.StargramzUser', related_name='celebrity_display', blank=False, on_delete=models.CASCADE)
-
-
-@receiver(pre_delete, sender=CelebrityDisplay)
-def delete_data(*args, **kwargs):
-    raise PermissionDenied
-
-
-@receiver(pre_save, sender=CelebrityDisplay)
-def save_data(instance, **kwargs):
-    if not instance.id:
-        if CelebrityDisplay.objects.all().count() >= 9:
-            raise PermissionDenied
+    celebrity = models.ForeignKey('users.StargramzUser', related_name='celebrity_display', blank=True, null=True, on_delete=models.CASCADE)
+    order = models.IntegerField('celebrity order', blank=True, null=True)
+    celebrity_display = models.ForeignKey(CelebrityDisplayOrganizer, related_name='celebrity_display_organizer', null=True,
+                                          blank=True, on_delete=models.CASCADE)

@@ -7,7 +7,7 @@ from elasticsearch_dsl import Search, Q
 from .constants import *
 from rest_framework.views import APIView
 from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params
-from .models import CelebrityDisplay
+from .models import CelebrityDisplay, CelebrityDisplayOrganizer
 import os
 from users.models import StargramzUser
 from config.models import Config
@@ -85,16 +85,16 @@ class CelebrityDisplayView(APIView, ResponseViewMixin):
         Get the 9 stars which is used for display in the homepage in version 2
     """
     def get(self, request):
-        celebrity_display_title = Config.objects.get(key='celebrity_display_title').value
-        title = request.GET.get('title', None)
-        if title:
-            return self.jp_response(
-                s_code='HTTP_200_OK',
-                data={'display_title': celebrity_display_title}
-            )
-        celebrity_display = CelebrityDisplay.objects.all().order_by('id')
+        profession = request.GET.get('profession', None)
+        if profession:
+            filter_condition = {'celebrity_display__profession_id': profession}
+        else:
+            filter_condition = {'celebrity_display__profession': None}
+        celebrity_display = CelebrityDisplay.objects.filter(**filter_condition).order_by("order")
+        display_title = CelebrityDisplayOrganizer.objects.values_list('title', flat=True).filter(profession=profession)
+        display_title = display_title[0] if display_title else ""
         celebrity_data = CelebrityDisplaySerializer(celebrity_display, many=True)
-        return self.jp_response(s_code='HTTP_200_OK', data={'display_title': celebrity_display_title, 'celebrity_display': celebrity_data.data})
+        return self.jp_response(s_code='HTTP_200_OK', data={'display_title': display_title, 'celebrity_display': celebrity_data.data})
 
 
 class TrendingStars(APIView, ResponseViewMixin):
@@ -106,14 +106,3 @@ class TrendingStars(APIView, ResponseViewMixin):
         trending_celebrity = StargramzUser.objects.filter(celebrity_user__admin_approval=True).order_by('-celebrity_user__trending_star_score')[:10]
         data = TrendingCelebritySerializer(trending_celebrity, many=True).data
         return self.jp_response(s_code='HTTP_200_OK', data={'trending_celebrity': data})
-
-
-def CelebrityDisplatTitleSave(request):
-    title = request.GET.get('title', None)
-    if title and request.user.is_superuser:
-        config = Config.objects.get(key='celebrity_display_title')
-        config.value = title
-        config.save()
-    return HttpResponse("successfull")
-
-
