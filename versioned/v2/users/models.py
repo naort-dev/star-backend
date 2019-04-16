@@ -4,6 +4,7 @@ from django.db import models
 class CelebrityDisplayOrganizer(models.Model):
     title = models.CharField(max_length=120, null=True, blank=True)
     profession = models.ForeignKey('users.Profession', related_name='profession_celebrity', null=True, blank=True, on_delete=models.CASCADE)
+    featured = models.BooleanField(default=False)
 
     def __str__(self):
         if self.profession and self.profession.title:

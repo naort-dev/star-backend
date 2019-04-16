@@ -9,6 +9,7 @@ class CelebrityDisplayAdminInline(admin.StackedInline):
     model = CelebrityDisplay
     autocomplete_fields = ['celebrity']
     min_num = 1
+    readonly_fields = ('order',)
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -20,12 +21,16 @@ class CelebrityDisplayAdminInline(admin.StackedInline):
 
     def get_min_num(self, request, obj=None, **kwargs):
         if obj and not obj.profession:
+            if obj.featured:
+                return 1
             return 5
         else:
             return 1
 
     def get_max_num(self, request, obj=None, **kwargs):
         if obj and not obj.profession:
+            if obj.featured:
+                return 4
             return 9
         else:
             return 4
@@ -59,8 +64,8 @@ class ProfessionFilter(admin.SimpleListFilter):
     def lookups(self, request, model_admin):
 
         return (
-            ('star', '9star'),
-            ('Sports', 'sports'),
+            ('Featured', 'Featured'),
+            ('Sports', 'Sports'),
             ('Movies / TV', 'Movies/TV'),
             ('Music', 'Music'),
             ('Radio / Podcast', 'Radio/Podcast'),
@@ -72,10 +77,26 @@ class ProfessionFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
 
-        if self.value() == 'star':
-            return queryset.filter(celebrity_display__profession=None)
+        if self.value() is None:
+            return queryset.filter(celebrity_display__profession=None, celebrity_display__featured=False).exclude(celebrity=None)
+        elif self.value() == 'Featured':
+            return queryset.filter(celebrity_display__profession=None, celebrity_display__featured=True).exclude(celebrity=None)
         else:
-            return queryset.filter(celebrity_display__profession__title=self.value())
+            return queryset.filter(celebrity_display__profession__title=self.value()).exclude(celebrity=None)
+
+    def choices(self, changelist):
+        print(changelist.get_query_string(remove=[self.parameter_name]))
+        yield {
+            'selected': self.value() is None,
+            'query_string': changelist.get_query_string(remove=[self.parameter_name]),
+            'display': '9star'
+        }
+        for lookup, title in self.lookup_choices:
+            yield {
+                'selected': self.value() == str(lookup),
+                'query_string': changelist.get_query_string({self.parameter_name: lookup}),
+                'display': title,
+            }
 
 
 class CelebrityDisplayAdmin(ReadOnlyModelAdmin):
@@ -90,7 +111,10 @@ class CelebrityDisplayAdmin(ReadOnlyModelAdmin):
             return None
 
     def name(self, instance):
-        return instance.celebrity.get_short_name()
+        if instance.celebrity:
+            return instance.celebrity.get_short_name()
+        else:
+            return "No celebrity selected"
 
     def has_add_permission(self, request):
         return False
@@ -102,14 +126,46 @@ class CelebrityDisplayAdmin(ReadOnlyModelAdmin):
         return True
 
 
+class CelebrityDisplayOrganizerForm(forms.ModelForm):
+    class Meta:
+        model = CelebrityDisplayOrganizer
+        fields = '__all__'
+
+    def clean(self):
+        if not self.cleaned_data["title"]:
+            raise forms.ValidationError("Error  : Title is empty")
+        if len(self.changed_data) is 1 and 'title' in self.changed_data:
+            celebrity_display_organizer = CelebrityDisplayOrganizer.objects.filter(
+                profession=self.cleaned_data["profession"], featured=self.cleaned_data["featured"]
+            )
+            if celebrity_display_organizer.count() > 0 and celebrity_display_organizer[0].id is not self.instance.id:
+                raise forms.ValidationError("Error  : 9 star list already exist")
+            return self.cleaned_data
+        if self.has_changed():
+            celebrity_display_organizer = CelebrityDisplayOrganizer.objects.filter(
+                profession=self.cleaned_data["profession"], featured=self.cleaned_data["featured"]
+            ).count()
+            if celebrity_display_organizer > 0:
+                if self.cleaned_data["featured"]:
+                    raise forms.ValidationError("Error  : Featured List already exist")
+                elif not self.cleaned_data["profession"]:
+                    raise forms.ValidationError("Error  : 9 star list already exist")
+                else:
+                    raise forms.ValidationError("Error  : This profession already exist")
+            if self.cleaned_data["featured"] and self.cleaned_data["profession"]:
+                raise forms.ValidationError("Error  : Featured List must not have profession")
+
+        return self.cleaned_data
+
 class CelebrityDisplayOrganizerAdmin(ReadOnlyModelAdmin):
-    list_display = ('id', 'title', 'profession')
+    list_display = ('id', 'title', 'profession', 'featured')
     fieldsets = (
-        (None, {'fields': ('title', 'profession')}),
+        (None, {'fields': ('title', 'profession', 'featured')}),
     )
     ordering = ('id',)
     inlines = []
     inlines2 = [CelebrityDisplayAdminInline]
+    form = CelebrityDisplayOrganizerForm
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'profession':
@@ -122,22 +178,37 @@ class CelebrityDisplayOrganizerAdmin(ReadOnlyModelAdmin):
         return [inline(self.model, self.admin_site) for inline in self.inlines]
 
     def response_add(self, request, obj, post_url_continue=None):
+
+        if obj.profession:
+            for i in range(1, 5):
+                CelebrityDisplay.objects.create(celebrity=None, celebrity_display=obj, order=i)
+        elif obj.featured:
+            for i in range(1, 5):
+                CelebrityDisplay.objects.create(celebrity=None, celebrity_display=obj, order=i)
+        else:
+            for i in range(1, 10):
+                CelebrityDisplay.objects.create(celebrity=None, celebrity_display=obj, order=i)
+        return redirect("/admin/users2/celebritydisplayorganizer/%s/change/" % str(obj.id))
+
+    def response_change(self, request, obj):
         return redirect("/admin/users2/celebritydisplayorganizer/%s/change/" % str(obj.id))
 
     def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
         if change:
             if obj.profession:
                 type_of_picture = 2
+            elif obj.featured:
+                type_of_picture = 2
             else:
                 type_of_picture = 1
-            context['adminform'].form.fields['profession'].help_text = self.picture_display(type_of_picture)
+            context['adminform'].form.fields['featured'].help_text = self.picture_display(type_of_picture)
         return super().render_change_form(request, context, add, change, form_url, obj)
 
     def picture_display(self, type_of_picture=1):
         if type_of_picture == 1:
-            return "<img src='/media/web-images/celebrity_display_position.png' style='margin-left: -180px'>"
+            return "<img src='/media/web-images/celebrity_display_position.png' style='margin-left: -20px'>"
         else:
-            return "<img src='/media/web-images/4star_celebrity_display.png' style='margin-left: -180px'>"
+            return "<img src='/media/web-images/4star_celebrity_display.png' style='margin-left: -20px'>"
 
     picture_display.allow_tags = True
 

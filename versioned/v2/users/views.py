@@ -86,11 +86,14 @@ class CelebrityDisplayView(APIView, ResponseViewMixin):
     """
     def get(self, request):
         profession = request.GET.get('profession', None)
-        if profession:
+        exclude_condition = {'celebrity': None}
+        if profession is '0':
+            filter_condition = {'celebrity_display__profession_id': None, 'celebrity_display__featured': True}
+        elif profession:
             filter_condition = {'celebrity_display__profession_id': profession}
         else:
             filter_condition = {'celebrity_display__profession': None}
-        celebrity_display = CelebrityDisplay.objects.filter(**filter_condition).order_by("order")
+        celebrity_display = CelebrityDisplay.objects.filter(**filter_condition).exclude(**exclude_condition).order_by("order")
         display_title = CelebrityDisplayOrganizer.objects.values_list('title', flat=True).filter(profession=profession)
         display_title = display_title[0] if display_title else ""
         celebrity_data = CelebrityDisplaySerializer(celebrity_display, many=True)
