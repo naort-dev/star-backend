@@ -92,7 +92,7 @@ class CelebrityDisplayView(APIView, ResponseViewMixin):
         elif profession:
             filter_condition = {'celebrity_display__profession_id': profession}
         else:
-            filter_condition = {'celebrity_display__profession': None}
+            filter_condition = {'celebrity_display__profession': None, 'celebrity_display__featured': False}
         celebrity_display = CelebrityDisplay.objects.filter(**filter_condition).exclude(**exclude_condition).order_by("order")
         display_title = CelebrityDisplayOrganizer.objects.values_list('title', flat=True).filter(profession=profession)
         display_title = display_title[0] if display_title else ""
