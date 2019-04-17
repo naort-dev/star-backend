@@ -69,7 +69,7 @@
     "model": "users.profession",
     "pk": 7,
     "fields": {
-      "title": "Impersonators",
+      "title": "Imitators",
       "file": "Model.png",
       "parent": null,
       "order": 8,
