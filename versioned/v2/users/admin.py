@@ -4,6 +4,8 @@ from utilities.admin_utils import ReadOnlyModelAdmin
 from users.models import Profession, StargramzUser
 from django import forms
 from django.shortcuts import redirect
+from django.db.models import Q, F, Value, Case, When
+from django.db.models.functions import Concat
 
 class CelebrityDisplayAdminInline(admin.StackedInline):
     model = CelebrityDisplay
@@ -47,14 +49,16 @@ class CelebrityDisplayAdminInline(admin.StackedInline):
             profession = None
 
         if db_field.name == "celebrity":
+            query_set = StargramzUser.objects.filter(celebrity_user__admin_approval=True)
+            query_set = query_set.annotate(sort_name=Case(
+                When(Q(nick_name__isnull=False) & ~Q(nick_name=''), then=F('nick_name')),
+                default=Concat('first_name', Value(' '), 'last_name')))
             if not profession:
-                return CelebrityChoiceField(queryset=StargramzUser.objects.filter(
-                    celebrity_user__admin_approval=True).order_by('first_name'), required=False)
+                return CelebrityChoiceField(queryset=query_set.order_by('sort_name'), required=False)
             else:
-                return CelebrityChoiceField(queryset=StargramzUser.objects.filter(
-                    celebrity_user__admin_approval=True,
+                return CelebrityChoiceField(queryset=query_set.filter(
                     celebrity_profession__profession=profession
-                ).order_by('first_name'), required=False)
+                ).order_by('sort_name'), required=False)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
