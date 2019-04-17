@@ -1,4 +1,4 @@
-from users.authenticate_views import FilterProfessions, Professions
+from users.authenticate_views import FilterProfessions, Professions, UserRegister
 from .serializer import ProfessionFilterSerializerV2, ProfessionSerializerV2, SearchSerializer,\
     CelebrityDisplaySerializer, TrendingCelebritySerializer
 from elasticsearch_dsl.connections import connections
@@ -8,10 +8,8 @@ from .constants import *
 from rest_framework.views import APIView
 from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params
 from .models import CelebrityDisplay, CelebrityDisplayOrganizer
-import os
 from users.models import StargramzUser, Profession
-from config.models import Config
-from django.http import HttpResponse
+from users.utils import generate_random_code
 
 
 class FilterProfessionsV2(FilterProfessions):
@@ -125,3 +123,9 @@ class TrendingStars(APIView, ResponseViewMixin):
         trending_celebrity = StargramzUser.objects.filter(celebrity_user__admin_approval=True).order_by('-celebrity_user__trending_star_score')[:10]
         data = TrendingCelebritySerializer(trending_celebrity, many=True).data
         return self.jp_response(s_code='HTTP_200_OK', data={'trending_celebrity': data})
+
+
+class Register(UserRegister):
+    def post(self, request):
+        request.data["password"] = "@%s" % generate_random_code(size=10)
+        return UserRegister.post(self, request)
