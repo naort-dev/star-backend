@@ -78,7 +78,7 @@ class ProfessionFilter(admin.SimpleListFilter):
             ('Social / Youtube', 'Social/Youtube'),
             ('Comedians', 'Comedians'),
             ('Everyday Stars', 'Everyday Stars'),
-            ('Impersonators', 'Impersonators'),
+            ('Imitators', 'Imitators'),
         )
 
     def queryset(self, request, queryset):
