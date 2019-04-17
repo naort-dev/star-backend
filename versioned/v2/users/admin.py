@@ -49,10 +49,12 @@ class CelebrityDisplayAdminInline(admin.StackedInline):
         if db_field.name == "celebrity":
             if not profession:
                 return CelebrityChoiceField(queryset=StargramzUser.objects.filter(
-                    celebrity_user__admin_approval=True), required=False)
+                    celebrity_user__admin_approval=True).order_by('first_name'), required=False)
             else:
                 return CelebrityChoiceField(queryset=StargramzUser.objects.filter(
-                    celebrity_user__admin_approval=True, celebrity_profession__profession=profession), required=False)
+                    celebrity_user__admin_approval=True,
+                    celebrity_profession__profession=profession
+                ).order_by('first_name'), required=False)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
