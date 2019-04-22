@@ -45,15 +45,19 @@ class CelebrityList(GenericViewSet, ResponseViewMixin):
     pagination_class = CustomOffsetPagination
     serializer_class = UserSerializer
 
+    def __init__(self, *args, **kwargs):
+        self.query_set = StargramzUser.objects.filter(
+            Q(celebrity_user__admin_approval=True) | Q(group_account__admin_approval=True)
+        ).select_related('avatar_photo', 'featured_photo') \
+            .prefetch_related('celebrity_user', 'celebrity_account', 'images', 'celebrity_profession__profession',
+                              'group_account', 'vanity_urls', 'images')
+        super().__init__(*args, **kwargs)
+
     def list(self, request):
 
         # role_id = Role.objects.get(code=ROLES.celebrity).id
 
-        search_query = query_set = StargramzUser.objects.filter(
-            Q(celebrity_user__admin_approval=True) | Q(group_account__admin_approval=True)
-        ).select_related('avatar_photo', 'featured_photo')\
-            .prefetch_related('celebrity_user', 'celebrity_account', 'images', 'celebrity_profession__profession',
-                              'group_account', 'vanity_urls', 'images')
+        search_query = query_set = self.query_set
         # if request.user:
         # search_query = query_set = query_set.exclude(username=request.user)
         sort = request.GET.get('sort')
