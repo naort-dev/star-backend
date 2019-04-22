@@ -293,8 +293,8 @@
     "model": "config.config",
     "pk": 30,
     "fields": {
-      "key": "celebrity_display_title",
-      "value": "Title",
+      "key": "elastic_search_endpoint",
+      "value": "https://search-staging-backend-app-3mhclsqtvzuvr6zxmyhmlcpb2q.us-east-1.es.amazonaws.com/",
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }
