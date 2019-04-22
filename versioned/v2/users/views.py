@@ -10,6 +10,12 @@ from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_para
 from .models import CelebrityDisplay, CelebrityDisplayOrganizer
 from users.models import StargramzUser, Profession
 from users.utils import generate_random_code
+from users.fan_views import CelebrityList
+from django.db.models import Q, F, Value, Case, When
+from django.db.models.functions import Concat
+from rest_framework.decorators import list_route
+from utilities.permissions import CustomPermission
+import ast
 
 
 class FilterProfessionsV2(FilterProfessions):
@@ -129,3 +135,57 @@ class Register(UserRegister):
     def post(self, request):
         request.data["password"] = "@%s" % generate_random_code(size=10)
         return UserRegister.post(self, request)
+
+
+class CelebrityListV2(CelebrityList):
+    """
+        The list of celebrities and celebrity search
+    """
+    def list(self, request):
+        query_set = self.query_set.exclude(group_account__admin_approval=True)
+        sort = request.GET.get('sort')
+        filter_by_lower_rate = request.GET.get('lrate')
+        filter_by_upper_rate = request.GET.get('urate')
+        filter_by_profession = request.GET.get('profession')
+        if filter_by_lower_rate and filter_by_upper_rate:
+            try:
+                query_set = query_set.filter(
+                    Q(celebrity_user__rate__gte=filter_by_lower_rate) | Q(group_account__admin_approval=True)
+                )
+                if float(filter_by_upper_rate) < 500:
+                    query_set = query_set.filter(
+                        Q(celebrity_user__rate__lte=filter_by_upper_rate) | Q(group_account__admin_approval=True)
+                    )
+            except Exception as e:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
+        if filter_by_profession:
+            try:
+                filter_by_profession += ','
+                x = ast.literal_eval(filter_by_profession)
+            except Exception as e:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
+            if type(x) is tuple:
+                profession_ids = CelebrityList.profession_ids(CelebrityList, x)
+                query_set = query_set.filter(celebrity_profession__profession_id__in=profession_ids)
+            else:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Must be a list of values')
+        if sort and sort in SORT_LIST:
+            sort_list = [k for k in SORT_LIST[sort].split(',')]
+            if sort == 'az':
+                query_set = query_set.annotate(search_name=Case(
+                    When(Q(show_nick_name=True) & Q(nick_name__isnull=False) & ~Q(nick_name=''), then=F('nick_name')),
+                    default=Concat('first_name', Value(' '), 'last_name'))).order_by(*sort_list)
+            else:
+                query_set = query_set.order_by(*sort_list)
+        else:
+            query_set = query_set.order_by('order', '-celebrity_user__view_count', 'celebrity_user__created_date')
+
+        page = self.paginate_queryset(query_set.distinct())
+        serializer = self.get_serializer(page, many=True)
+        return self.paginator.get_paginated_response(serializer.data, key_name='celebrity_list')
+
+    @list_route(methods=['get'], permission_classes=[CustomPermission], authentication_classes=[],
+                pagination_class=CelebrityList.pagination_class, serializer_class=CelebrityList.serializer_class)
+    def get_list(self, request):
+        request.user = None
+        return self.list(request)
