@@ -19,6 +19,7 @@ import ast
 from users.authenticate_views import UserDetails
 from config.models import Config
 from utilities.utils import decode_pk
+from rest_framework.decorators import detail_route
 
 
 class FilterProfessionsV2(FilterProfessions):
@@ -199,8 +200,19 @@ class CelebrityListV2(CelebrityList):
         return self.list(request)
 
 class UserDetailsV2(UserDetails):
+
+    @detail_route(methods=['get'], permission_classes=[CustomPermission], authentication_classes=[])
+    def get_details(self, request, pk=None, user_followed=None, user_logged_in=None):
+        response = UserDetails.get_details(self, request, pk, user_followed=None, user_logged_in=None)
+        response = self.append_profile_video(response, pk)
+        return response
+
     def retrieve(self, request, pk):
         response = UserDetails.retrieve(self, request, pk)
+        response = self.append_profile_video(response, pk)
+        return response
+
+    def append_profile_video(self, response, pk):
         if response.data.get("status") == 200:
             profile_video = None
             try:
@@ -211,8 +223,7 @@ class UserDetailsV2(UserDetails):
                 config = Config.objects.get(key='authentication_videos')
                 celebrity = Celebrity.objects.get(user_id=pk)
                 profile_video = get_s3_public_url(celebrity.profile_video, config.value)
-            except Exception as e:
-                print(str(e))
+            except Exception:
                 pass
             response.data['data']['celebrity_details'].update({'profile_video': profile_video})
         return response
