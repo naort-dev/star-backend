@@ -35,7 +35,12 @@ class ProfessionsV2(Professions):
         Get all the Professions for Celebrities version 2
     """
     def get(self, request, *args, **kwargs):
-        profession_data = ProfessionSerializerV2(self.profession, many=True)
+        parent = request.GET.get("parent", None)
+        if parent:
+            profession = Profession.objects.filter(parent__isnull=False)
+        else:
+            profession = self.profession
+        profession_data = ProfessionSerializerV2(profession, many=True)
         return self.jp_response(s_code='HTTP_200_OK', data={'professions': profession_data.data})
 
 
