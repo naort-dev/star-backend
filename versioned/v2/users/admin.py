@@ -54,11 +54,11 @@ class CelebrityDisplayAdminInline(admin.StackedInline):
                 When(Q(nick_name__isnull=False) & ~Q(nick_name=''), then=F('nick_name')),
                 default=Concat('first_name', Value(' '), 'last_name')))
             if not profession:
-                return CelebrityChoiceField(queryset=query_set.order_by('sort_name'), required=False)
+                return CelebrityChoiceField(queryset=query_set.order_by('sort_name').distinct(), required=False)
             else:
                 return CelebrityChoiceField(queryset=query_set.filter(
-                    celebrity_profession__profession=profession
-                ).order_by('sort_name'), required=False)
+                    Q(celebrity_profession__profession=profession) | Q(celebrity_profession__profession__parent=profession)
+                ).order_by('sort_name').distinct(), required=False)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -138,6 +138,7 @@ class CelebrityDisplayOrganizerForm(forms.ModelForm):
         fields = '__all__'
 
     def clean(self):
+        celebrity_display_element = []
         if not self.cleaned_data["title"]:
             raise forms.ValidationError("Error  : Title is empty")
         if len(self.changed_data) is 1 and 'title' in self.changed_data:
@@ -160,6 +161,18 @@ class CelebrityDisplayOrganizerForm(forms.ModelForm):
                     raise forms.ValidationError("Error  : This profession already exist")
             if self.cleaned_data["featured"] and self.cleaned_data["profession"]:
                 raise forms.ValidationError("Error  : Featured List must not have profession")
+        if self.data.get("profession", None) or self.data.get("featured", None):
+            limit = 4
+        else:
+            limit = 9
+        for i in range(limit):
+            element = self.data.get("celebrity_display_organizer-%s-celebrity" % i)
+            if element is "":
+                pass
+            else:
+                celebrity_display_element.append(element)
+        if len(celebrity_display_element) > len(set(celebrity_display_element)):
+            raise forms.ValidationError("Error  : Celebrity repetition is not allowed")
 
         return self.cleaned_data
 
