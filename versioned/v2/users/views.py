@@ -216,7 +216,7 @@ class UserDetailsV2(UserDetails):
         if response.data.get("status") == 200:
             profile_video = None
             try:
-                pk = decode_pk(pk)
+                pk = self.verify_hash_token(pk)
             except:
                 pass
             try:
