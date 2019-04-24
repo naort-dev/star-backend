@@ -6,7 +6,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
 from .constants import *
 from rest_framework.views import APIView
-from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params, get_pre_signed_get_url
+from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params, get_pre_signed_get_url, decode_pk
 from .models import CelebrityDisplay, CelebrityDisplayOrganizer
 from users.models import StargramzUser, Profession, Celebrity
 from users.utils import generate_random_code
@@ -142,7 +142,15 @@ class TrendingStars(APIView, ResponseViewMixin):
 class Register(UserRegister):
     def post(self, request):
         request.data["password"] = "@%s" % generate_random_code(size=10)
-        return UserRegister.post(self, request)
+        response = UserRegister.post(self, request)
+        if response.data['status'] == 200:
+            try:
+                user = StargramzUser.objects.get(id=decode_pk(response.data['data']['user']['id']))
+                user.temp_password = True
+                user.save()
+            except:
+                pass
+        return response
 
 
 class CelebrityListV2(CelebrityList):

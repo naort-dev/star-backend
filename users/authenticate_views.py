@@ -207,6 +207,7 @@ class ResetPassword(APIView, ResponseViewMixin):
             user.set_password(password)
             user.reset_id = None
             user.reset_generate_time = None
+            user.temp_password = False
             user.save()
             Token.objects.filter(user=user).delete()
             (token, created) = Token.objects.get_or_create(user=user)
