@@ -6,7 +6,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
 from .constants import *
 from rest_framework.views import APIView
-from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params, get_pre_signed_get_url
+from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params, get_s3_public_url
 from .models import CelebrityDisplay, CelebrityDisplayOrganizer
 from users.models import StargramzUser, Profession, Celebrity
 from users.utils import generate_random_code
@@ -16,8 +16,9 @@ from django.db.models.functions import Concat
 from rest_framework.decorators import list_route
 from utilities.permissions import CustomPermission
 import ast
-from users.celebrity_views import CelebrityManagement
+from users.authenticate_views import UserDetails
 from config.models import Config
+from utilities.utils import decode_pk
 
 
 class FilterProfessionsV2(FilterProfessions):
@@ -197,16 +198,21 @@ class CelebrityListV2(CelebrityList):
         request.user = None
         return self.list(request)
 
-class CelebrityManagementV2(CelebrityManagement):
-    def post(self, request):
-        responce = CelebrityManagement.post(self, request)
-        if responce.data.get("status") == 200:
+class UserDetailsV2(UserDetails):
+    def retrieve(self, request, pk):
+        response = UserDetails.retrieve(self, request, pk)
+        if response.data.get("status") == 200:
             profile_video = None
             try:
-                config = Config.objects.get(key='authentication_videos')
-                celebrity = Celebrity.objects.get(user=request.user)
-                profile_video = get_pre_signed_get_url(celebrity.profile_video, config.value)
+                pk = decode_pk(pk)
             except:
                 pass
-            responce.data["data"]["celebrity"].update({"profile_video": profile_video})
-        return responce
+            try:
+                config = Config.objects.get(key='authentication_videos')
+                celebrity = Celebrity.objects.get(user_id=pk)
+                profile_video = get_s3_public_url(celebrity.profile_video, config.value)
+            except Exception as e:
+                print(str(e))
+                pass
+            response.data['data']['celebrity_details'].update({'profile_video': profile_video})
+        return response
