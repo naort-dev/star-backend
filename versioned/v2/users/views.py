@@ -223,7 +223,8 @@ class UserDetailsV2(UserDetails):
                 config = Config.objects.get(key='authentication_videos')
                 celebrity = Celebrity.objects.get(user_id=pk)
                 profile_video = get_s3_public_url(celebrity.profile_video, config.value)
-            except Exception:
+            except Exception as e:
+                print(str(e))
                 pass
             response.data['data']['celebrity_details'].update({'profile_video': profile_video})
         return response
