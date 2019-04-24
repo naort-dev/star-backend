@@ -150,7 +150,7 @@ class JoinGroupView(APIView, ResponseViewMixin):
                     group_notify.delay(group_details)
                     return self.jp_response(s_code='HTTP_200_OK', data=serialized)
                 else:
-                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', data=validator.errors)
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', data=self.error_msg_string(validator.errors))
             elif celebrity:
                 request.data['account'] = user.id
                 request.data['user'] = request.data.get('celebrity')
@@ -163,7 +163,7 @@ class JoinGroupView(APIView, ResponseViewMixin):
                     invite_celebrity_notify.delay(group_details)
                     return self.jp_response(s_code='HTTP_200_OK', data=serialized)
                 else:
-                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', data=validator.errors)
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', data=self.error_msg_string(validator.errors))
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Already requested.')
 
