@@ -6,9 +6,9 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
 from .constants import *
 from rest_framework.views import APIView
-from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params
+from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params, get_pre_signed_get_url
 from .models import CelebrityDisplay, CelebrityDisplayOrganizer
-from users.models import StargramzUser, Profession
+from users.models import StargramzUser, Profession, Celebrity
 from users.utils import generate_random_code
 from users.fan_views import CelebrityList
 from django.db.models import Q, F, Value, Case, When
@@ -16,6 +16,8 @@ from django.db.models.functions import Concat
 from rest_framework.decorators import list_route
 from utilities.permissions import CustomPermission
 import ast
+from users.celebrity_views import CelebrityManagement
+from config.models import Config
 
 
 class FilterProfessionsV2(FilterProfessions):
@@ -189,3 +191,17 @@ class CelebrityListV2(CelebrityList):
     def get_list(self, request):
         request.user = None
         return self.list(request)
+
+class CelebrityManagementV2(CelebrityManagement):
+    def post(self, request):
+        responce = CelebrityManagement.post(self, request)
+        if responce.data.get("status") == 200:
+            profile_video = None
+            try:
+                config = Config.objects.get(key='authentication_videos')
+                celebrity = Celebrity.objects.get(user=request.user)
+                profile_video = get_pre_signed_get_url(celebrity.profile_video, config.value)
+            except:
+                pass
+            responce.data["data"]["celebrity"].update({"profile_video": profile_video})
+        return responce

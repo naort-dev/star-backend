@@ -1,7 +1,7 @@
 from django.conf.urls import url
 from rest_framework.routers import DefaultRouter
 from .views import FilterProfessionsV2, ProfessionsV2, CelebritySuggestionListV2, CelebrityDisplayView,\
-    TrendingStars, Register, CelebrityListV2
+    TrendingStars, Register, CelebrityListV2, CelebrityManagementV2
 
 urlpatterns = [
     url(r'^professions/$', ProfessionsV2.as_view(), name='profession-v2'),
@@ -9,6 +9,7 @@ urlpatterns = [
     url(r'^celebrity_display/$', CelebrityDisplayView.as_view(), name='celebrity-display'),
     url(r'^trending_stars/$', TrendingStars.as_view(), name='trending_stars'),
     url(r'^register/$', Register.as_view(), name='register-v2'),
+    url(r'^celebrity_profile/$', CelebrityManagementV2.as_view(), name='Celebrity_profile-v2'),
 ]
 
 router = DefaultRouter()
