@@ -10,7 +10,8 @@ from role.models import Role
 from payments.models import PaymentPayout, TipPayment
 from utilities.konstants import ROLES
 from utilities.utils import get_profile_images, get_profile_video, get_featured_image, get_user_role_details
-from django.db.models import Q
+from django.db.models import Q, F, Value, Case, When
+from django.db.models.functions import Concat
 from django.utils.safestring import mark_safe
 from utilities.admin_utils import ReadOnlyModelAdmin, ReadOnlyStackedInline, ReadOnlyTabularInline
 
@@ -505,9 +506,27 @@ class CelebrityGroupAccountTabular(ReadOnlyTabularInline):
 
         return False
 
+class CelebrityDisplayOrganizerForm(forms.ModelForm):
+    class Meta:
+        model = GroupAccountUser
+        fields = '__all__'
+
+    def clean(self):
+        if 'first_name' in self.cleaned_data:
+            try:
+                user = StargramzUser.objects.filter(first_name=str(self.cleaned_data['first_name']))[0]
+            except:
+                pass
+            else:
+                if str(user.username) == str(self.cleaned_data['username']):
+                    pass
+                else:
+                    raise forms.ValidationError("Error: Group name must be unique %s already exist" % self.cleaned_data['first_name'])
+        return self.cleaned_data
 
 class GroupAccountUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     add_form = UserCreationForm
+    form = CelebrityDisplayOrganizerForm
     list_display = ('id', 'first_name', 'last_name', 'username', 'order')
     list_filter = ('group_account__admin_approval',)
 
@@ -561,6 +580,26 @@ class GroupAccountUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
 class JoinGroupAdmin(ReadOnlyModelAdmin):
     list_display = ('user', 'account', 'approved', 'celebrity_invite', 'order', 'created_date', 'modified_date')
     readonly_fields = ('order', 'created_date', 'modified_date')
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'user':
+            query_set = StargramzUser.objects.filter(celebrity_user__admin_approval=True)
+            query_set = query_set.annotate(sort_name=Case(
+                When(Q(nick_name__isnull=False) & ~Q(nick_name=''), then=F('nick_name')),
+                default=Concat('first_name', Value(' '), 'last_name')))
+            return UserChoiceField(queryset=query_set.order_by('sort_name').distinct(), required=False)
+        if db_field.name == 'account':
+            query_set = StargramzUser.objects.filter(group_account__admin_approval=True)
+            query_set = query_set.annotate(sort_name=Case(
+                When(Q(nick_name__isnull=False) & ~Q(nick_name=''), then=F('nick_name')),
+                default=Concat('first_name', Value(' '), 'last_name')))
+            return UserChoiceField(queryset=query_set.order_by('sort_name').distinct(), required=False)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+class UserChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return "{}".format(obj.get_short_name())
 
 
 class GroupTypeAdmin(ReadOnlyModelAdmin):
