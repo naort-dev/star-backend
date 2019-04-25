@@ -1045,6 +1045,8 @@ class GroupListSerializer(serializers.ModelSerializer):
     celebrity_profession = ProfessionTitleSerializer(read_only=True, many=True)
     has_group_account = HasGroupAccountSerializer(read_only=True)
     group_type = serializers.CharField(read_only=True, source="group_account.group_type")
+    rate = serializers.IntegerField(read_only=True, source="celebrity_user.rate")
+    in_app_price = serializers.FloatField(read_only=True, source="celebrity_user.in_app_price")
 
 
     def get_user_id(self, obj):
@@ -1067,7 +1069,7 @@ class GroupListSerializer(serializers.ModelSerializer):
     class Meta:
         model = StargramzUser
         fields = ('group_follow', 'avatar_photo', 'get_short_name', 'first_name', 'featured_photo', 'user_id',
-                  'celebrity_profession', 'has_group_account', 'group_type')
+                  'celebrity_profession', 'has_group_account', 'group_type', 'rate', 'in_app_price')
 
 
 class JoinGroupSerializer(serializers.ModelSerializer):
