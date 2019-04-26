@@ -18,7 +18,6 @@ from utilities.permissions import CustomPermission
 import ast
 from users.authenticate_views import UserDetails
 from config.models import Config
-from utilities.utils import decode_pk
 from rest_framework.decorators import detail_route
 
 
@@ -212,6 +211,18 @@ class UserDetailsV2(UserDetails):
         response = self.append_profile_video(response, pk)
         return response
 
+    def average_response_time(self):
+        """
+        This function should take the average_response_time from the celebrity table
+        :return:
+        """
+        average_response_time = Config.objects.get(key='average_response_time').value
+        if int(average_response_time) > 1:
+            response = "%s Days" % average_response_time
+        else:
+            response = "%s Day" % average_response_time
+        return response
+
     def append_profile_video(self, response, pk):
         if response.data.get("status") == 200:
             profile_video = None
@@ -226,5 +237,11 @@ class UserDetailsV2(UserDetails):
             except Exception as e:
                 print(str(e))
                 pass
-            response.data['data']['celebrity_details'].update({'profile_video': profile_video})
+            average_response_time = self.average_response_time()
+            response.data['data']['celebrity_details'].update(
+                {
+                    'profile_video': profile_video,
+                    'average_response_time': average_response_time
+                }
+            )
         return response
