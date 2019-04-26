@@ -578,8 +578,14 @@ class GroupAccountUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
 
 
 class JoinGroupAdmin(ReadOnlyModelAdmin):
-    list_display = ('user', 'account', 'approved', 'celebrity_invite', 'order', 'created_date', 'modified_date')
+    list_display = ('celebrity_name', 'group_name', 'approved', 'celebrity_invite', 'order', 'created_date', 'modified_date')
     readonly_fields = ('order', 'created_date', 'modified_date')
+
+    def celebrity_name(self, obj):
+        return obj.user.get_short_name()
+
+    def group_name(self, obj):
+        return obj.account.get_short_name()
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'user':
