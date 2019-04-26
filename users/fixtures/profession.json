@@ -7,7 +7,7 @@
       "file": "Athlete.png",
       "parent": null,
       "order": 1,
-      "description": "Category description will be here"
+      "description": "Today’s superstars and yesterday’s heroes."
     }
   },
   {
@@ -18,7 +18,7 @@
       "file": "Broadcaster.png",
       "parent": null,
       "order": 2,
-      "description": "Category description will be here"
+      "description": "From the big screen to your small screen."
     }
   },
   {
@@ -29,7 +29,7 @@
       "file": "Musician.png",
       "parent": null,
       "order": 3,
-      "description": "Category description will be here"
+      "description": "Bands, beats, battlestar galactica."
     }
   },
   {
@@ -40,7 +40,7 @@
       "file": "Actor.png",
       "parent": null,
       "order": 6,
-      "description": "Category description will be here"
+      "description": "Knock knock…"
     }
   },
   {
@@ -51,7 +51,7 @@
       "file": "Musician.png",
       "parent": null,
       "order": 5,
-      "description": "Category description will be here"
+      "description": "Instagrammers, Youtubers, Bloggers."
     }
   },
   {
@@ -62,7 +62,7 @@
       "file": "Author.png",
       "parent": null,
       "order": 7,
-      "description": "Category description will be here"
+      "description": "Local legends and leaders."
     }
   },
   {
@@ -73,7 +73,7 @@
       "file": "Model.png",
       "parent": null,
       "order": 8,
-      "description": "Category description will be here"
+      "description": "Tupac is alive here."
     }
   },
   {
@@ -84,7 +84,7 @@
       "file": "",
       "parent": null,
       "order": 4,
-      "description": "Category description will be here"
+      "description": "Your morning DJ or fav talk show host."
     }
   },
   {
