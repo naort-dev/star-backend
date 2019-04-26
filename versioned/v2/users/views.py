@@ -6,7 +6,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
 from .constants import *
 from rest_framework.views import APIView
-from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params, get_s3_public_url
+from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params, get_pre_signed_get_url
 from .models import CelebrityDisplay, CelebrityDisplayOrganizer
 from users.models import StargramzUser, Profession, Celebrity
 from users.utils import generate_random_code
@@ -222,7 +222,7 @@ class UserDetailsV2(UserDetails):
             try:
                 config = Config.objects.get(key='authentication_videos')
                 celebrity = Celebrity.objects.get(user_id=pk)
-                profile_video = get_s3_public_url(celebrity.profile_video, config.value)
+                profile_video = get_pre_signed_get_url(celebrity.profile_video, config.value)
             except Exception as e:
                 print(str(e))
                 pass

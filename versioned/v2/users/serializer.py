@@ -3,7 +3,7 @@ from rest_framework import serializers
 from users.serializer import ProfessionSerializer, ProfessionFilterSerializer, ProfilePictureSerializer
 from .models import CelebrityDisplay
 from users.serializer import UserSerializer
-from users.models import CelebrityProfession, Profession
+from users.models import CelebrityProfession, Profession, VanityUrl
 
 
 class ProfessionSerializerV2(ProfessionSerializer):
@@ -51,10 +51,12 @@ class CelebrityDisplaySerializer(serializers.ModelSerializer):
     rate = serializers.CharField(read_only=True, source="celebrity.celebrity_user.rate")
     in_app_price = serializers.CharField(read_only=True, source="celebrity.celebrity_user.in_app_price")
     id = serializers.IntegerField(read_only=True, source="order")
+    celebrity_id = serializers.SerializerMethodField(read_only=True)
+    celebrity_hash_id = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = CelebrityDisplay
-        fields = ('id', 'name', 'avatar_photo', 'in_app_price', 'rate', 'professions')
+        fields = ('id', 'celebrity_hash_id', 'celebrity_id', 'name', 'avatar_photo', 'in_app_price', 'rate', 'professions')
 
     def get_name(self, obj):
         return obj.celebrity.get_short_name()
@@ -66,6 +68,18 @@ class CelebrityDisplaySerializer(serializers.ModelSerializer):
         profession = CelebrityProfession.objects.values_list('profession', flat=True).filter(user_id=obj.celebrity.id)
         profession = Profession.objects.values_list('title', flat=True).filter(id__in=profession)
         return profession
+
+    def get_celebrity_id(self, obj):
+        try:
+            return VanityUrl.objects.values_list('name', flat=True).get(user=obj.celebrity.id)
+        except Exception:
+            return ''
+
+    def get_celebrity_hash_id(self, obj):
+        try:
+            return encode_pk(obj.celebrity.id)
+        except Exception:
+            return ''
 
 
 class TrendingCelebritySerializer(UserSerializer):
