@@ -249,18 +249,16 @@ class CelebrityProfileFollow(APIView, ResponseViewMixin):
         """
             To Follow a Celebrity by Fan
         """
+        from .authenticate_views import UserDetails
         try:
             fan_user = StargramzUser.objects.get(username=request.user)
         except StargramzUser.DoesNotExist:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
         try:
-            celebrity = request.data['celebrity']
-            request.data['celebrity'] = decode_pk(request.data['celebrity'])
-        except Exception:
-            celebrity = encode_pk(request.data['celebrity'])
-        try:
+            request.data['celebrity'] = UserDetails.verify_hash_token(UserDetails, request.data['celebrity'])
+            celebrity = encode_pk(int(request.data['celebrity']))
             celebrity_user = Celebrity.objects.get(user_id=request.data['celebrity'])
-        except Celebrity.DoesNotExist:
+        except Exception:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY', 'Invalid Celebrity User')
         try:
             celebrity_exist = CelebrityFollow.objects.get(celebrity_id=celebrity_user.user_id,
