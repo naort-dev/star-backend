@@ -8,6 +8,7 @@ from .constants import *
 from django.db.models import F
 from django.apps import apps
 import datetime
+from .utils import average_response_time_calculator
 
 
 REQUEST_TYPES = Konstants(
@@ -187,6 +188,7 @@ class Stargramrequest(models.Model):
                 #     data,
                 #     kw
                 # ), countdown=10)
+        average_response_time_calculator(self.celebrity, self.created_date, self.modified_date)
         super(Stargramrequest, self).save(*args, **kwargs)
         self.__original_request_status = self.request_status
 
