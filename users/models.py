@@ -281,6 +281,7 @@ class Celebrity(models.Model):
     check_payments = models.BooleanField('Check Payment', default=False)
     has_fan_account = models.BooleanField('User has fan Account', default=False)
     trending_star_score = models.IntegerField('Star Score', default=0, blank=True)
+    average_response_time = models.DecimalField('Average Response Time', max_digits=7, decimal_places=2, blank=True, default=0.00)
 
     def __str__(self):
         return 'Celebrity Details'

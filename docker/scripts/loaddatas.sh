@@ -33,4 +33,7 @@ python manage.py set_es_indexing
 echo 'Set transaction amount for existing records'
 #python manage.py populate_transaction_amount
 
+echo 'Average response time initializer Started'
+python manage.py average_response_time_initializer
+
 echo 'All done'

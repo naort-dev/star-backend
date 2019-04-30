@@ -211,16 +211,32 @@ class UserDetailsV2(UserDetails):
         response = self.append_profile_video(response, pk)
         return response
 
-    def average_response_time(self):
+    def average_response_time(self, celebrity):
         """
         This function should take the average_response_time from the celebrity table
         :return:
         """
-        average_response_time = Config.objects.get(key='average_response_time').value
-        if int(average_response_time) > 1:
-            response = "%s Days" % average_response_time
+        try:
+            celebrity = Celebrity.objects.get(user_id=celebrity)
+        except Exception as e:
+            print("Error in average response time function")
+            average_response_time = None
         else:
-            response = "%s Day" % average_response_time
+            time = celebrity.average_response_time
+            if time == 0:
+                # average_response_time = Config.objects.get(key='average_response_time').value
+                average_response_time = None
+            elif time % 1 > 0.5:
+                average_response_time = str((time//1)+1)
+            else:
+                average_response_time = str(time//1)
+        if average_response_time:
+            if int(average_response_time) > 1:
+                response = "%s Days" % average_response_time
+            else:
+                response = "One Day"
+        else:
+            response = ""
         return response
 
     def append_profile_video(self, response, pk):
@@ -237,7 +253,7 @@ class UserDetailsV2(UserDetails):
             except Exception as e:
                 print(str(e))
                 pass
-            average_response_time = self.average_response_time()
+            average_response_time = self.average_response_time(pk)
             response.data['data']['celebrity_details'].update(
                 {
                     'profile_video': profile_video,

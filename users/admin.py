@@ -314,13 +314,16 @@ class FanUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
 
 class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     add_form = UserCreationForm
-    list_display = ('id', 'first_name', 'last_name', 'username', 'order')
+    list_display = ('id', 'first_name', 'last_name', 'username', 'order', 'average_response_time')
     list_filter = ('celebrity_user__admin_approval', 'stargramz_user__is_complete')
 
     def user_types(self, obj):
         role = UserRoleMapping.objects.get(user_id=obj.id)
         role_name = Role.objects.get(id=role.role_id).name
         return role_name
+
+    def average_response_time(self, obj):
+        return Celebrity.objects.values_list('average_response_time', flat=True).get(user_id=obj.id)
 
     fieldsets = (
         (None, {'fields': ('email', 'username', 'password')}),
