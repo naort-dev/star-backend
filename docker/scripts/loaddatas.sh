@@ -37,6 +37,6 @@ echo 'Average response time initializer Started'
 # python manage.py average_response_time_initializer
 
 echo 'Initializing Trending Score'
-python manage.py trending_score_initializer
+# python manage.py trending_score_initializer
 
 echo 'All done'
