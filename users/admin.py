@@ -314,8 +314,11 @@ class FanUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
 
 class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     add_form = UserCreationForm
-    list_display = ('id', 'first_name', 'last_name', 'username', 'order', 'average_response_time')
+    list_display = ('id', 'first_name', 'last_name', 'username', 'order', 'trending_star_score', 'average_response_time')
     list_filter = ('celebrity_user__admin_approval', 'stargramz_user__is_complete')
+
+    def trending_star_score(self, obj):
+        return Celebrity.objects.get(user_id=obj.id).trending_star_score
 
     def user_types(self, obj):
         role = UserRoleMapping.objects.get(user_id=obj.id)

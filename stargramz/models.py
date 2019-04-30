@@ -148,6 +148,7 @@ class Stargramrequest(models.Model):
         from job.tasks import send_email_notification, notify_fan_reaction_videos_and_feedback, request_slack_message
         from notification.tasks import send_notification
         from payments.tasks import create_request_refund
+        from users.models import Celebrity
         if self.request_status != self.__original_request_status:
             send_email_notification.apply_async(
                 (booking_id,),
@@ -163,6 +164,8 @@ class Stargramrequest(models.Model):
 
             if self.request_status == STATUS_TYPES.cancelled:
                 create_request_refund.delay()
+            if self.request_status == STATUS_TYPES.pending:
+                Celebrity.objects.filter(user_id=self.celebrity.id).update(trending_star_score=F('trending_star_score') + 10)
             if self.request_status == STATUS_TYPES.completed:
                 model = apps.get_model('users', 'StargramzUser')
                 user = model.objects.get(id=self.fan.id)
