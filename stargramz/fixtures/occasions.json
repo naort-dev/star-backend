@@ -17,7 +17,7 @@
     "model": "stargramz.occasion",
     "pk": 2,
     "fields": {
-      "title": "Baby",
+      "title": "Birth",
       "occasion_image": "",
       "date_required": true,
       "type": 3,
@@ -45,7 +45,7 @@
     "model": "stargramz.occasion",
     "pk": 4,
     "fields": {
-      "title": "Bar/Bat Mitzvah",
+      "title": "Bar Mitzvah",
       "occasion_image": "",
       "date_required": false,
       "type": 5,
@@ -73,7 +73,7 @@
     "model": "stargramz.occasion",
     "pk": 6,
     "fields": {
-      "title": "Confirmation/Communion",
+      "title": "Confirmation",
       "occasion_image": "",
       "date_required": false,
       "type": 5,
@@ -171,7 +171,7 @@
     "model": "stargramz.occasion",
     "pk": 13,
     "fields": {
-      "title": "Romantic/Proposal",
+      "title": "Romantic",
       "occasion_image": "",
       "date_required": false,
       "type": 2,
@@ -262,7 +262,7 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": false
     }
   },
   {
@@ -290,14 +290,14 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": false
     }
   },
   {
     "model": "stargramz.occasion",
     "pk": 22,
     "fields": {
-      "title": "Game Day/Night",
+      "title": "Game Day",
       "occasion_image": "",
       "date_required": false,
       "type": 6,
@@ -325,7 +325,7 @@
     "model": "stargramz.occasion",
     "pk": 24,
     "fields": {
-      "title": "Other Event/Party",
+      "title": "Other",
       "occasion_image": "",
       "date_required": false,
       "type": 6,
@@ -353,7 +353,7 @@
     "model": "stargramz.occasion",
     "pk": 26,
     "fields": {
-      "title": "Bachelor/ette Party",
+      "title": "Bachelor Party",
       "occasion_image": "",
       "date_required": false,
       "type": 7,
@@ -367,7 +367,7 @@
     "model": "stargramz.occasion",
     "pk": 27,
     "fields": {
-      "title": "Bar/Bat Mitzvah",
+      "title": "Bar Mitzvah",
       "occasion_image": "",
       "date_required": false,
       "type": 7,
@@ -471,6 +471,104 @@
       "type": 8,
       "other_check": true,
       "request_type": 3,
+      "created_date": "2017-10-18T11:47:11.719Z",
+      "visibility": true
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 35,
+    "fields": {
+      "title": "Bat Mitzvah",
+      "occasion_image": "",
+      "date_required": false,
+      "type": 5,
+      "other_check": false,
+      "request_type": 1,
+      "created_date": "2017-10-18T11:47:11.719Z",
+      "visibility": true
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 36,
+    "fields": {
+      "title": "Communion",
+      "occasion_image": "",
+      "date_required": false,
+      "type": 5,
+      "other_check": false,
+      "request_type": 1,
+      "created_date": "2017-10-18T11:47:11.719Z",
+      "visibility": true
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 37,
+    "fields": {
+      "title": "Proposal",
+      "occasion_image": "",
+      "date_required": false,
+      "type": 2,
+      "other_check": false,
+      "request_type": 1,
+      "created_date": "2017-10-18T11:47:11.719Z",
+      "visibility": true
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 38,
+    "fields": {
+      "title": "Bachelorette Party",
+      "occasion_image": "",
+      "date_required": false,
+      "type": 7,
+      "other_check": true,
+      "request_type": 2,
+      "created_date": "2017-10-18T11:47:11.719Z",
+      "visibility": true
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 39,
+    "fields": {
+      "title": "Bat Mitzvah",
+      "occasion_image": "",
+      "date_required": false,
+      "type": 7,
+      "other_check": true,
+      "request_type": 2,
+      "created_date": "2017-10-18T11:47:11.719Z",
+      "visibility": true
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 40,
+    "fields": {
+      "title": "Game Night",
+      "occasion_image": "",
+      "date_required": false,
+      "type": 6,
+      "other_check": true,
+      "request_type": 2,
+      "created_date": "2017-10-18T11:47:11.719Z",
+      "visibility": true
+    }
+  },
+  {
+    "model": "stargramz.occasion",
+    "pk": 41,
+    "fields": {
+      "title": "Party",
+      "occasion_image": "",
+      "date_required": false,
+      "type": 6,
+      "other_check": true,
+      "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
       "visibility": true
     }
