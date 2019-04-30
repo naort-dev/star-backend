@@ -2,10 +2,10 @@ import json
 from collections import OrderedDict
 from pprint import pprint
 
-with open('occasions.json') as f:
+with open('stargramz/fixtures/occasions.json') as f:
     occasions = json.load(f)
 
-with open('relations.json') as f:
+with open('stargramz/fixtures/relations.json') as f:
     relations = json.load(f)
 
 relations_dict = {}
@@ -58,6 +58,6 @@ for occ in occasions:
         order += 1
         pk += 1
 
-with open('orderrelations.json', 'w') as f:
+with open('stargramz/fixtures/orderrelations.json', 'w') as f:
     f.write(json.dumps(output, indent=2))
 
