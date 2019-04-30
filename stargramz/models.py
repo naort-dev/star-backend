@@ -176,7 +176,7 @@ class Stargramrequest(models.Model):
                 # Trigger push/email notifications for reactions & reviews
                 later = datetime.datetime.utcnow() + datetime.timedelta(minutes=59)
                 notify_fan_reaction_videos_and_feedback.apply_async(args=(booking_id,), eta=later)
-
+                average_response_time_calculator(self.celebrity, self.created_date, self.modified_date)
                 # body_content = NOTIFICATION_Q_A % self.celebrity.get_short_name() if self.request_type == 3 else \
                 #     NOTIFICATION_REQUEST_COMPLETE_BODY
                 #
@@ -191,7 +191,6 @@ class Stargramrequest(models.Model):
                 #     data,
                 #     kw
                 # ), countdown=10)
-        average_response_time_calculator(self.celebrity, self.created_date, self.modified_date)
         super(Stargramrequest, self).save(*args, **kwargs)
         self.__original_request_status = self.request_status
 
