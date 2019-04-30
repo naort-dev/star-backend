@@ -208,7 +208,6 @@ class StargramzSerializer(serializers.ModelSerializer):
                                                          occasion=occasion, request_details=request_details,
                                                          request_type=request_type, public_request=public_request)
         stargramrequest.save()
-        Celebrity.objects.filter(user_id=celebrity).update(trending_star_score=F('trending_star_score') + 10)
         return stargramrequest
 
     def get_request_status(self, obj):
