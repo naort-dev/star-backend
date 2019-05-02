@@ -39,4 +39,7 @@ echo 'Average response time initializer Started'
 echo 'Initializing Trending Score'
 # python manage.py trending_score_initializer
 
+echo 'Removing null profile video from db'
+python manage.py remove_profile_video_from_db
+
 echo 'All done'
