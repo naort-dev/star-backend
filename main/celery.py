@@ -63,11 +63,15 @@ app.conf.beat_schedule = {
         'task': 'celebrity_request_notification',
         'schedule': crontab(minute=0, hour=0, nowfun=get_now_fun),
     },
-    # 'schedule-10': {
+    'schedule-10': {
+        'task': 'setting_up_password',
+        'schedule': crontab(minute=0, hour=0, nowfun=get_now_fun),
+    },
+    # 'schedule-11': {
     #     'task': 'reprocess_pending_video_approval',
     #     'schedule': crontab(minute=0, hour=0),
     # },
-    #'schedule-11': {
+    #'schedule-12': {
     #    'task': 'cancel_booking_on_seven_days_completion',
     #    'schedule': crontab(minute=0, hour=0),
     #},
