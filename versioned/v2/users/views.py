@@ -257,7 +257,8 @@ class UserDetailsV2(UserDetails):
             try:
                 config = Config.objects.get(key='authentication_videos')
                 celebrity = Celebrity.objects.get(user_id=pk)
-                profile_video = get_pre_signed_get_url(celebrity.profile_video, config.value)
+                if celebrity.profile_video:
+                    profile_video = get_pre_signed_get_url(celebrity.profile_video, config.value)
             except Exception as e:
                 print(str(e))
                 pass
