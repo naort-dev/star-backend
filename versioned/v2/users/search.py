@@ -5,7 +5,7 @@ from elasticsearch import Elasticsearch
 from config.constants import *
 from utilities.utils import get_bucket_url, get_elasticsearch_connection_params
 from .constants import *
-from users.models import Profession, Celebrity
+from users.models import Profession, Celebrity, VanityUrl
 from utilities.utils import encode_pk
 
 
@@ -23,6 +23,7 @@ class Celebrities(DocType):
     avatar_photo = Text()
     image_url = Text()
     thumbnail_url = Text()
+    vanity_id = Text()
 
 
 def bulk_indexing():
@@ -51,6 +52,10 @@ def profession_indexing(profession):
 
 
 def celebrity_indexing(celebrity):
+    try:
+        vanity_id = celebrity.user.vanity_urls.name
+    except VanityUrl.DoesNotExist:
+        vanity_id = ''
     obj = Celebrities(
         meta={'id': celebrity.id},
         user_id=encode_pk(celebrity.user_id),
@@ -60,7 +65,8 @@ def celebrity_indexing(celebrity):
         avatar_photo=celebrity.user.avatar_photo.photo if celebrity.user.avatar_photo else '',
         image_url=get_s3_image_url(celebrity.user.avatar_photo) if celebrity.user.avatar_photo else '',
         thumbnail_url=get_s3_thumbnail_url(celebrity.user.avatar_photo) if celebrity.user.avatar_photo else '',
-        professions=str([cp.profession.title for cp in celebrity.user.celebrity_profession.all()])
+        professions=str([cp.profession.title for cp in celebrity.user.celebrity_profession.all()]),
+        vanity_id=vanity_id
     )
     obj.save(index=ES_CELEBRITY_INDEX, op_type='index')
 
