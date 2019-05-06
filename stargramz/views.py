@@ -21,7 +21,7 @@ from rest_framework.viewsets import ViewSet, GenericViewSet
 from utilities.pagination import CustomOffsetPagination
 import datetime
 from utilities.utils import datetime_range, get_pre_signed_get_url, check_user_role, upload_image_s3,\
-    get_s3_public_url, sent_email, decode_pk, encode_pk
+    get_s3_public_url, sent_email, decode_pk, encode_pk, average_rate_calculate
 from utilities.permissions import CustomPermission
 from rest_framework.decorators import action
 from django.db.models import Q
@@ -1073,6 +1073,11 @@ class BookingFeedbackView(APIView, ResponseViewMixin):
                     fan_id=user.id, celebrity_id=celebrity, starsona_id=booking,
                     defaults=fields)
                 booking_feedback_celebrity_notification.delay(booking, fields)
+                try:
+                    celebrity_user = Celebrity.objects.get(user_id=celebrity)
+                    average_rate_calculate(celebrity_user)
+                except:
+                    pass
                 data = CelebrityRatingSerializerEncoder(rating_record).data
                 return self.jp_response('HTTP_200_OK', data={"feedback": data})
             else:

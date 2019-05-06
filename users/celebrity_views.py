@@ -121,7 +121,7 @@ class CelebrityManagement(APIView, ResponseViewMixin):
         if celebrity:
             data = CelebrityProfileSerializer(
                 # Remove 'check_payments' from celebrity after next app release
-                celebrity, fields=['rating', 'weekly_limits', 'featured', 'rating', 'remaining_limit', 'profession',
+                celebrity, fields=['rating', 'weekly_limits', 'featured', 'remaining_limit', 'profession',
                                    'profession_name', 'charity', 'description', 'follow_count', 'rate', 'in_app_price',
                                    'availability', 'stripe_user_id', 'pending_requests_count', 'check_payments'
                                    ]).data
