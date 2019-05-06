@@ -693,6 +693,29 @@ class FeaturedVideo(GenericViewSet, ResponseViewMixin):
     pagination_class = CustomOffsetPagination
     serializer_class = StargramzVideoSerializer
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.queryset = StargramVideo.objects.filter(
+            stragramz_request__public_request=True,
+            stragramz_request__request_status=STATUS_TYPES.completed,
+            status__in=[1, 2, 3],
+        ).select_related('stragramz_request').prefetch_related(
+            'stragramz_request__occasion',
+            'stragramz_request__celebrity',
+            'stragramz_request__fan',
+            'stragramz_request__celebrity__celebrity_profession__profession',
+            'stragramz_request__celebrity__avatar_photo',
+            'stragramz_request__fan__avatar_photo',
+            'stragramz_request__celebrity__vanity_urls'
+        )
+        self.required_fields = [
+                'duration', 'full_name', 'booking_type', 'celebrity_id', 'celebrity_vanity', 'booking_id',
+                'fan_avatar_photo', 'user_id',
+                's3_video_url', 's3_thumbnail_url', 'avatar_photo', 'professions', 'created_date', 'booking_title',
+                'video_url', 'width', 'height', 'question_answer_videos', 'following', 'occasion', 'fan_name',
+                'comments_count', 'video_id', 'read_status', 'fan_rate'
+            ]
+
     def list(self, request):
         """
             List of Featured Videos
@@ -702,6 +725,7 @@ class FeaturedVideo(GenericViewSet, ResponseViewMixin):
         req_type = request.GET.get('request_type', None)
         if req_type and int(req_type) in request_type:
             request_type = [int(req_type)]
+            self.queryset = self.queryset.filter(stragramz_request__request_type__in=request_type)
 
         id = request.GET.get('id', None)
 
@@ -726,20 +750,7 @@ class FeaturedVideo(GenericViewSet, ResponseViewMixin):
         else:
             extra_select = {'stragramz_request__id': ordering}
 
-        query_set = StargramVideo.objects.filter(
-            stragramz_request__public_request=True,
-            stragramz_request__request_status=STATUS_TYPES.completed,
-            stragramz_request__request_type__in=request_type,
-            status__in=[1, 2, 3],
-        ).select_related('stragramz_request').prefetch_related(
-            'stragramz_request__occasion',
-            'stragramz_request__celebrity',
-            'stragramz_request__fan',
-            'stragramz_request__celebrity__celebrity_profession__profession',
-            'stragramz_request__celebrity__avatar_photo',
-            'stragramz_request__fan__avatar_photo',
-            'stragramz_request__celebrity__vanity_urls'
-        ).extra(select=extra_select, order_by=order_by)
+        query_set = self.queryset.extra(select=extra_select, order_by=order_by)
 
         if filter_by_name:
             query_set = search_title_name(filter_by_name, query_set)
@@ -768,13 +779,7 @@ class FeaturedVideo(GenericViewSet, ResponseViewMixin):
 
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(
-            page, fields=[
-                'duration', 'full_name', 'booking_type', 'celebrity_id', 'celebrity_vanity', 'booking_id',
-                'fan_avatar_photo', 'user_id',
-                's3_video_url', 's3_thumbnail_url', 'avatar_photo', 'professions', 'created_date', 'booking_title',
-                'video_url', 'width', 'height', 'question_answer_videos', 'following', 'occasion', 'fan_name',
-                'comments_count', 'video_id', 'read_status', 'fan_rate'
-            ],
+            page, fields=self.required_fields,
             many=True
         )
         return self.paginator.get_paginated_response(serializer.data, key_name='featured_videos')

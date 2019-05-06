@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'django_nose',
     'django_slack',
     'versioned.v2.users',
+    'versioned.v2.stargramz'
 ]
 
 MIDDLEWARE = [
