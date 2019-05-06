@@ -52,11 +52,8 @@ class CelebrityManagement(APIView, ResponseViewMixin):
                 if roles_mapping.role.code == ROLES.fan:
                     celebrity.has_fan_account = True
                 # Celebrity approval by default
-                try:
-                    AdminReferral.objects.get(id=user.admin_approval_referral_code_id, activate=True)
+                if user.admin_approval_referral_code and user.admin_approval_referral_code.activate:
                     celebrity.admin_approval = True
-                except Exception:
-                    pass
                 celebrity.save()
                 roles_mapping.is_complete = True
                 roles_mapping.role_id = role_id

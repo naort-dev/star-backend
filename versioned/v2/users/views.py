@@ -1,4 +1,4 @@
-from users.authenticate_views import FilterProfessions, Professions, UserRegister
+from users.authenticate_views import FilterProfessions, Professions, UserRegister, UserDetails
 from .serializer import ProfessionFilterSerializerV2, ProfessionSerializerV2, SearchSerializer,\
     CelebrityDisplaySerializer, TrendingCelebritySerializer
 from elasticsearch_dsl.connections import connections
@@ -8,7 +8,7 @@ from .constants import *
 from rest_framework.views import APIView
 from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params, get_pre_signed_get_url, decode_pk
 from .models import CelebrityDisplay, CelebrityDisplayOrganizer
-from users.models import StargramzUser, Profession, Celebrity
+from users.models import StargramzUser, Profession, Celebrity, AdminReferral
 from users.utils import generate_random_code
 from users.fan_views import CelebrityList
 from django.db.models import Q, F, Value, Case, When
@@ -16,7 +16,7 @@ from django.db.models.functions import Concat
 from rest_framework.decorators import list_route
 from utilities.permissions import CustomPermission
 import ast
-from users.authenticate_views import UserDetails
+from users.celebrity_views import CelebrityManagement
 from config.models import Config
 from rest_framework.decorators import detail_route
 
@@ -270,3 +270,17 @@ class UserDetailsV2(UserDetails):
                 }
             )
         return response
+
+
+class CelebrityManagementV2(CelebrityManagement):
+
+    def post(self, request):
+        user = request.user
+        try:
+            referral_code = request.data.get("referral_code", None)
+            referral = AdminReferral.objects.get(referral_code=referral_code, activate=True)
+            user.admin_approval_referral_code = referral
+            user.save()
+        except Exception:
+            pass
+        return CelebrityManagement.post(CelebrityManagement, request)
