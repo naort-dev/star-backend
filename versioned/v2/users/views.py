@@ -270,16 +270,17 @@ class UserDetailsV2(UserDetails):
             except Exception as e:
                 print(str(e))
                 pass
-            average_response_time = self.average_response_time(pk)
-            current_rating = response.data['data']['celebrity_details'].get('rating', None)
-            rating = self.rating_checking(pk, current_rating)
-            response.data['data']['celebrity_details'].update(
-                {
-                    'profile_video': profile_video,
-                    'average_response_time': average_response_time,
-                    'rating' : rating
-                }
-            )
+            if response.data['data'].get('celebrity_details', None):
+                average_response_time = self.average_response_time(pk)
+                current_rating = response.data['data']['celebrity_details'].get('rating', None)
+                rating = self.rating_checking(pk, current_rating)
+                response.data['data']['celebrity_details'].update(
+                    {
+                        'profile_video': profile_video,
+                        'average_response_time': average_response_time,
+                        'rating' : rating
+                    }
+                )
         return response
 
 
