@@ -155,12 +155,13 @@ class JoinGroupView(APIView, ResponseViewMixin):
                 request.data['account'] = user.id
                 request.data['user'] = request.data.get('celebrity')
                 request.data['approved'] = True
+                request.data['celebrity_invite'] = True
                 validator = JoinGroupCelebritySerializer(data=request.data)
                 if validator.is_valid():
                     group_details = validator.save()
                     serialized = CelebrityGroupAccountSerializer(group_details, many=True).data
-                    group_details = [group.id for group in group_details]
-                    invite_celebrity_notify.delay(group_details)
+                    # group_details = [group.id for group in group_details]
+                    # invite_celebrity_notify.delay(group_details)
                     return self.jp_response(s_code='HTTP_200_OK', data=serialized)
                 else:
                     return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', data=self.error_msg_string(validator.errors))
