@@ -1132,6 +1132,8 @@ class JoinGroupCelebritySerializer(serializers.ModelSerializer):
             celebrity_account, created = CelebrityGroupAccount.objects.update_or_create(
                 user=celebrity,
                 account=validated_data.get('account'),
+                approved=True,
+                celebrity_invite=True,
                 defaults=validated_data
             )
             celebrities.append(celebrity_account)
