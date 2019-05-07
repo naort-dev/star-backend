@@ -26,7 +26,7 @@ import datetime
 import re
 from tempfile import gettempdir
 from fcm_django.models import FCMDevice
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.template.loader import get_template
 import urllib.request
 from stargramz.models import StargramVideo, Reaction
@@ -34,6 +34,8 @@ from hashids import Hashids
 from requests_aws4auth import AWS4Auth
 from urllib.parse import urlparse
 from elasticsearch import RequestsHttpConnection
+from decimal import Decimal
+from math import ceil
 
 hashids = Hashids(min_length=8)
 
@@ -588,3 +590,21 @@ def get_elasticsearch_connection_params():
         connection_class = RequestsHttpConnection,
         timeout=300)
 
+
+def average_rate_calculate(celebrity):
+    """
+    This function calculates the average rating of a star. The input celebrity is an instance of Celebrity class
+
+    :param celebrity:
+    :return:
+    """
+    from users.models import FanRating
+    total_user = FanRating.objects.filter(celebrity_id=celebrity.user_id)
+    fan_count = Decimal(total_user.count())
+    total_sum_rating = total_user.aggregate(Sum('fan_rate'))
+    avg_rating = round(total_sum_rating['fan_rate__sum'] / fan_count, 1)
+    round_off_avg = 0.5 * ceil(2.0 * float(avg_rating))
+    celebrity.rating = round_off_avg
+    celebrity.save()
+
+    return round_off_avg

@@ -7,9 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 from .serializer import CelebrityRatingSerializer, UserSerializer, CelebrityFollowSerializer, \
     CelebrityAbuseSerializer, SuggestionSerializer, CelebrityRatingSerializerEncoder
-from decimal import Decimal
-from math import ceil
-from utilities.utils import ROLES, decode_pk, encode_pk
+from utilities.utils import ROLES, decode_pk, encode_pk, average_rate_calculate
 from utilities.pagination import CustomOffsetPagination
 import ast
 from django.db.models import Q, F, Value, Case, When, Sum
@@ -219,26 +217,12 @@ class CelebrityRate(APIView, ResponseViewMixin):
             celebrity_fan_rating, created = FanRating.objects.update_or_create(
                 fan_id=fan.id, celebrity_id=celebrity_user.user_id, starsona_id=request.data['starsona'],
                 defaults=fields)
-            self.calculate(celebrity_user)
+            average_rate_calculate(celebrity_user)
             data = CelebrityRatingSerializerEncoder(celebrity_fan_rating).data
             return self.jp_response('HTTP_200_OK', data={"fan_rating": data})
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN',
                                           self.error_msg_string(serializer.errors))
-
-    def calculate(self, celebrity):
-        """
-            Calculate rating and save
-        """
-        total_user = FanRating.objects.filter(celebrity_id=celebrity.user_id)
-        fan_count = Decimal(total_user.count())
-        total_sum_rating = total_user.aggregate(Sum('fan_rate'))
-        avg_rating = round(total_sum_rating['fan_rate__sum'] / fan_count, 1)
-        round_off_avg = 0.5 * ceil(2.0 * float(avg_rating))
-        celebrity.rating = round_off_avg
-        celebrity.save()
-
-        return round_off_avg
 
 
 class CelebrityProfileFollow(APIView, ResponseViewMixin):

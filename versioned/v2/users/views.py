@@ -8,7 +8,7 @@ from .constants import *
 from rest_framework.views import APIView
 from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params, get_pre_signed_get_url, decode_pk
 from .models import CelebrityDisplay, CelebrityDisplayOrganizer
-from users.models import StargramzUser, Profession, Celebrity, AdminReferral
+from users.models import StargramzUser, Profession, Celebrity, AdminReferral, FanRating
 from users.utils import generate_random_code
 from users.fan_views import CelebrityList
 from django.db.models import Q, F, Value, Case, When
@@ -247,6 +247,14 @@ class UserDetailsV2(UserDetails):
             response = ""
         return response
 
+    def rating_checking(self, celebrity, current_rating):
+        final_rating = current_rating
+        if float(current_rating) < 4.0:
+            total_ratings = FanRating.objects.filter(celebrity_id=celebrity).count()
+            if total_ratings < 10:
+                final_rating = ""
+        return final_rating
+
     def append_profile_video(self, response, pk):
         if response.data.get("status") == 200:
             profile_video = None
@@ -263,10 +271,13 @@ class UserDetailsV2(UserDetails):
                 print(str(e))
                 pass
             average_response_time = self.average_response_time(pk)
+            current_rating = response.data['data']['celebrity_details'].get('rating', None)
+            rating = self.rating_checking(pk, current_rating)
             response.data['data']['celebrity_details'].update(
                 {
                     'profile_video': profile_video,
-                    'average_response_time': average_response_time
+                    'average_response_time': average_response_time,
+                    'rating' : rating
                 }
             )
         return response
