@@ -979,6 +979,8 @@ class GroupAccountSerializer(CustomModelSerializer):
         roles_mapping.is_complete = True
         roles_mapping.save()
         welcome_email.delay(group_account.user_id)
+        group_account.admin_approval = True
+        group_account.save()
         return group_account
 
     def update(self, instance, validated_data):
