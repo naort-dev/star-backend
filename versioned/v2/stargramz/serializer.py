@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from stargramz.serializer import StargramzVideoSerializer
+from stargramz.serializer import StargramzVideoSerializer, OccasionSerializer
 from stargramz.models import Comment
 from utilities.utils import encode_pk
 
@@ -23,3 +23,9 @@ class StargramzVideoSerializerV2(StargramzVideoSerializer):
             return comments
         except Exception:
             return []
+
+
+class OccasionSerializerV2(OccasionSerializer):
+
+    class Meta(OccasionSerializer.Meta):
+        fields = ('id', 'title', 'occasion_image', 'relationships', 'type', 'other_check', 'template_type')

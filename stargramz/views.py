@@ -50,11 +50,12 @@ stripe.api_key = API_KEY
 
 class OccasionList(APIView, ResponseViewMixin):
 
+    serializer = OccasionSerializer
     def get(self, request):
         type_id = request.GET.get("type")
         req_type = int(type_id) if type_id and int(type_id) in [1, 2, 3] else 1
         occasion = Occasion.objects.filter(request_type=req_type, visibility=True).order_by('title')
-        serializer = OccasionSerializer(occasion, many=True)
+        serializer = self.serializer(occasion, many=True)
         return self.jp_response('HTTP_200_OK', data={"occasion_list": serializer.data})
 
 class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):

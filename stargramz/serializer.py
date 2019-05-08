@@ -38,7 +38,7 @@ class OccasionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Occasion
-        fields = ['id', 'title', 'occasion_image', 'relationships', 'type', 'other_check', 'template_type']
+        fields = ['id', 'title', 'occasion_image', 'relationships', 'type', 'other_check']
 
     def get_occasion_image(self, obj):
         if obj.occasion_image:
