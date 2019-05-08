@@ -249,10 +249,11 @@ class UserDetailsV2(UserDetails):
 
     def rating_checking(self, celebrity, current_rating):
         final_rating = current_rating
-        if float(current_rating) < 4.0:
-            total_ratings = FanRating.objects.filter(celebrity_id=celebrity).count()
-            if total_ratings < 10:
-                final_rating = ""
+        if current_rating:
+            if float(current_rating) < 4.0:
+                total_ratings = FanRating.objects.filter(celebrity_id=celebrity).count()
+                if total_ratings < 10:
+                    final_rating = ""
         return final_rating
 
     def append_profile_video(self, response, pk):
