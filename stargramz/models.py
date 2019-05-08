@@ -93,6 +93,7 @@ class Occasion(models.Model):
         editable=False
     )
     visibility = models.BooleanField('Public Visibility', default=True)
+    template_type = models.IntegerField(choices=TYPES.choices(), default=TYPES.type1)
 
     def __str__(self):
         return self.title

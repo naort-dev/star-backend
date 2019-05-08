@@ -6,11 +6,12 @@
       "title": "Anniversary",
       "occasion_image": "",
       "date_required": true,
-      "type": 1,
+      "type": 5,
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:38:42.660Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 1
     }
   },
   {
@@ -20,11 +21,12 @@
       "title": "Birth",
       "occasion_image": "",
       "date_required": true,
-      "type": 2,
+      "type": 3,
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:39:18.202Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 2
     }
   },
   {
@@ -34,11 +36,12 @@
       "title": "Baptism/Christening",
       "occasion_image": "",
       "date_required": true,
-      "type": 2,
+      "type": 3,
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:39:54.670Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 2
     }
   },
   {
@@ -48,11 +51,12 @@
       "title": "Bar Mitzvah",
       "occasion_image": "",
       "date_required": false,
-      "type": 1,
+      "type": 5,
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:40:25.326Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 1
     }
   },
   {
@@ -62,11 +66,12 @@
       "title": "Birthday",
       "occasion_image": "",
       "date_required": false,
-      "type": 1,
+      "type": 5,
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:40:49.435Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 1
     }
   },
   {
@@ -76,11 +81,12 @@
       "title": "Confirmation",
       "occasion_image": "",
       "date_required": false,
-      "type": 1,
+      "type": 5,
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:41:22.770Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 1
     }
   },
   {
@@ -90,11 +96,12 @@
       "title": "Congratulations",
       "occasion_image": "",
       "date_required": false,
-      "type": 3,
+      "type": 2,
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 3
     }
   },
   {
@@ -104,11 +111,12 @@
       "title": "Encouragement",
       "occasion_image": "",
       "date_required": false,
-      "type": 3,
+      "type": 2,
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 3
     }
   },
   {
@@ -118,11 +126,12 @@
       "title": "Get Well",
       "occasion_image": "",
       "date_required": false,
-      "type": 4,
+      "type": 2,
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 4
     }
   },
   {
@@ -132,11 +141,12 @@
       "title": "Graduation",
       "occasion_image": "",
       "date_required": false,
-      "type": 5,
+      "type": 4,
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 5
     }
   },
   {
@@ -146,11 +156,12 @@
       "title": "Just Because",
       "occasion_image": "",
       "date_required": false,
-      "type": 4,
+      "type": 2,
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 4
     }
   },
   {
@@ -160,11 +171,12 @@
       "title": "Retirement",
       "occasion_image": "",
       "date_required": false,
-      "type": 5,
+      "type": 4,
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 5
     }
   },
   {
@@ -174,11 +186,12 @@
       "title": "Romantic",
       "occasion_image": "",
       "date_required": false,
-      "type": 3,
+      "type": 2,
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 3
     }
   },
   {
@@ -188,11 +201,12 @@
       "title": "Sweet 16",
       "occasion_image": "",
       "date_required": false,
-      "type": 1,
+      "type": 5,
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 1
     }
   },
   {
@@ -202,11 +216,12 @@
       "title": "Sympathy",
       "occasion_image": "",
       "date_required": false,
-      "type": 2,
+      "type": 3,
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 2
     }
   },
   {
@@ -216,11 +231,12 @@
       "title": "Thank you",
       "occasion_image": "",
       "date_required": false,
-      "type": 3,
+      "type": 2,
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 3
     }
   },
   {
@@ -230,11 +246,12 @@
       "title": "Wedding",
       "occasion_image": "",
       "date_required": false,
-      "type": 4,
+      "type": 5,
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 4
     }
   },
   {
@@ -244,11 +261,12 @@
       "title": "Other (write in)",
       "occasion_image": "",
       "date_required": false,
-      "type": 4,
+      "type": 2,
       "other_check": true,
       "request_type": 1,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 4
     }
   },
   {
@@ -262,7 +280,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": false
+      "visibility": false,
+      "template_type": 6
     }
   },
   {
@@ -276,7 +295,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 6
     }
   },
   {
@@ -290,7 +310,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": false
+      "visibility": false,
+      "template_type": 6
     }
   },
   {
@@ -304,7 +325,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 6
     }
   },
   {
@@ -318,7 +340,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 6
     }
   },
   {
@@ -332,7 +355,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 6
     }
   },
   {
@@ -346,7 +370,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 6
     }
   },
   {
@@ -360,7 +385,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 7
     }
   },
   {
@@ -374,7 +400,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 7
     }
   },
   {
@@ -388,7 +415,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 7
     }
   },
   {
@@ -402,7 +430,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": false
+      "visibility": false,
+      "template_type": 7
     }
   },
   {
@@ -416,7 +445,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 7
     }
   },
   {
@@ -430,7 +460,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 7
     }
   },
   {
@@ -444,7 +475,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 7
     }
   },
   {
@@ -458,7 +490,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 7
     }
   },
   {
@@ -472,7 +505,8 @@
       "other_check": true,
       "request_type": 3,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 8
     }
   },
   {
@@ -486,7 +520,8 @@
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 5
     }
   },
   {
@@ -500,7 +535,8 @@
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 5
     }
   },
   {
@@ -514,7 +550,8 @@
       "other_check": false,
       "request_type": 1,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 2
     }
   },
   {
@@ -528,7 +565,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 7
     }
   },
   {
@@ -542,7 +580,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 7
     }
   },
   {
@@ -556,7 +595,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 6
     }
   },
   {
@@ -570,7 +610,8 @@
       "other_check": true,
       "request_type": 2,
       "created_date": "2017-10-18T11:47:11.719Z",
-      "visibility": true
+      "visibility": true,
+      "template_type": 6
     }
   }
 ]
