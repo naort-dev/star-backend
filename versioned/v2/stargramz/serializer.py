@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from stargramz.serializer import StargramzVideoSerializer, OccasionSerializer
+from stargramz.serializer import StargramzVideoSerializer, OccasionSerializer, ReactionListingSerializer
 from stargramz.models import Comment
 from utilities.utils import encode_pk
 
@@ -29,3 +29,13 @@ class OccasionSerializerV2(OccasionSerializer):
 
     class Meta(OccasionSerializer.Meta):
         fields = ('id', 'title', 'occasion_image', 'relationships', 'type', 'other_check', 'template_type')
+
+
+class ReactionListingSerializerV2(ReactionListingSerializer):
+    booking_id = serializers.SerializerMethodField(read_only=True)
+
+    class Meta(ReactionListingSerializer.Meta):
+        fields = ReactionListingSerializer.Meta.fields + ('booking_id',)
+
+    def get_booking_id(self, obj):
+        return encode_pk(obj.booking.id)
