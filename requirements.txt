@@ -50,3 +50,4 @@ elasticsearch>=6.0.0,<7.0.0
 elasticsearch-dsl>=6.0.0,<7.0.0
 requests-aws4auth==0.9
 Faker==1.0.4
+django-autocomplete-light==3.3.4

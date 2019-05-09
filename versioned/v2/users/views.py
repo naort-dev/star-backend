@@ -19,6 +19,7 @@ import ast
 from users.celebrity_views import CelebrityManagement
 from config.models import Config
 from rest_framework.decorators import detail_route
+from dal import autocomplete
 
 
 class FilterProfessionsV2(FilterProfessions):
@@ -297,3 +298,33 @@ class CelebrityManagementV2(CelebrityManagement):
         except Exception:
             pass
         return CelebrityManagement.post(CelebrityManagement, request)
+
+
+class StargramzAutocomplete(autocomplete.Select2QuerySetView):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.query_set = StargramzUser.objects.filter(celebrity_user__admin_approval=True)
+        self.query_set = self.query_set.annotate(sort_name=Case(
+            When(Q(nick_name__isnull=False) & ~Q(nick_name=''), then=F('nick_name')),
+            default=Concat('first_name', Value(' '), 'last_name')))
+
+    def get_queryset(self):
+        profession = self.forwarded.get("profession", None)
+        if not self.request.user.is_superuser:
+            return StargramzUser.objects.none()
+
+        if profession:
+            self.query_set = self.query_set.filter(
+                Q(celebrity_profession__profession=profession) | Q(celebrity_profession__profession__parent=profession)
+            )
+
+        if self.q:
+            self.query_set = self.query_set.filter(sort_name__icontains=self.q)
+        return self.query_set.order_by('sort_name').distinct()
+
+    def get_result_label(self, result):
+        return result.sort_name
+
+    def get_selected_result_label(self, result):
+        return result.sort_name

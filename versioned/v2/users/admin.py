@@ -4,8 +4,7 @@ from utilities.admin_utils import ReadOnlyModelAdmin
 from users.models import Profession, StargramzUser
 from django import forms
 from django.shortcuts import redirect
-from django.db.models import Q, F, Value, Case, When
-from django.db.models.functions import Concat
+from dal import autocomplete, forward
 
 class CelebrityDisplayAdminInline(admin.StackedInline):
     model = CelebrityDisplay
@@ -49,16 +48,10 @@ class CelebrityDisplayAdminInline(admin.StackedInline):
             profession = None
 
         if db_field.name == "celebrity":
-            query_set = StargramzUser.objects.filter(celebrity_user__admin_approval=True)
-            query_set = query_set.annotate(sort_name=Case(
-                When(Q(nick_name__isnull=False) & ~Q(nick_name=''), then=F('nick_name')),
-                default=Concat('first_name', Value(' '), 'last_name')))
             if not profession:
-                return CelebrityChoiceField(queryset=query_set.order_by('sort_name').distinct(), required=False)
+                return CelebrityChoiceField(StargramzUser.objects.all(), required=False, widget=autocomplete.ModelSelect2(url='user_autocomplete'))
             else:
-                return CelebrityChoiceField(queryset=query_set.filter(
-                    Q(celebrity_profession__profession=profession) | Q(celebrity_profession__profession__parent=profession)
-                ).order_by('sort_name').distinct(), required=False)
+                return CelebrityChoiceField(StargramzUser.objects.all(), required=False, widget=autocomplete.ModelSelect2(url='user_autocomplete', forward=(forward.Const(profession.id, 'profession'), )))
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -171,7 +164,7 @@ class CelebrityDisplayOrganizerForm(forms.ModelForm):
                 pass
             else:
                 celebrity_display_element.append(element)
-        if len(celebrity_display_element) > len(set(celebrity_display_element)):
+        if len(celebrity_display_element) > len(set(celebrity_display_element)) and len(self.data) > 5:
             raise forms.ValidationError("Error  : Celebrity repetition is not allowed")
 
         return self.cleaned_data
