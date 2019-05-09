@@ -1,5 +1,5 @@
 from rest_framework.routers import DefaultRouter
-from .views import FeaturedVideoV2, OccasionListV2
+from .views import FeaturedVideoV2, OccasionListV2, ReactionsFullListing
 from django.conf.urls import url
 
 urlpatterns = [
@@ -8,5 +8,6 @@ urlpatterns = [
 
 router = DefaultRouter()
 router.register(r'featured_videos', FeaturedVideoV2, base_name='featured video list')
+router.register(r'reactions_full_listing', ReactionsFullListing, base_name='reactions full listing')
 
 urlpatterns = router.urls + urlpatterns
