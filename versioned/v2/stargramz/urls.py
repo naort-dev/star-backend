@@ -8,6 +8,6 @@ urlpatterns = [
 
 router = DefaultRouter()
 router.register(r'featured_videos', FeaturedVideoV2, base_name='featured video list')
-router.register(r'reactions_full_listing', ReactionsFullListing, base_name='reactions full listing')
+router.register(r'reactions_full_listing/?(?P<pk>[0-9a-zA-Z]{0,20})', ReactionsFullListing, base_name='reactions full listing')
 
 urlpatterns = router.urls + urlpatterns
