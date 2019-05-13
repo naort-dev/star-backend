@@ -1,10 +1,12 @@
 from django.contrib import admin
-from .models import CelebrityDisplay, CelebrityDisplayOrganizer
+from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo
 from utilities.admin_utils import ReadOnlyModelAdmin
 from users.models import Profession, StargramzUser
 from django import forms
 from django.shortcuts import redirect
 from dal import autocomplete, forward
+from utilities.utils import get_pre_signed_get_url
+from config.models import Config
 
 class CelebrityDisplayAdminInline(admin.StackedInline):
     model = CelebrityDisplay
@@ -229,10 +231,35 @@ class ProfessionChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return "{}".format(obj.title)
 
+
 class CelebrityChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return "{}".format(obj.get_short_name())
 
 
+class HomePageVideoAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'created_date', 'modified_date')
+
+    def name(self, obj):
+        return obj.video.name.split("/")[-1]
+
+    def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
+        if change:
+            video = Config.objects.get(key='home_page_videos').value
+            url = get_pre_signed_get_url(obj.video.name.split("/")[-1], video)
+            context['adminform'].form.fields['video'].help_text = self.picture_display(url)
+        return super().render_change_form(request, context, add, change, form_url, obj)
+
+    def picture_display(self, url):
+        return "<video width='320' height='240' controls><source src='%s' type='video/mp4'>" % url
+
+    def has_add_permission(self, request):
+        if HomePageVideo.objects.all().count() >= 2:
+            return False
+        else:
+            return True
+
+
+admin.site.register(HomePageVideo, HomePageVideoAdmin)
 admin.site.register(CelebrityDisplay, CelebrityDisplayAdmin)
 admin.site.register(CelebrityDisplayOrganizer, CelebrityDisplayOrganizerAdmin)
