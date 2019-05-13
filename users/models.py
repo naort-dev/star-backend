@@ -328,6 +328,24 @@ class Celebrity(models.Model):
                                     data, field='celebrity_account_updates')
         super(Celebrity, self).save(*args, **kwargs)
 
+    def indexing(self):
+        from versioned.v2.users.search import celebrity_indexing
+
+        return celebrity_indexing(self)
+
+
+@receiver(post_save, sender=Celebrity)
+def index_celebrity(sender, instance, **kwargs):
+    from versioned.v2.users.search import get_elasticsearch_connection_params, connections, Elasticsearch, \
+        Celebrities, ES_CELEBRITY_INDEX
+
+    if instance.admin_approval and instance.availability:
+        connection_params = get_elasticsearch_connection_params()
+        connections.create_connection(**connection_params)
+        Elasticsearch(**connection_params)
+        Celebrities.init(index=ES_CELEBRITY_INDEX)
+        instance.indexing()
+
 
 class ProfessionsManager(models.Manager):
     def get_queryset(self):
