@@ -18,30 +18,35 @@ def setting_up_password():
     """
 
     try:
+        mail_dates = Config.objects.get(key='password_reset_dates').value  # the dates from the config is just for testing purpose
+        (first, second) = mail_dates.replace(' ', '').split(',')
         users = StargramzUser.objects.filter(temp_password=True)
+        template = ""
         for user in users:
             date_diff = (datetime.now(pytz.UTC) - user.created_date).days
-            if date_diff == 7:
-                send_password_setup_mail(user, 'in 7 days')
-            elif date_diff == 14:
-                send_password_setup_mail(user, 'Today')
+            if date_diff == int(first):
+                template = "setup_password"
+                subject = "Good news! Then bad news. Then more good news!"
+            elif date_diff == int(second):
+                template = "setup_password_final"
+                subject = "Your fans are waiting for you!"
                 user.temp_password = False
                 user.save()
+            if template:
+                send_password_setup_mail(user, template, subject)
         return True
     except Exception as e:
         print(str(e))
         return False
 
-def send_password_setup_mail(user, message):
-    subject = 'Starsona Password Setup'
-    template = 'setup_password'
+def send_password_setup_mail(user, template, subject):
     user.reset_id = uuid.uuid4()
     user.reset_generate_time = timezone.now()
     user.save()
     reset_password_link = Config.objects.get(key='reset_password_link').value
     web_reset_url = "%s%s%s" % (WEB_URL, 'resetpassword?reset_id=', str(user.reset_id))
     ctx = {
-        'username': user.first_name + ' ' + user.last_name,
+        'username': user.get_short_name(),
         'reset_link': generate_branch_io_url(
             mob_url='reset/?reset_id=%s' % str(user.reset_id),
             title="Reset password for %s" % user.get_short_name(),
@@ -50,6 +55,6 @@ def send_password_setup_mail(user, message):
             desktop_url=web_reset_url,
             canonical_url=reset_password_link + str(user.reset_id),
         ),
-        'message': message
+        'help_link': 'https://about.starsona.com/faq/'
     }
     sent_email(user.email, subject, template, ctx)
