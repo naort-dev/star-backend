@@ -1,13 +1,13 @@
 from users.authenticate_views import FilterProfessions, Professions, UserRegister, UserDetails
 from .serializer import ProfessionFilterSerializerV2, ProfessionSerializerV2, SearchSerializer,\
-    CelebrityDisplaySerializer, TrendingCelebritySerializer
+    CelebrityDisplaySerializer, TrendingCelebritySerializer, HomePageVideoSerializer
 from elasticsearch_dsl.connections import connections
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
 from .constants import *
 from rest_framework.views import APIView
 from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params, get_pre_signed_get_url, decode_pk
-from .models import CelebrityDisplay, CelebrityDisplayOrganizer
+from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo
 from users.models import StargramzUser, Profession, Celebrity, AdminReferral, FanRating
 from users.utils import generate_random_code
 from users.fan_views import CelebrityList
@@ -328,3 +328,14 @@ class StargramzAutocomplete(autocomplete.Select2QuerySetView):
 
     def get_selected_result_label(self, result):
         return result.sort_name
+
+
+class HomePageVideosView(APIView, ResponseViewMixin):
+    def get(self, request):
+        try:
+            videos = HomePageVideo.objects.all()
+            serializer = HomePageVideoSerializer(videos, many=True)
+            return self.jp_response(s_code='HTTP_200_OK', data={'home_page_videos': serializer.data})
+        except Exception as e:
+            print(str(e))
+            return self.exception_response()

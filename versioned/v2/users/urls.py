@@ -1,7 +1,8 @@
 from django.conf.urls import url
 from rest_framework.routers import DefaultRouter
 from .views import FilterProfessionsV2, ProfessionsV2, CelebritySuggestionListV2, CelebrityDisplayView,\
-    TrendingStars, Register, CelebrityListV2, UserDetailsV2, CelebrityManagementV2, StargramzAutocomplete
+    TrendingStars, Register, CelebrityListV2, UserDetailsV2, CelebrityManagementV2, StargramzAutocomplete,\
+    HomePageVideosView
 
 urlpatterns = [
     url(r'^professions/$', ProfessionsV2.as_view(), name='profession-v2'),
@@ -11,6 +12,7 @@ urlpatterns = [
     url(r'^register/$', Register.as_view(), name='register-v2'),
     url(r'^celebrity_profile/$', CelebrityManagementV2.as_view(), name='celebrity_management-v2'),
     url(r'^user_autocomplete/$', StargramzAutocomplete.as_view(), name='user_autocomplete'),
+    url(r'^public_display_videos/$', HomePageVideosView.as_view(), name='home_page_videos'),
 ]
 
 router = DefaultRouter()
