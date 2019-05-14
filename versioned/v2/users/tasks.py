@@ -1,7 +1,7 @@
 from main.celery import app
 from utilities.utils import sent_email, generate_branch_io_url
 from utilities.constants import BASE_URL, WEB_URL
-from users.models import StargramzUser
+from users.models import StargramzUser, Celebrity
 from config.models import Config
 import uuid
 from django.utils import timezone
@@ -31,6 +31,7 @@ def setting_up_password():
                 template = "setup_password_final"
                 subject = "Your fans are waiting for you!"
                 user.temp_password = False
+                user.is_active = False
                 user.save()
             if template:
                 send_password_setup_mail(user, template, subject)
@@ -61,4 +62,4 @@ def send_password_setup_mail(user, template, subject):
         'mail': sender_email,
         'subject': 'Questions'
     }
-    sent_email("aswinmohan@qburst.com", subject, template, ctx)
+    sent_email("vidyav@qburst.com", subject, template, ctx)
