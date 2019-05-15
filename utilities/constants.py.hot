@@ -12,3 +12,4 @@ REDIRECT_LINK = "https://app.hotfix.starsona.com/applinks/reset?reset_id="
 ANDROID_UNIVERSAL_FILE_PATH = "../.well-known/assetlinks.json"
 SHORT_WEB_URL = "hotfix.starsona.com/"
 WEB_URL = "https://hotfix.starsona.com/"
+ES_PORT = 443
