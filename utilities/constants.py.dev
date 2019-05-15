@@ -12,3 +12,4 @@ REDIRECT_LINK = "https://app.staging.starsona.com/applinks/reset?reset_id="
 ANDROID_UNIVERSAL_FILE_PATH = "../.well-known/assetlinks.json"
 SHORT_WEB_URL = "staging.starsona.com/"
 WEB_URL = "https://staging.starsona.com/"
+ES_PORT = 443

@@ -20,12 +20,6 @@ class ConfigSerializer(serializers.ModelSerializer):
             if obj.key == 'decline_reasons':
                 return json.loads(obj.value)
             elif obj.key in environmental_variables:
-                if obj.key == 'elastic_search_endpoint':
-                    value = os.environ.get(environmental_variables[obj.key], None)
-                    if value:
-                        return value.replace(":443", "/")
-                    else:
-                        return value
                 return os.environ.get(environmental_variables[obj.key], None)
         except Exception as e:
             return obj.value

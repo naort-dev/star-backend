@@ -11,7 +11,7 @@ import json
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 from django.core.mail import send_mail
-from .constants import PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, BASE_URL, WEB_URL
+from .constants import PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, BASE_URL, WEB_URL, ES_PORT
 from rest_framework import serializers
 from django.http import HttpResponse
 from django.utils.encoding import smart_str
@@ -574,7 +574,7 @@ http.client._MAXHEADERS = 1000
 def get_elasticsearch_connection_params():
     endpoint = urlparse(os.environ.get('ELASTICSEARCH_ENDPOINT'))
     if endpoint.hostname == 'localhost':
-        return dict(hosts=[{'host': endpoint.hostname, 'port': endpoint.port}])
+        return dict(hosts=[{'host': endpoint.hostname, 'port': ES_PORT}])
 
     service = endpoint.hostname.split('.')[-3]
     region = endpoint.hostname.split('.')[-4]
@@ -583,7 +583,7 @@ def get_elasticsearch_connection_params():
     awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, region, service, session_token=credentials.token)
 
     return dict(
-        hosts=[{'host': endpoint.hostname, 'port': endpoint.port}],
+        hosts=[{'host': endpoint.hostname, 'port': ES_PORT}],
         http_auth=awsauth,
         use_ssl=use_ssl,
         verify_certs=use_ssl,
