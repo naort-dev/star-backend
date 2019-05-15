@@ -179,6 +179,9 @@ class ForgotPassword(APIView, ResponseViewMixin):
         if serializer.is_valid():
             try:
                 user = StargramzUser.objects.get(username=serializer.data['email'])
+                if not user.is_active:
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_USER',
+                                                  'Your account has been deactivated. Please contact Starsona Admin')
                 user.reset_id = uuid.uuid4()
                 user.reset_generate_time = timezone.now()
                 user.save()
@@ -208,6 +211,7 @@ class ResetPassword(APIView, ResponseViewMixin):
             user.reset_id = None
             user.reset_generate_time = None
             user.temp_password = False
+            user.is_active = True
             user.save()
             Token.objects.filter(user=user).delete()
             (token, created) = Token.objects.get_or_create(user=user)
@@ -374,11 +378,13 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
             pk = self.verify_hash_token(pk)
             pk = int(pk)
         except Exception:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'User Does not Exist')
+            return self.jp_error_response('HTTP_404_NOT_FOUND', 'INVALID_SIGNUP', 'User Does not Exist')
         try:
-            user = StargramzUser.objects.get(id=pk)
+            user = StargramzUser.objects.get(id=pk, celebrity_user__admin_approval=True)
+            if not user.is_active:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'The celebrity you are looking for is currently unavailable')
         except StargramzUser.DoesNotExist:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'User Does not Exist')
+            return self.jp_error_response('HTTP_404_NOT_FOUND', 'INVALID_SIGNUP', 'User Does not Exist')
 
         celebrity = check_celebrity_profile_exist(user)
         group_check, group_acc = check_group_account_profile_exist(user)
@@ -438,7 +444,7 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
             if getattr(status, celebrity_details['status']) == 200:
                 response_data['celebrity_details'] = celebrity_details['data']['celebrity']
             else:
-                return self.jp_error_response('HTTP_400_BAD_REQUEST', celebrity_details['e_code'],
+                return self.jp_error_response('HTTP_404_NOT_FOUND', celebrity_details['e_code'],
                                               celebrity_details['message'])
         return self.jp_response(s_code='HTTP_200_OK', data=response_data)
 
@@ -450,11 +456,11 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
             logged_in_user = None
             pk = int(pk)
         except Exception:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'User Does not Exist')
+            return self.jp_error_response('HTTP_404_NOT_FOUND', 'INVALID_SIGNUP', 'User Does not Exist')
         try:
             logged_in_user = StargramzUser.objects.values_list('id', flat=True).get(username=request.user)
         except StargramzUser.DoesNotExist:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'User Does not Exist')
+            return self.jp_error_response('HTTP_404_NOT_FOUND', 'INVALID_SIGNUP', 'User Does not Exist')
 
         try:
             CelebrityFollow.objects.get(fan_id=logged_in_user, celebrity_id=pk)

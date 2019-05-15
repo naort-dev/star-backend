@@ -135,7 +135,7 @@ class TrendingStars(APIView, ResponseViewMixin):
     """
     def get(self, request):
 
-        trending_celebrity = StargramzUser.objects.filter(celebrity_user__admin_approval=True).order_by('-celebrity_user__trending_star_score')[:10]
+        trending_celebrity = StargramzUser.objects.filter(celebrity_user__admin_approval=True, is_active=True).order_by('-celebrity_user__trending_star_score')[:10]
         data = TrendingCelebritySerializer(trending_celebrity, many=True).data
         return self.jp_response(s_code='HTTP_200_OK', data={'trending_celebrity': data})
 
@@ -159,7 +159,7 @@ class CelebrityListV2(CelebrityList):
         The list of celebrities and celebrity search
     """
     def list(self, request):
-        query_set = self.query_set.exclude(group_account__admin_approval=True)
+        query_set = self.query_set.filter(is_active=True).exclude(group_account__admin_approval=True)
         sort = request.GET.get('sort')
         filter_by_lower_rate = request.GET.get('lrate')
         filter_by_upper_rate = request.GET.get('urate')
@@ -304,7 +304,7 @@ class StargramzAutocomplete(autocomplete.Select2QuerySetView):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.query_set = StargramzUser.objects.filter(celebrity_user__admin_approval=True)
+        self.query_set = StargramzUser.objects.filter(celebrity_user__admin_approval=True, is_active=True)
         self.query_set = self.query_set.annotate(sort_name=Case(
             When(Q(nick_name__isnull=False) & ~Q(nick_name=''), then=F('nick_name')),
             default=Concat('first_name', Value(' '), 'last_name')))
