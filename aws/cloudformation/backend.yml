@@ -523,7 +523,7 @@ Resources:
           - { Name: SLACK_USERNAME, Value: !Ref 'SlackUsername' }
           - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
           - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
-          - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint', ':443']] }
+          - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint']] }
 
   BackendService:
     Type: AWS::ECS::Service
@@ -675,7 +675,7 @@ Resources:
           - { Name: SLACK_USERNAME, Value: !Ref 'SlackUsername' }
           - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
           - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
-          - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint', ':443']] }
+          - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint']] }
 
   CeleryBeatService:
     Type: AWS::ECS::Service
@@ -755,7 +755,7 @@ Resources:
           - { Name: SLACK_USERNAME, Value: !Ref 'SlackUsername' }
           - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
           - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
-          - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint', ':443']] }
+          - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint']] }
 
   CeleryWorkerService:
     Type: AWS::ECS::Service
@@ -835,7 +835,7 @@ Resources:
            - { Name: SLACK_USERNAME, Value: !Ref 'SlackUsername' }
            - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
            - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
-           - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint', ':443']] }
+           - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint']] }
            - { Name: MAX_IDLE, Value: 300 }
            - { Name: MIN_COUNT, Value: 0 }
            - Name: ECS_CLUSTER
@@ -973,7 +973,7 @@ Resources:
           - { Name: DATABASE_USER, Value: !Ref 'DatabaseUser' }
           - { Name: DATABASE_PASSWORD, Value: !Ref 'DatabasePassword' }
           - { Name: AWS_STORAGE_BUCKET_NAME, Value: !Ref 'BucketName' }
-          - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint', ':443']] }
+          - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint']] }
 
   LoadDataTaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -1007,7 +1007,7 @@ Resources:
           - { Name: AWS_STORAGE_BUCKET_NAME, Value: !Ref 'BucketName' }
           - { Name: ADMIN_USERNAME, Value: !Ref 'AdminUsername' }
           - { Name: ADMIN_PASSWORD, Value: !Ref 'AdminPassword' }
-          - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint', ':443']] }
+          - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint']] }
 
   RunTestsTaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -1062,7 +1062,7 @@ Resources:
         - { Name: SLACK_USERNAME, Value: !Ref 'SlackUsername' }
         - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
         - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
-        - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint', ':443']] }
+        - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint']] }
 
   #--------------------------------------------------------------------------------------------------------------------
   # S3 Bucket
