@@ -38,6 +38,8 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
     thumbnail = serializers.CharField(read_only=True)
     image_url = serializers.SerializerMethodField('get_s3_image_url')
     thumbnail_url = serializers.SerializerMethodField('get_s3_thumbnail_url')
+    medium_thumbnail = serializers.CharField(read_only=True)
+    medium_thumbnail_url = serializers.SerializerMethodField('get_s3_medium_thumbnail_url')
 
     def __init__(self, *args, **kwargs):
         self.bucket_url = get_bucket_url()
@@ -45,7 +47,7 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProfileImage
-        fields = ('id', 'image_url', 'thumbnail_url', 'photo', 'thumbnail')
+        fields = ('id', 'image_url', 'thumbnail_url', 'photo', 'thumbnail', 'medium_thumbnail', 'medium_thumbnail_url')
 
     def get_s3_image_url(self, obj):
         config = PROFILE_IMAGES
@@ -55,6 +57,13 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
         if obj.thumbnail is not None:
             config = PROFILE_IMAGES
             return '{}/{}'.format(self.bucket_url, config+obj.thumbnail)
+        else:
+            return None
+
+    def get_s3_medium_thumbnail_url(self, obj):
+        if obj.medium_thumbnail is not None:
+            config = PROFILE_IMAGES
+            return '{}/{}'.format(self.bucket_url, config+obj.medium_thumbnail)
         else:
             return None
 

@@ -371,6 +371,7 @@ class ProfileImage(models.Model):
     status = models.BooleanField(default=True)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
     thumbnail = models.CharField('Thumbnail Image', max_length=600, null=True, blank=True)
+    medium_thumbnail = models.CharField('Medium Thumbnail Image', max_length=600, null=True, blank=True)
 
     def __str__(self):
         return self.photo
