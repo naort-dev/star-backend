@@ -380,9 +380,7 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
         except Exception:
             return self.jp_error_response('HTTP_404_NOT_FOUND', 'INVALID_SIGNUP', 'User Does not Exist')
         try:
-            user = StargramzUser.objects.get(id=pk, celebrity_user__admin_approval=True)
-            if not user.is_active:
-                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'The celebrity you are looking for is currently unavailable')
+            user = StargramzUser.objects.get(id=pk)
         except StargramzUser.DoesNotExist:
             return self.jp_error_response('HTTP_404_NOT_FOUND', 'INVALID_SIGNUP', 'User Does not Exist')
 
@@ -391,6 +389,13 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
 
         if (not celebrity and not group_check) and user_logged_in != user.id:
             return self.jp_error_response('HTTP_403_FORBIDDEN', 'INVALID_USER', 'Not an authorized user.')
+
+        if celebrity:
+            if (not user.celebrity_user.admin_approval) or (not user.is_active):
+                return self.jp_error_response(
+                    'HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP',
+                    'The celebrity you are looking for is currently unavailable'
+                )
 
         data = RegisterSerializer(user, context={'request': request}).data
         try:
