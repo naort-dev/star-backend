@@ -98,35 +98,38 @@ class CelebrityDisplayView(APIView, ResponseViewMixin):
         Get the 9 stars which is used for display in the homepage in version 2
     """
     def get(self, request):
-        profession = request.GET.get('profession', None)
-        exclude_condition = {'celebrity': None}
-        featured = False
-        if profession is '0':
-            filter_condition = {'celebrity_display__profession_id': None, 'celebrity_display__featured': True}
-            featured = True
-        elif profession:
-            filter_condition = {'celebrity_display__profession_id': profession}
-        else:
-            filter_condition = {'celebrity_display__profession': None, 'celebrity_display__featured': False}
-        if featured:
-            profession = None
-            profession_title = "Featured"
-        else:
-            try:
-                profession_title = Profession.objects.get(id=profession).title
-            except Exception:
-                profession_title = ""
+        try:
+            profession = request.GET.get('profession', None)
+            exclude_condition = {'celebrity': None}
+            featured = False
+            if profession is '0':
+                filter_condition = {'celebrity_display__profession_id': None, 'celebrity_display__featured': True}
+                featured = True
+            elif profession:
+                filter_condition = {'celebrity_display__profession_id': profession}
+            else:
+                filter_condition = {'celebrity_display__profession': None, 'celebrity_display__featured': False}
+            if featured:
+                profession = None
+                profession_title = "Featured"
+            else:
+                try:
+                    profession_title = Profession.objects.get(id=profession).title
+                except Exception:
+                    profession_title = ""
 
-        display_title = CelebrityDisplayOrganizer.objects.values_list('title', flat=True).filter(profession=profession, featured=featured)
-        display_title = display_title[0] if display_title else ""
+            display_title = CelebrityDisplayOrganizer.objects.values_list('title', flat=True).filter(profession=profession, featured=featured)
+            display_title = display_title[0] if display_title else ""
 
-        celebrity_display = CelebrityDisplay.objects.filter(**filter_condition).exclude(**exclude_condition).order_by("order")
-        celebrity_data = CelebrityDisplaySerializer(celebrity_display, many=True)
-        return self.jp_response(s_code='HTTP_200_OK', data={
-            'display_title': display_title,
-            'profession': profession_title,
-            'celebrity_display': celebrity_data.data
-        })
+            celebrity_display = CelebrityDisplay.objects.filter(**filter_condition).exclude(**exclude_condition).order_by("order")
+            celebrity_data = CelebrityDisplaySerializer(celebrity_display, many=True)
+            return self.jp_response(s_code='HTTP_200_OK', data={
+                'display_title': display_title,
+                'profession': profession_title,
+                'celebrity_display': celebrity_data.data
+            })
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
 
 
 class TrendingStars(APIView, ResponseViewMixin):
