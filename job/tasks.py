@@ -1657,3 +1657,53 @@ def request_slack_message(request_id):
     except Exception as e:
         print(str(e))
 
+
+@app.task
+def generate_medium_thumbnail(celebrity_user_ids):
+    """
+        Generate medium thumbnail for the profile photos and upload to s3
+    """
+    images = ProfileImage.objects.filter(user_id__in=celebrity_user_ids)
+    config = Config.objects.get(key='profile_images')
+    your_media_root = settings.MEDIA_ROOT + 'thumbnails/'
+    s3folder = config.value
+
+    for image in images:
+        img_url = get_pre_signed_get_url(image.photo, s3folder)
+        image_original = your_media_root+image.photo
+        print("image: "+image.photo)
+        thumbnail_name = "thumbnail_medium_" + image.photo
+        thumbnail = your_media_root + thumbnail_name
+        if check_file_exist_in_s3(s3folder+image.photo) is not False:
+            try:
+                # Downloading the image from s3
+                urllib.request.urlretrieve(img_url, image_original)
+                # Rotate image based on orientation
+                rotate_image(image_original)
+
+                try:
+                    # Generate Medium Thumbnail
+                    thumb = Image.open(image_original)
+                    thumb.save(thumbnail, quality=80, optimize=True)
+                except Exception as e:
+                    print(str(e))
+
+                try:
+                    # Uploading the image to s3
+                    if check_file_exist_in_s3(s3folder+thumbnail_name) is False:
+                        upload_image_s3(thumbnail, s3folder+thumbnail_name)
+                except Exception as e:
+                    print('Upload failed with reason %s', str(e))
+
+                # Deleting the created thumbnail image and downloaded image
+                time.sleep(2)
+                delete([image_original, thumbnail])
+
+            except (AttributeError, KeyError, IndexError):
+                print('Image file not available in S3 bucket')
+        else:
+            thumbnail_name = 'profile.jpg'
+
+        image.medium_thumbnail = thumbnail_name
+        image.save()
+

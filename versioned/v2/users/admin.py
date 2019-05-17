@@ -7,6 +7,8 @@ from django.shortcuts import redirect
 from dal import autocomplete, forward
 from utilities.utils import get_pre_signed_get_url
 from config.models import Config
+from job.tasks import generate_medium_thumbnail
+
 
 class CelebrityDisplayAdminInline(admin.StackedInline):
     model = CelebrityDisplay
@@ -171,6 +173,7 @@ class CelebrityDisplayOrganizerForm(forms.ModelForm):
 
         return self.cleaned_data
 
+
 class CelebrityDisplayOrganizerAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'title', 'profession', 'featured')
     fieldsets = (
@@ -225,6 +228,13 @@ class CelebrityDisplayOrganizerAdmin(ReadOnlyModelAdmin):
             return "<img src='/media/web-images/4star_celebrity_display.png' style='margin-left: -20px'>"
 
     picture_display.allow_tags = True
+
+    def save_related(self, request, obj, form, change):
+        super().save_related(request, obj, form, change)
+        celebrity_ids = [item.celebrity.id for item in CelebrityDisplay.objects.filter(
+            celebrity_display_id=obj.instance.id, celebrity__isnull=False).all().iterator()
+        ]
+        generate_medium_thumbnail.delay(celebrity_ids)
 
 
 class ProfessionChoiceField(forms.ModelChoiceField):
