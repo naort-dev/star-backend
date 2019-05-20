@@ -521,7 +521,7 @@
       "request_type": 1,
       "created_date": "2017-10-18T11:47:11.719Z",
       "visibility": true,
-      "template_type": 5
+      "template_type": 1
     }
   },
   {
@@ -536,7 +536,7 @@
       "request_type": 1,
       "created_date": "2017-10-18T11:47:11.719Z",
       "visibility": true,
-      "template_type": 5
+      "template_type": 1
     }
   },
   {
@@ -551,7 +551,7 @@
       "request_type": 1,
       "created_date": "2017-10-18T11:47:11.719Z",
       "visibility": true,
-      "template_type": 2
+      "template_type": 3
     }
   },
   {
