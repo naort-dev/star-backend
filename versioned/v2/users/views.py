@@ -122,10 +122,14 @@ class CelebrityDisplayView(APIView, ResponseViewMixin):
 
         celebrity_display = CelebrityDisplay.objects.filter(**filter_condition).exclude(**exclude_condition).order_by("order")
         celebrity_data = CelebrityDisplaySerializer(celebrity_display, many=True)
+        videos = HomePageVideo.objects.all()
+        home_page_serializer = HomePageVideoSerializer(videos, many=True)
+
         return self.jp_response(s_code='HTTP_200_OK', data={
             'display_title': display_title,
             'profession': profession_title,
-            'celebrity_display': celebrity_data.data
+            'celebrity_display': celebrity_data.data,
+            'home_page_videos': home_page_serializer.data
         })
 
 
@@ -330,14 +334,3 @@ class StargramzAutocomplete(autocomplete.Select2QuerySetView):
 
     def get_selected_result_label(self, result):
         return result.sort_name
-
-
-class HomePageVideosView(APIView, ResponseViewMixin):
-    def get(self, request):
-        try:
-            videos = HomePageVideo.objects.all()
-            serializer = HomePageVideoSerializer(videos, many=True)
-            return self.jp_response(s_code='HTTP_200_OK', data={'home_page_videos': serializer.data})
-        except Exception as e:
-            print(str(e))
-            return self.exception_response()
