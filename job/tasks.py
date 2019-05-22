@@ -578,7 +578,7 @@ def create_referral_payouts(record):
 
         # validate campaign
         if datetime.now().date() < campaign.valid_till and float(referral_payed_out) <= float(campaign.max_referral_amount):
-            referral_amount = float(in_app_price_reduction(record)) * (75.0 / 100.0) * (int(campaign.discount)/100)
+            referral_amount = float(in_app_price_reduction(record)) * (25.0 / 100.0) * (int(campaign.discount)/100)
             amount = referral_payed_out + float(referral_amount)
 
             if amount > campaign.max_referral_amount:

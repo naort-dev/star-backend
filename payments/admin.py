@@ -45,7 +45,7 @@ class PayoutAdmin(ReadOnlyModelAdmin):
     list_filter = ('status',)
 
     readonly_fields = ('celebrity', 'fan_charged', 'stripe_processing_fees', 'starsona_company_charges',
-                       'fund_payed_out', 'stripe_response', 'stripe_transaction_id', 'created_date',
+                       'stripe_response', 'stripe_transaction_id', 'created_date',
                        'modified_date', 'referral_payout')
 
 
