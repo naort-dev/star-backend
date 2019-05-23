@@ -316,7 +316,10 @@ class StargramzRetrieveSerializer(StargramzSerializer):
 
     def get_request_details(self, obj):
         if obj.request_details:
-            return json.loads(obj.request_details)
+            data = json.loads(obj.request_details)
+            if 'relationship' in data and not data['relationship']:
+                data.update({'relationship': {'id': '', 'title': ''}})
+            return data
         return None
 
     def get_from_audio_file(self, obj):
