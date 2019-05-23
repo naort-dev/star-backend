@@ -1,4 +1,5 @@
 import os
+# from config.models import Config
 
 DEBUG = os.environ.get('DEBUG', 'False').lower() in ("yes", "true", "1")
 ALLOWED_HOSTS = ['*',]
@@ -16,7 +17,15 @@ DATABASES = {
         'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
         'HOST': os.getenv('DATABASE_HOST'),
         'PORT': '',
-    }
+    },
+    'production': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DATABASE_NAME'),
+        'USER': os.environ.get('DATABASE_USER'),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
+        'HOST': '',
+        'PORT': '',
+    },
 }
 
 if DEBUG:

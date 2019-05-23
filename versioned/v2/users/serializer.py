@@ -3,7 +3,7 @@ from rest_framework import serializers
 from users.serializer import ProfessionSerializer, ProfessionFilterSerializer, ProfilePictureSerializer
 from .models import CelebrityDisplay, HomePageVideo, VIDEO_TYPES
 from users.serializer import UserSerializer
-from users.models import CelebrityProfession, Profession, VanityUrl, StargramzUser
+from users.models import CelebrityProfession, Profession, VanityUrl, StargramzUser, Celebrity
 from config.models import Config
 
 
@@ -124,3 +124,16 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         model = StargramzUser
         fields = ('first_name', 'last_name', 'nick_name', 'email')
         depth = 1
+
+
+class CelebrityApprovalSerializer(serializers.Serializer):
+    reset_id = serializers.UUIDField(required=True, allow_null=False)
+
+    def validate(self, data):
+        reset_id = data.get('reset_id', '')
+        try:
+            user = StargramzUser.objects.get(reset_id=reset_id)
+            celebrity = Celebrity.objects.get(user_id=user.id)
+        except StargramzUser.DoesNotExist:
+            raise serializers.ValidationError('Data not found')
+        return celebrity, user

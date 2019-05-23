@@ -193,3 +193,57 @@ def forgot_password_email(user_id):
         return True
     except Exception:
         return False
+
+
+@app.task
+def change_file_bucket(file, file_name):
+    import urllib.request
+    from django.conf import settings
+    from utilities.utils import get_pre_signed_get_url
+    from job.tasks import check_file_exist_in_s3
+    import boto3
+    import os
+
+    try:
+        aws_production_bucket_name = Config.objects.get(key='aws_production_storage_bucket_name').value
+        if file_name and check_file_exist_in_s3(file + file_name):
+            picture_url = get_pre_signed_get_url(file_name, file)
+            your_media_root = settings.MEDIA_ROOT + 'profile_pictures/'
+            urllib.request.urlretrieve(picture_url, your_media_root + file_name)
+            s3 = boto3.client('s3', aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+                              aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
+            s3.upload_file(your_media_root + file_name, aws_production_bucket_name,
+                           file + file_name)
+            os.remove(your_media_root + file_name)
+        return True
+    except Exception as e:
+        print(str(e))
+        return False
+
+
+@app.task
+def send_star_approval_mail(user_id):
+    from users.models import StargramzUser
+    from utilities.utils import sent_email, generate_branch_io_url, BASE_URL, WEB_URL
+    try:
+        user = StargramzUser.objects.get(id=user_id)
+        template = 'star_approval'
+        subject = 'Approve the star account'
+        ctx = {
+            'username': user.first_name + ' ' + user.last_name,
+            'approval_link': generate_branch_io_url(
+                mob_url='%sstar_approval?reset_id=%s' % (WEB_URL, user.reset_id),
+                title="Star approval for %s" % user.get_short_name(),
+                desc="Star approval for %s" % user.get_short_name(),
+                image_url='%smedia/web-images/starsona_logo.png' % BASE_URL,
+                desktop_url='%sstar_approval?reset_id=%s' % (WEB_URL, user.reset_id),
+                canonical_url='%sstar_approval?reset_id=%s' % (WEB_URL, user.reset_id)
+            )
+        }
+        user.reset_id = None
+        user.save()
+        sent_email(user.email, subject, template, ctx)
+        return True
+    except Exception as e:
+        print(str(e))
+        return False

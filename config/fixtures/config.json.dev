@@ -328,5 +328,25 @@
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }
-  }
+  },
+  {
+    "model": "config.config",
+    "pk": 34,
+    "fields": {
+      "key": "production_db_host",
+      "value": "ddpyhyvsi733gl.ccltkla29816.us-east-1.rds.amazonaws.com",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 35,
+    "fields": {
+      "key": "aws_production_storage_bucket_name",
+      "value": "starsona-dmb-usea1",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
 ]
