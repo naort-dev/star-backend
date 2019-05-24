@@ -3,7 +3,7 @@ from rest_framework import serializers
 from users.serializer import ProfessionSerializer, ProfessionFilterSerializer, ProfilePictureSerializer
 from .models import CelebrityDisplay, HomePageVideo, VIDEO_TYPES
 from users.serializer import UserSerializer
-from users.models import CelebrityProfession, Profession, VanityUrl
+from users.models import CelebrityProfession, Profession, VanityUrl, StargramzUser
 from config.models import Config
 
 
@@ -112,3 +112,15 @@ class HomePageVideoSerializer(serializers.ModelSerializer):
 
     def get_video_type(self, obj):
         return VIDEO_TYPES.get_key(obj.video_type)
+
+
+class RegisterUserSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=True, allow_blank=False)
+    first_name = serializers.CharField(required=True, allow_blank=False)
+    last_name = serializers.CharField(required=True, allow_blank=False)
+    nick_name = serializers.CharField(required=False, allow_blank=True)
+
+    class Meta:
+        model = StargramzUser
+        fields = ('first_name', 'last_name', 'nick_name', 'email')
+        depth = 1
