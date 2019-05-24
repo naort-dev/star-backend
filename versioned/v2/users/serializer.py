@@ -1,7 +1,7 @@
 from utilities.utils import encode_pk, get_pre_signed_get_url
 from rest_framework import serializers
 from users.serializer import ProfessionSerializer, ProfessionFilterSerializer, ProfilePictureSerializer
-from .models import CelebrityDisplay, HomePageVideo
+from .models import CelebrityDisplay, HomePageVideo, VIDEO_TYPES
 from users.serializer import UserSerializer
 from users.models import CelebrityProfession, Profession, VanityUrl
 from config.models import Config
@@ -92,10 +92,11 @@ class TrendingCelebritySerializer(UserSerializer):
 class HomePageVideoSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField(read_only=True)
     video_name = serializers.SerializerMethodField(read_only=True)
+    video_type = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = HomePageVideo
-        fields = ('id', 'video_name', 'url')
+        fields = ('id', 'video_name', 'url', 'video_type')
 
     def get_video_name(self, obj):
         return obj.video.name.split("/")[-1]
@@ -108,3 +109,6 @@ class HomePageVideoSerializer(serializers.ModelSerializer):
             return video_url
         except Exception:
             return ""
+
+    def get_video_type(self, obj):
+        return VIDEO_TYPES.get_key(obj.video_type)

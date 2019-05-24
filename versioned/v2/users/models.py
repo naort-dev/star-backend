@@ -5,6 +5,13 @@ from django.db.models.signals import post_save
 from utilities.utils import upload_image_s3
 from config.models import Config
 import os
+from utilities.konstants import Konstants, K
+
+
+VIDEO_TYPES = Konstants(
+    K(fan_video=1, label='Fan Video'),
+    K(star_video=2, label='Star Video')
+)
 
 
 class CelebrityDisplayOrganizer(models.Model):
@@ -36,6 +43,7 @@ class HomePageVideo(models.Model):
     video = models.FileField(upload_to=upload_function, verbose_name='Video')
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
     modified_date = models.DateTimeField('Modified Date', auto_now=True)
+    video_type = models.IntegerField('Video Type', choices=VIDEO_TYPES.choices(), default=VIDEO_TYPES.star_video)
 
 
 @receiver(post_save, sender=HomePageVideo)
