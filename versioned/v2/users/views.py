@@ -1,14 +1,15 @@
 from users.authenticate_views import FilterProfessions, Professions, UserRegister, UserDetails
 from .serializer import ProfessionFilterSerializerV2, ProfessionSerializerV2, SearchSerializer,\
-    CelebrityDisplaySerializer, TrendingCelebritySerializer, HomePageVideoSerializer
+    CelebrityDisplaySerializer, TrendingCelebritySerializer, HomePageVideoSerializer, RegisterUserSerializer
 from elasticsearch_dsl.connections import connections
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
 from .constants import *
 from rest_framework.views import APIView
-from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params, get_pre_signed_get_url, decode_pk
+from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params, get_pre_signed_get_url, decode_pk, \
+    get_user_role_details
 from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo
-from users.models import StargramzUser, Profession, Celebrity, AdminReferral, FanRating
+from users.models import StargramzUser, Profession, Celebrity, AdminReferral, FanRating, SettingsNotifications
 from users.utils import generate_random_code
 from users.fan_views import CelebrityList
 from django.db.models import Q, F, Value, Case, When
@@ -20,6 +21,10 @@ from users.celebrity_views import CelebrityManagement
 from config.models import Config
 from rest_framework.decorators import detail_route
 from dal import autocomplete
+from hashids import Hashids
+from users.serializer import RegisterSerializer, NotificationSettingsSerializerEncode
+from rest_framework.authtoken.models import Token
+hashids = Hashids(min_length=8)
 
 
 class FilterProfessionsV2(FilterProfessions):
@@ -156,6 +161,32 @@ class Register(UserRegister):
             except:
                 pass
         return response
+
+    def put(self, request):
+        try:
+            user = StargramzUser.objects.get(id=request.user.id)
+            serializer = RegisterUserSerializer(data=request.data)
+            if serializer.is_valid():
+                if StargramzUser.objects.filter(email=serializer.validated_data['email']).exclude(id=user.id).exists():
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'USER_EXISTS', 'Email already registered')
+                user.email = serializer.validated_data['email']
+                user.first_name = serializer.validated_data['first_name']
+                user.last_name = serializer.validated_data['last_name']
+                user.nick_name = serializer.validated_data['nick_name']
+                user.save()
+                role_details = get_user_role_details(user)
+                user.authentication_token = Token.objects.filter(user_id=user.id).first()
+                data = RegisterSerializer(user).data
+                (notifications, created) = SettingsNotifications.objects.get_or_create(user_id=user.id)
+                data['notification_settings'] = NotificationSettingsSerializerEncode(notifications).data
+                data['role_details'] = role_details
+                return self.jp_response(s_code='HTTP_200_OK', data={'user': data})
+            else:
+                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CREATE',
+                                              self.error_msg_string(serializer.errors))
+        except StargramzUser.DoesNotExist:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_USER',
+                                          'Email is not registered with Starsona.')
 
 
 class CelebrityListV2(CelebrityList):
