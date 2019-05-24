@@ -38,6 +38,13 @@ class Konstants:
     def get_all_labels(self):
         return [k.label for k in self.klist]
 
+    def get_key(self, value):
+        for k in self.klist:
+            if k.v == value:
+                return k.id
+
+        return ""
+
 
 ROLES = Konstants(
     K(fan='R1001', label='Fan'),
