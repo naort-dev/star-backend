@@ -1,6 +1,7 @@
-from users.authenticate_views import FilterProfessions, Professions, UserRegister, UserDetails
+from users.authenticate_views import FilterProfessions, Professions, UserRegister, UserDetails, ProfileImages
 from .serializer import ProfessionFilterSerializerV2, ProfessionSerializerV2, SearchSerializer,\
-    CelebrityDisplaySerializer, TrendingCelebritySerializer, HomePageVideoSerializer, RegisterUserSerializer
+    CelebrityDisplaySerializer, TrendingCelebritySerializer, HomePageVideoSerializer, RegisterUserSerializer, \
+    ProfilePictureSerializer
 from elasticsearch_dsl.connections import connections
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
@@ -378,3 +379,13 @@ class StargramzAutocomplete(autocomplete.Select2QuerySetView):
 
     def get_selected_result_label(self, result):
         return result.sort_name
+
+
+class ProfileImagesV2(ProfileImages):
+    def post(self, request):
+        user = request.user
+        response = ProfileImages.post(self, request)
+        if response.data['status'] == 200:
+            response.data['data']['avatar_photo'] = ProfilePictureSerializer(user.avatar_photo).data
+
+        return response
