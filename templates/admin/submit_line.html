@@ -8,4 +8,6 @@
 {% if show_save_as_new %}<input type="submit" value="{% trans 'Save as new' %}" name="_saveasnew" />{% endif %}
 {% if show_save_and_add_another %}<input type="submit" value="{% trans 'Save and add another' %}" name="_addanother" />{% endif %}
 {% if show_save_and_continue %}<input type="submit" value="{% trans 'Save and continue editing' %}" name="_continue" />{% endif %}
+{% if show_migrate %}<input type="submit" value="{% trans 'Migrate user' %}" name="_migrate" />{% endif %}
+{% if migrated %}<input type="button" value="Migrated" style="background: #7fe07f;" />{% endif %}
 </div>

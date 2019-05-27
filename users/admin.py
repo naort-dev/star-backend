@@ -5,7 +5,7 @@ from django.contrib import admin
 from django import forms
 from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profession, GroupAccountUser, GroupAccount,\
     UserRoleMapping, Celebrity, CelebrityProfession, SettingsNotifications, FanRating, Campaign, Referral, VanityUrl, \
-    CelebrityAvailableAlert, GroupType, CelebrityGroupAccount, Representative, AdminReferral
+    CelebrityAvailableAlert, GroupType, CelebrityGroupAccount, Representative, AdminReferral, ProfileImage
 from role.models import Role
 from payments.models import PaymentPayout, TipPayment
 from utilities.konstants import ROLES
@@ -14,6 +14,9 @@ from django.db.models import Q, F, Value, Case, When
 from django.db.models.functions import Concat
 from django.utils.safestring import mark_safe
 from utilities.admin_utils import ReadOnlyModelAdmin, ReadOnlyStackedInline, ReadOnlyTabularInline
+import os
+from django.conf import settings
+
 
 
 class PayoutsTabular(ReadOnlyTabularInline):
@@ -416,6 +419,16 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
             extra_context['show_save_and_continue'] = True
             extra_context['show_save'] = True
 
+        try:
+            if os.environ.get('ENV') == 'dev':
+                celebrity = Celebrity.objects.get(user_id=object_id)
+                if celebrity.migrated:
+                    extra_context['migrated'] = True
+                else:
+                    extra_context['show_migrate'] = True
+        except:
+            extra_context['show_migrate'] = True
+
         return super().change_view(request, object_id, extra_context=extra_context)
 
     def has_change_permission(self, request, obj=None):
@@ -439,6 +452,203 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
         if obj and obj.ambassador:
             return [inline(self.model, self.admin_site) for inline in self.inlines2]
         return [inline(self.model, self.admin_site) for inline in self.inlines]
+
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        if '_migrate' in request.POST:
+            user = None
+            try:
+                user = StargramzUser.objects.using(self.using).get(email=obj.email)
+            except Exception as e:
+                pass
+            if user:
+                user.save(using=self.using)
+            else:
+                save_data_in_production(obj)
+
+
+def save_data_in_production(obj):
+    """
+    The function will migrate all the celebrity related data from demo to production
+
+    :param obj:
+    :return:
+    """
+
+    from config.models import Config
+    from .tasks import change_file_bucket, send_star_approval_mail
+    import uuid
+
+    production_host = Config.objects.get(key='production_db_host').value
+    settings.DATABASES.get('production').update({'HOST': production_host})
+    using = 'production'
+    reset_id = uuid.uuid4()
+
+    # Creating a user in production db
+
+    user, created = StargramzUser.objects.using(using).get_or_create(username=obj.email, email=obj.email)
+
+    user.nick_name=obj.nick_name
+    user.first_name=obj.first_name
+    user.last_name=obj.last_name
+    user.reset_id = reset_id
+    user.save()
+
+    obj.reset_id = reset_id
+    obj.save()
+
+    # Creating an object in admin referral in production db
+
+    if obj.admin_approval_referral_code:
+        referral, activate = AdminReferral.objects.using(using).get_or_create(
+            referral_code=obj.admin_approval_referral_code.referral_code,
+            activate=obj.admin_approval_referral_code.activate
+        )
+        user.admin_approval_referral_code = referral
+        user.save()
+
+    # Creating the user role mapping same as the current db into production db
+
+    try:
+        mapping = UserRoleMapping.objects.get(user_id=obj.id)
+        role = Role.objects.using(using).get(code=mapping.role.code)
+        UserRoleMapping.objects.using(using).get_or_create(
+                user_id=user.id,
+                role=role,
+                is_complete=mapping.is_complete
+            )
+    except Exception as e:
+        print(str(e))
+
+
+    # Creating the Referral entry into production db
+
+    try:
+        refers = Referral.objects.filter(referrer_id=obj.id)
+        for refer in refers:
+            try:
+                refere = StargramzUser.objects.using(using).get(email=refer.referee.email)
+                Referral.objects.using(using).get_or_create(referrer_id=user.id, referee_id=refere.id)
+            except:
+                pass
+        refers = Referral.objects.get(referee_id=obj.id)
+        referer = StargramzUser.objects.using(using).get(email=refer.referrer.email)
+        Referral.objects.using(using).get_or_create(referrer_id=referer.id, referee_id=user.id)
+    except Exception as e:
+        print(str(e))
+
+    # Creating the vanity url into production db
+
+    try:
+        vanity = VanityUrl.objects.get(user_id=obj.id)
+        VanityUrl.objects.using(using).get_or_create(name=vanity.name, user_id=user.id)
+    except Exception as e:
+        print(str(e))
+
+    # Creating the setting notification into production db
+
+    try:
+        settingss = SettingsNotifications.objects.get(user_id=obj.id)
+        SettingsNotifications.objects.using(using).get_or_create(
+            user_id=user.id,
+            celebrity_starsona_request=settingss.celebrity_starsona_request,
+            celebrity_starsona_message=settingss.celebrity_starsona_message,
+            celebrity_account_updates=settingss.celebrity_account_updates,
+            fan_account_updates=settingss.fan_account_updates,
+            fan_starsona_messages=settingss.fan_starsona_messages,
+            fan_starsona_videos=settingss.fan_starsona_videos,
+            fan_email_starsona_videos=settingss.fan_email_starsona_videos,
+            email_notification=settingss.email_notification,
+            secondary_email=settingss.secondary_email,
+            mobile_country_code=settingss.mobile_country_code,
+            mobile_number=settingss.mobile_number,
+            mobile_notification=settingss.mobile_notification,
+            mobile_verified=settingss.mobile_verified,
+            verification_uuid=settingss.verification_uuid
+            )
+    except Exception as e:
+        print(str(e))
+
+    # Creating the profile image table entry in production db
+    # Need to upload the file which is downloaded from staging s3 bucket
+
+    try:
+        images = ProfileImage.objects.filter(user_id=obj.id)
+        for image in images:
+            ProfileImage.objects.using(using).get_or_create(
+                user_id=user.id,
+                photo=image.photo,
+                status=image.status,
+                thumbnail=image.thumbnail,
+                medium_thumbnail=image.medium_thumbnail
+            )
+            profile_images = Config.objects.get(key='profile_images').value
+
+            # Moving the profile image and the thumbnail from demo to production
+
+            change_file_bucket.delay(profile_images, image.photo)
+            change_file_bucket.delay(profile_images, image.thumbnail)
+    except Exception as e:
+        print(str(e))
+
+    # Creating data into Celebrity table
+
+    try:
+        celebrity = Celebrity.objects.get(user_id=obj.id)
+        Celebrity.objects.using(using).get_or_create(
+            user_id=user.id,
+            rate = celebrity.rate,
+            in_app_price=celebrity.in_app_price,
+            rating=celebrity.rating,
+            weekly_limits=celebrity.weekly_limits,
+            profile_video=celebrity.profile_video,
+            follow_count=celebrity.follow_count,
+            description=celebrity.description,
+            charity=celebrity.charity,
+            availability=celebrity.availability,
+            admin_approval=celebrity.admin_approval,
+            featured=celebrity.featured,
+            remaining_limit=celebrity.remaining_limit,
+            view_count=celebrity.view_count,
+            stripe_user_id=celebrity.stripe_user_id,
+            check_comments=celebrity.check_comments,
+            check_payments=celebrity.check_payments,
+            has_fan_account=celebrity.has_fan_account,
+            trending_star_score=celebrity.trending_star_score,
+            average_response_time=celebrity.average_response_time,
+            star_approved=False
+        )
+        profile_video = Config.objects.get(key='authentication_videos').value
+
+        # Moving the profile video from demo to production
+
+        change_file_bucket.delay(profile_video, celebrity.profile_video)
+        celebrity.migrated = True
+        celebrity.save()
+    except Exception as e:
+        print(str(e))
+
+    # Creating CelebrityProfession relation into production db
+
+    try:
+        professions = CelebrityProfession.objects.filter(user_id=obj.id)
+        for profession in professions:
+            try:
+                profession_new = Profession.objects.using(using).get(title=profession.profession.title)
+                CelebrityProfession.objects.using(using).get_or_create(
+                    user_id=user.id,
+                    profession=profession_new
+                )
+            except:
+                pass
+    except Exception as e:
+        print(str(e))
+
+    # Sending e-mail to the celebrity informing about the migration into production
+
+    send_star_approval_mail.delay(obj.id)
+
 
 class AmbassadorChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):

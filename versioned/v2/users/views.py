@@ -1,14 +1,14 @@
 from users.authenticate_views import FilterProfessions, Professions, UserRegister, UserDetails, ProfileImages
 from .serializer import ProfessionFilterSerializerV2, ProfessionSerializerV2, SearchSerializer,\
     CelebrityDisplaySerializer, TrendingCelebritySerializer, HomePageVideoSerializer, RegisterUserSerializer, \
-    ProfilePictureSerializer
+    ProfilePictureSerializer, CelebrityApprovalSerializer
 from elasticsearch_dsl.connections import connections
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
 from .constants import *
 from rest_framework.views import APIView
 from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params, get_pre_signed_get_url, decode_pk, \
-    get_user_role_details
+    get_user_role_details, encode_pk
 from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo
 from users.models import StargramzUser, Profession, Celebrity, AdminReferral, FanRating, SettingsNotifications
 from users.utils import generate_random_code
@@ -389,3 +389,31 @@ class ProfileImagesV2(ProfileImages):
             response.data['data']['avatar_photo'] = ProfilePictureSerializer(user.avatar_photo).data
 
         return response
+
+
+class CelebrityApproval(APIView, ResponseViewMixin):
+
+    def post(self, request):
+
+        serializer = CelebrityApprovalSerializer(data=request.data)
+        rate = request.data.get('rate', None)
+        data = {}
+        if serializer.is_valid():
+            celebrity, user = serializer.validated_data
+            if rate:
+                celebrity.rate = rate
+                celebrity.save()
+            (token, created) = Token.objects.get_or_create(user=user)
+            data['authentication_token'] = token.key
+            data['user_id'] = encode_pk(user.id)
+
+            celebrity.star_approved = True
+            celebrity.admin_approval = True
+            user.reset_id = None
+
+            user.save()
+            celebrity.save()
+            return self.jp_response(s_code='HTTP_200_OK', data=data)
+        else:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE',
+                                          self.error_msg_string(serializer.errors))

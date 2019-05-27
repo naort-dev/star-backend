@@ -281,6 +281,8 @@ class Celebrity(models.Model):
     # check_payments need to be removed after the migrations
     check_payments = models.BooleanField('Check Payment', default=False)
     has_fan_account = models.BooleanField('User has fan Account', default=False)
+    star_approved = models.BooleanField('Star Approved', default=True)
+    migrated = models.BooleanField('Migrated', default=False)
     trending_star_score = models.IntegerField('Star Score', default=0, blank=True)
     average_response_time = models.DecimalField('Average Response Time', max_digits=7, decimal_places=2, blank=True, default=0.00)
 
@@ -339,7 +341,7 @@ def index_celebrity(sender, instance, **kwargs):
     from versioned.v2.users.search import get_elasticsearch_connection_params, connections, Elasticsearch, \
         Celebrities, ES_CELEBRITY_INDEX
 
-    if instance.admin_approval and instance.availability:
+    if instance.admin_approval and instance.availability and instance.star_approved:
         connection_params = get_elasticsearch_connection_params()
         connections.create_connection(**connection_params)
         Elasticsearch(**connection_params)
@@ -514,7 +516,7 @@ class VanityUrl(models.Model):
 
 @receiver(post_save, sender=StargramzUser)
 def execute_after_save(sender, instance, created, *args, **kwargs):
-    if created:
+    if created and kwargs['using'] == 'default':
         count = 0
         try:
             if kwargs.get('count'):
