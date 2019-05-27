@@ -70,7 +70,7 @@ Resources:
     Type: AWS::CodeBuild::Project
     Properties:
       Name: !Join ['-', [!Ref 'AWS::StackName', 'tests-staging']]
-      Description: Run migrations
+      Description: Run tests
       ServiceRole: arn:aws:iam::376169159073:role/service-role/codebuild-starsona-service-role
       Artifacts:
         Type: CODEPIPELINE

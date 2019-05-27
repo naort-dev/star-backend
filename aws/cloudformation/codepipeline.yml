@@ -113,6 +113,27 @@ Resources:
         BuildSpec: aws/codebuild/buildspec-performance.yml
       TimeoutInMinutes: 60
 
+  RunMigrationsDemo:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Join ['-', [!Ref 'AWS::StackName', 'migrations-demo']]
+      Description: Run migrations
+      ServiceRole: arn:aws:iam::376169159073:role/service-role/codebuild-starsona-service-role
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: !Ref 'CodebuildUbuntuImage'
+        PrivilegedMode: false
+        EnvironmentVariables:
+          - { Name: ENV, Value: demo }
+
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: aws/codebuild/buildspec-migrations.yml
+      TimeoutInMinutes: 15
+
   RunMigrationsProduction:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -242,6 +263,39 @@ Resources:
 #              Configuration:
 #                ProjectName: !Ref 'RunTestsStaging'
 #              RunOrder: 3
+        -
+          Name: Demo
+          Actions:
+            -
+              Name: app
+              InputArtifacts:
+                - Name: source
+                - Name: build
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                ActionMode: CREATE_UPDATE
+                RoleArn: arn:aws:iam::376169159073:role/AWS-CodePipeline-Service
+                Capabilities: CAPABILITY_IAM
+                StackName: demo-backend-app
+                TemplateConfiguration: build::demo-backend.json
+                TemplatePath: source::aws/cloudformation/backend.yml
+              RunOrder: 1
+            -
+              Name: migrations
+              InputArtifacts:
+                - Name: source
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref 'RunMigrationsDemo'
+              RunOrder: 3
         -
           Name: Approvals
           Actions:
