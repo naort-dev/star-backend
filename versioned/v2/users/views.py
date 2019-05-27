@@ -334,7 +334,20 @@ class CelebrityManagementV2(CelebrityManagement):
             user.save()
         except Exception:
             pass
-        return CelebrityManagement.post(CelebrityManagement, request)
+        response = CelebrityManagement.post(CelebrityManagement, request)
+        if response.data['status'] == 200:
+            try:
+                config = Config.objects.get(key='authentication_videos')
+                celebrity = Celebrity.objects.get(user_id=user.id)
+                if celebrity.profile_video:
+                    response.data['data']['celebrity']['profile_video'] = get_pre_signed_get_url(
+                        celebrity.profile_video, config.value
+                    )
+            except Exception as e:
+                print(str(e))
+                pass
+
+        return response
 
 
 class StargramzAutocomplete(autocomplete.Select2QuerySetView):
