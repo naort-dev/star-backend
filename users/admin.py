@@ -119,10 +119,10 @@ class NotificationSettingInline(ReadOnlyStackedInline):
 
 class CelebrityInline(ReadOnlyStackedInline):
     model = Celebrity
-    fields = ('rate', 'availability', 'admin_approval', 'rating', 'in_app_price', 'weekly_limits', 'remaining_limit', 'follow_count',
+    fields = ('rate', 'availability', 'admin_approval', 'star_approved', 'migrated', 'rating', 'in_app_price', 'weekly_limits', 'remaining_limit', 'follow_count',
               'featured', 'description', 'charity', 'has_fan_account',
               'check_payments', 'check_comments', 'view_count', 'trending_star_score')
-    readonly_fields = ('rating', 'follow_count', 'remaining_limit', 'view_count', 'trending_star_score')
+    readonly_fields = ('rating', 'follow_count', 'remaining_limit', 'view_count', 'trending_star_score', 'migrated')
     max_num = 1
     verbose_name_plural = 'Celebrity Details'
     can_delete = False
@@ -318,7 +318,7 @@ class FanUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
 class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     add_form = UserCreationForm
     list_display = ('id', 'first_name', 'last_name', 'username', 'order', 'trending_star_score', 'view_count', 'fav_count', 'purchase_count','average_response_time', 'temp_password')
-    list_filter = ('celebrity_user__admin_approval', 'stargramz_user__is_complete', 'temp_password')
+    list_filter = ('celebrity_user__admin_approval', 'stargramz_user__is_complete', 'temp_password', 'celebrity_user__star_approved')
 
     def trending_star_score(self, obj):
         return Celebrity.objects.get(user_id=obj.id).trending_star_score
@@ -457,15 +457,7 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         if '_migrate' in request.POST:
-            user = None
-            try:
-                user = StargramzUser.objects.using(self.using).get(email=obj.email)
-            except Exception as e:
-                pass
-            if user:
-                user.save(using=self.using)
-            else:
-                save_data_in_production(obj)
+            save_data_in_production(obj)
 
 
 def save_data_in_production(obj):
@@ -493,6 +485,7 @@ def save_data_in_production(obj):
     user.first_name=obj.first_name
     user.last_name=obj.last_name
     user.reset_id = reset_id
+    user.referral_code = obj.referral_code
     user.save()
 
     obj.reset_id = reset_id
@@ -634,14 +627,15 @@ def save_data_in_production(obj):
     try:
         professions = CelebrityProfession.objects.filter(user_id=obj.id)
         for profession in professions:
-            try:
-                profession_new = Profession.objects.using(using).get(title=profession.profession.title)
-                CelebrityProfession.objects.using(using).get_or_create(
-                    user_id=user.id,
-                    profession=profession_new
-                )
-            except:
-                pass
+            if profession.profession.parent:
+                profession_class = Profession.objects.using(using).filter(parent__title=profession.profession.parent.title)
+            else:
+                profession_class = Profession.objects.using(using).filter(parent=None)
+            profession_new = profession_class.get(title=profession.profession.title)
+            CelebrityProfession.objects.using(using).get_or_create(
+                user_id=user.id,
+                profession=profession_new
+            )
     except Exception as e:
         print(str(e))
 
