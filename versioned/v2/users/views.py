@@ -178,7 +178,10 @@ class Register(UserRegister):
                 user.nick_name = serializer.validated_data['nick_name']
                 user.save()
                 role_details = get_user_role_details(user)
-                user.authentication_token = Token.objects.filter(user_id=user.id).first()
+                try:
+                    user.authentication_token = Token.objects.get(user_id=user.id)
+                except:
+                    pass
                 data = RegisterSerializer(user).data
                 (notifications, created) = SettingsNotifications.objects.get_or_create(user_id=user.id)
                 data['notification_settings'] = NotificationSettingsSerializerEncode(notifications).data
@@ -315,12 +318,16 @@ class UserDetailsV2(UserDetails):
                 average_response_time, avg_response_value = self.average_response_time(pk)
                 current_rating = response.data['data']['celebrity_details'].get('rating', None)
                 rating = self.rating_checking(pk, current_rating)
+                notification = celebrity.user.settings_user.all().first()
                 response.data['data']['celebrity_details'].update(
                     {
                         'profile_video': profile_video,
                         'average_response_time': average_response_time,
                         'average_response_value': avg_response_value,
-                        'rating': rating
+                        'rating': rating,
+                        'has_profile_video': True if profile_video else False,
+                        'has_password': False if celebrity.user.temp_password else True,
+                        'has_phone_number': True if notification and notification.mobile_number else False
                     }
                 )
         return response
@@ -337,7 +344,7 @@ class CelebrityManagementV2(CelebrityManagement):
             user.save()
         except Exception:
             pass
-        response = CelebrityManagement.post(CelebrityManagement, request)
+        response = CelebrityManagement.post(self, request)
         if response.data['status'] == 200:
             try:
                 config = Config.objects.get(key='authentication_videos')
