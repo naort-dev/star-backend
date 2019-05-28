@@ -391,7 +391,7 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
             return self.jp_error_response('HTTP_403_FORBIDDEN', 'INVALID_USER', 'Not an authorized user.')
 
         if celebrity:
-            if (not user.celebrity_user.admin_approval) or (not user.is_active):
+            if (not user.celebrity_user.admin_approval) or (not user.is_active) or (not user.celebrity_user.star_approved):
                 return self.jp_error_response(
                     'HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP',
                     'The celebrity you are looking for is currently unavailable'
