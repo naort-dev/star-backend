@@ -208,7 +208,7 @@ def change_file_bucket(file, file_name):
         aws_production_bucket_name = Config.objects.get(key='aws_production_storage_bucket_name').value
         if file_name and check_file_exist_in_s3(file + file_name):
             picture_url = get_pre_signed_get_url(file_name, file)
-            your_media_root = settings.MEDIA_ROOT + 'profile_pictures/'
+            your_media_root = settings.MEDIA_ROOT + 'profile/'
             urllib.request.urlretrieve(picture_url, your_media_root + file_name)
             s3 = boto3.client('s3', aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
                               aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
