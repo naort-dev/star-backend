@@ -486,6 +486,10 @@ def save_data_in_production(obj):
     user.last_name=obj.last_name
     user.reset_id = reset_id
     user.referral_code = obj.referral_code
+    user.temp_password = obj.temp_password
+    user.is_ambassador = obj.is_ambassador
+    user.stripe_customer_id = obj.stripe_customer_id
+    user.profile_photo = obj.profile_photo
     user.save()
 
     obj.reset_id = reset_id
@@ -569,7 +573,7 @@ def save_data_in_production(obj):
     try:
         images = ProfileImage.objects.filter(user_id=obj.id)
         for image in images:
-            ProfileImage.objects.using(using).get_or_create(
+            profile_image_production, created = ProfileImage.objects.using(using).get_or_create(
                 user_id=user.id,
                 photo=image.photo,
                 status=image.status,
@@ -582,6 +586,12 @@ def save_data_in_production(obj):
 
             change_file_bucket.delay(profile_images, image.photo)
             change_file_bucket.delay(profile_images, image.thumbnail)
+
+            if obj.avatar_photo and obj.avatar_photo.id == image.id:
+                user.avatar_photo = profile_image_production
+            if obj.featured_photo and obj.featured_photo.id == image.id:
+                user.featured_photo = profile_image_production
+            user.save()
     except Exception as e:
         print(str(e))
 
