@@ -24,6 +24,8 @@ class CelebrityManagement(APIView, ResponseViewMixin):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
+    welcome_mail = welcome_email
+
     def post(self, request):
         """
             Celebrity details Add
@@ -40,6 +42,8 @@ class CelebrityManagement(APIView, ResponseViewMixin):
             for list_item in field_list:
                 if list_item in request.data:
                     fields.append(list_item)
+            not_recordable = request.data.get('recordable', None)
+            not_recordable = True if not_recordable == 'false' else None
             serializer = CelebrityProfileSerializer(data=request.data, instance=None,
                                                     fields=fields)
             if serializer.is_valid():
@@ -58,7 +62,7 @@ class CelebrityManagement(APIView, ResponseViewMixin):
                 roles_mapping.is_complete = True
                 roles_mapping.role_id = role_id
                 roles_mapping.save()
-                welcome_email.delay(celebrity.user.id)
+                self.welcome_mail.delay(celebrity.user.id, not_recordable)
                 alert_admin_celebrity_updates.delay(celebrity.user.id, 1)
             else:
                 return_data = dict(status='HTTP_400_BAD_REQUEST', e_code='INVALID_CODE',
