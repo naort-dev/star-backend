@@ -25,6 +25,7 @@ from dal import autocomplete
 from hashids import Hashids
 from users.serializer import RegisterSerializer, NotificationSettingsSerializerEncode
 from rest_framework.authtoken.models import Token
+from utilities.konstants import ROLES
 hashids = Hashids(min_length=8)
 
 
@@ -154,7 +155,8 @@ class TrendingStars(APIView, ResponseViewMixin):
 
 class Register(UserRegister):
     def post(self, request):
-        request.data["password"] = "@%s" % generate_random_code(size=10)
+        if request.data['role'] == ROLES.celebrity:
+            request.data["password"] = "@%s" % generate_random_code(size=10)
         response = UserRegister.post(self, request)
         if response.data['status'] == 200:
             try:
