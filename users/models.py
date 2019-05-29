@@ -265,7 +265,7 @@ class Celebrity(models.Model):
                                  validators=[MinValueValidator(MIN_RATING_VALUE),
                                              MaxValueValidator(MAX_RATING_VALUE)])
     weekly_limits = models.IntegerField('Weekly limits', blank=False)
-    profile_video = models.CharField('Profile video', max_length=250)
+    profile_video = models.CharField('Profile video', max_length=250, null=True, blank=True)
     follow_count = models.IntegerField('Followers', default=0, blank=True)
     description = models.TextField('Description', blank=True)
     charity = models.TextField('Charity', blank=True)

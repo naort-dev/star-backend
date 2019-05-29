@@ -61,12 +61,14 @@ class CelebrityManagement(APIView, ResponseViewMixin):
                 welcome_email.delay(celebrity.user.id)
                 alert_admin_celebrity_updates.delay(celebrity.user.id, 1)
             else:
-                return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN',
-                                              self.error_msg_string(serializer.errors))
+                return_data = dict(status='HTTP_400_BAD_REQUEST', e_code='INVALID_CODE',
+                                   message=self.error_msg_string(serializer.errors))
+
+                return return_data
 
         if celebrity:
             data = CelebrityProfileSerializer(celebrity).data
-            keys = ['user', 'created_date', 'profile_video', 'id']
+            keys = ['user', 'created_date', 'profile_video', 'id', 'migrated', 'star_approved']
             data = removefromdict(data, keys)
             celebrity_professions = CelebrityProfession.objects.filter(user=user)
             celebrity_data = CelebrityProfessionSerializer(celebrity_professions, many=True).data
