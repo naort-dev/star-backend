@@ -193,7 +193,7 @@ class ForgotPassword(APIView, ResponseViewMixin):
 
             return self.jp_response(s_code='HTTP_200_OK', data='Mail has been sent to given email address')
         else:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', 'Invalid Email Address')
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', self.error_msg_string(serializer.errors))
 
 
 class ResetPassword(APIView, ResponseViewMixin):

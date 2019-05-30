@@ -139,6 +139,7 @@ class StargramzUser(AbstractBaseUser, PermissionsMixin):
     ambassador = models.ForeignKey('self', blank=True, null=True, related_name='ambassador_star', on_delete=models.CASCADE)
     is_ambassador = models.BooleanField('Is Ambassador', default=False)
     temp_password = models.BooleanField('Temp Password', default=False)
+    expiry_date = models.DateTimeField('Expiry Date', null=True, blank=True)
 
     objects = StargramzUserManager()
 
