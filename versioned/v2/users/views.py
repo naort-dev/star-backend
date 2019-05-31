@@ -26,6 +26,7 @@ from hashids import Hashids
 from users.serializer import RegisterSerializer, NotificationSettingsSerializerEncode
 from rest_framework.authtoken.models import Token
 from utilities.konstants import ROLES
+from .tasks import welcome_email_version_2
 hashids = Hashids(min_length=8)
 
 
@@ -336,6 +337,10 @@ class UserDetailsV2(UserDetails):
 
 
 class CelebrityManagementV2(CelebrityManagement):
+
+    def __init__(self, *args, **kwargs):
+        self.welcome_mail = welcome_email_version_2
+        super().__init__(*args, **kwargs)
 
     def post(self, request):
         user = request.user

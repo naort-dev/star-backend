@@ -1,0 +1,24 @@
+{% include "emails/welcome_mail_version_2/header_v2.html" %}
+<body class="new_mail_body">
+<h1 class="main_heading">Welcome to starsona</h1>
+<p class="hai">
+    Hi.</p>
+<p class="paragraph">I just wanted to email you and personally say welcome to Starsona. I’m excited that you’ve signed up. Once you verify your email through the link we have provided below, we'll be good to go!
+<a href="{{reset_link}}">Reset your password</a></p>
+<p class="paragraph">Don’t forget to upload a welcome video ASAP, so that you can start receiving bookings. Need help? Please reach out to me and my team at {{team_mail}}.</p>
+<p class="paragraph">I've heard from many stars that the first thing we could do to help them is provide links for social media, So, below are links (and images with links embedded) that you can copy & paste into Instagram, Twitter, Facebook, Youtube, Snapchat, and more. That way, your fans will know how to download the app and request videos from you.</p>
+<p class="paragraph">The Starsona app can be found on:</p><br/>
+<p class="paragraph_icons">
+<a href="https://itunes.apple.com/us/app/starsona/id1294478616?ls=1&mt=8" ><img src="{{base_url}}media/web-images/ios-store.jpg"></a>
+<a href="https://play.google.com/store/apps/details?id=com.starsona.app"><img src="{{base_url}}media/web-images/android-store.jpg"></a>
+</p>
+<p class="paragraph">
+    If you have any questions about Starsona there's an <a href="https://starsona.com/faq">FAQ</a> posted on our website.  Please also feel free to reach out to me and my team at any time! We’re here for you.</p>
+<p class="paragraph">Again, welcome.</p>
+<p class="signature">
+Peter
+</p>
+<p class="signature">CEO & Founder, Starsona
+</p>
+</body>
+{% include "emails/welcome_mail_version_2/footer_v2.html" %}

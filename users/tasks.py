@@ -114,7 +114,7 @@ def report_abuse_notify(user_id, request_id):
 
 
 @app.task
-def welcome_email(user_id):
+def welcome_email(user_id, not_recordable=None):
     from utilities.utils import sent_email, get_user_role_details
 
     model = apps.get_model('users', 'StargramzUser')
