@@ -117,6 +117,10 @@ class RegisterSerializer(serializers.ModelSerializer):
             if user.expiry_date and user.expiry_date < datetime.now(pytz.timezone('UTC')):
                 user.delete()
                 return email
+            elif not user.is_active:
+                raise serializers.ValidationError(
+                    'The email has already been registered and deactivated. Please contact Starsona Admin'
+                )
             else:
                 raise serializers.ValidationError("The email has already been registered.")
         else:
@@ -281,7 +285,7 @@ class LoginSerializer(serializers.ModelSerializer):
                 update_last_login(None, user=user)
                 return user
             else:
-                raise serializers.ValidationError({"error": "Account is not active. Contact support!"})
+                raise serializers.ValidationError('Your account has been deactivated. Please contact Starsona Admin')
         else:
             raise serializers.ValidationError({"error": "The username/password is incorrect."})
 
@@ -447,6 +451,8 @@ class ResetPasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError('The Link doesnot exist anymore')
         if user.expiry_date:
             raise serializers.ValidationError('Account with this email is not completed')
+        if not user.is_active:
+            raise serializers.ValidationError('Your account has been deactivated. Please contact Starsona Admin')
         if (timezone.now() - user.reset_generate_time) > timedelta(LINK_EXPIRY_DAY):
             raise serializers.ValidationError('The Link has been expired')
         try:

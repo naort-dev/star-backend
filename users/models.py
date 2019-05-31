@@ -61,6 +61,12 @@ NOTIFICATION_TYPES = Konstants(
     K(mobile_notification=12, label='Mobile Notification'),
 )
 
+REMINDER_MAIL_COUNT = Konstants(
+    K(no_mail=0, label='No Mail'),
+    K(first_mail=1, label='First Mail'),
+    K(second_mail=2, label='Second Mail'),
+)
+
 
 class StargramzUserManager(BaseUserManager):
     use_in_migrations = True
@@ -140,6 +146,10 @@ class StargramzUser(AbstractBaseUser, PermissionsMixin):
     is_ambassador = models.BooleanField('Is Ambassador', default=False)
     temp_password = models.BooleanField('Temp Password', default=False)
     expiry_date = models.DateTimeField('Expiry Date', null=True, blank=True)
+    reminder_mail_count = models.IntegerField(
+        'Reminder Mail count', choices=REMINDER_MAIL_COUNT.choices(), default=REMINDER_MAIL_COUNT.no_mail,
+        db_index=True
+    )
 
     objects = StargramzUserManager()
 

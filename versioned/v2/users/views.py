@@ -10,7 +10,8 @@ from rest_framework.views import APIView
 from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params, get_pre_signed_get_url, decode_pk, \
     get_user_role_details, encode_pk
 from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo
-from users.models import StargramzUser, Profession, Celebrity, AdminReferral, FanRating, SettingsNotifications
+from users.models import StargramzUser, Profession, Celebrity, AdminReferral, FanRating, SettingsNotifications,\
+    REMINDER_MAIL_COUNT
 from users.utils import generate_random_code
 from users.fan_views import CelebrityList
 from django.db.models import Q, F, Value, Case, When
@@ -165,6 +166,7 @@ class Register(UserRegister):
                 user = StargramzUser.objects.get(id=decode_pk(response.data['data']['user']['id']))
                 user.temp_password = True
                 user.expiry_date = date_format_conversion(request.data.get('expiry_date', None))
+                user.reminder_mail_count = REMINDER_MAIL_COUNT.first_mail
                 user.save()
             except Exception as e:
                 print(str(e))
