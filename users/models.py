@@ -202,6 +202,17 @@ def pre_save_generate_referral_code(sender, instance, *args, **kwargs):
 pre_save.connect(pre_save_generate_referral_code, sender=StargramzUser)
 
 
+@receiver(post_save, sender=StargramzUser)
+def update_celebrity_index(sender, instance, **kwargs):
+    celebrity = None
+    try:
+        celebrity = Celebrity.objects.get(user_id=instance.id)
+    except:
+        pass
+    if celebrity and not instance.temp_password:
+        index_celebrity(Celebrity, celebrity)
+
+
 class AdminUser(StargramzUser):
     """
         Proxy Class of Users Model for Admin Users
@@ -352,7 +363,8 @@ def index_celebrity(sender, instance, **kwargs):
     from versioned.v2.users.search import get_elasticsearch_connection_params, connections, Elasticsearch, \
         Celebrities, ES_CELEBRITY_INDEX
 
-    if instance.admin_approval and instance.availability and instance.star_approved:
+    if instance.admin_approval and instance.availability and instance.star_approved and instance.profile_video and \
+            not instance.user.temp_password:
         connection_params = get_elasticsearch_connection_params()
         connections.create_connection(**connection_params)
         Elasticsearch(**connection_params)

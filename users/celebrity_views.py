@@ -65,10 +65,9 @@ class CelebrityManagement(APIView, ResponseViewMixin):
                 self.welcome_mail.delay(celebrity.user.id, not_recordable)
                 alert_admin_celebrity_updates.delay(celebrity.user.id, 1)
             else:
-                return_data = dict(status='HTTP_400_BAD_REQUEST', e_code='INVALID_CODE',
-                                   message=self.error_msg_string(serializer.errors))
-
-                return return_data
+                return self.jp_error_response(
+                    'HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', self.error_msg_string(serializer.errors)
+                )
 
         if celebrity:
             data = CelebrityProfileSerializer(celebrity).data

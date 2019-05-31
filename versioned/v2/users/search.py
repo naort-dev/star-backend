@@ -1,5 +1,5 @@
 from elasticsearch_dsl.connections import connections
-from elasticsearch_dsl import DocType, Text, Search, Integer, Q
+from elasticsearch_dsl import DocType, Text, Integer, Boolean
 from elasticsearch.helpers import bulk
 from elasticsearch import Elasticsearch
 from config.constants import *
@@ -24,6 +24,7 @@ class Celebrities(DocType):
     image_url = Text()
     thumbnail_url = Text()
     vanity_id = Text()
+    is_active = Boolean()
 
 
 def bulk_indexing():
@@ -33,10 +34,9 @@ def bulk_indexing():
     Professions.init(index=ES_PROFESSION_INDEX)
     Celebrities.init(index=ES_CELEBRITY_INDEX)
     bulk(client=es, actions=(profession_indexing(profession) for profession in Profession.objects.all().iterator()))
-    bulk(client=es, actions=(
-        celebrity_indexing(celebrity)
-        for celebrity in Celebrity.objects.filter(admin_approval=True, availability=True, star_approved=True).all().iterator()
-    ))
+    bulk(client=es, actions=(celebrity_indexing(celebrity) for celebrity in Celebrity.objects.filter(
+        admin_approval=True, availability=True, star_approved=True, user__temp_password=False
+    ).exclude(profile_video__isnull=True).all().iterator()))
 
 
 def profession_indexing(profession):
@@ -66,7 +66,8 @@ def celebrity_indexing(celebrity):
         image_url=get_s3_image_url(celebrity.user.avatar_photo) if celebrity.user.avatar_photo else '',
         thumbnail_url=get_s3_thumbnail_url(celebrity.user.avatar_photo) if celebrity.user.avatar_photo else '',
         professions=str([cp.profession.title for cp in celebrity.user.celebrity_profession.all()]),
-        vanity_id=vanity_id
+        vanity_id=vanity_id,
+        is_active=celebrity.user.is_active
     )
     obj.save(index=ES_CELEBRITY_INDEX, op_type='index')
 

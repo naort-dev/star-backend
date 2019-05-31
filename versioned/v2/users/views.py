@@ -150,7 +150,8 @@ class TrendingStars(APIView, ResponseViewMixin):
     def get(self, request):
 
         trending_celebrity = StargramzUser.objects.filter(
-            celebrity_user__admin_approval=True, celebrity_user__star_approved=True, is_active=True).order_by(
+            celebrity_user__admin_approval=True, celebrity_user__star_approved=True,
+            is_active=True, temp_password=False).exclude(celebrity_user__profile_video__isnull=True).order_by(
             '-celebrity_user__trending_star_score')[:10]
         data = TrendingCelebritySerializer(trending_celebrity, many=True).data
         return self.jp_response(s_code='HTTP_200_OK', data={'trending_celebrity': data})
@@ -208,7 +209,9 @@ class CelebrityListV2(CelebrityList):
         The list of celebrities and celebrity search
     """
     def list(self, request):
-        query_set = self.query_set.filter(is_active=True).exclude(group_account__admin_approval=True)
+        query_set = self.query_set.filter(is_active=True, temp_password=False).exclude(
+            group_account__admin_approval=True, celebrity_user__profile_video__isnull=True
+        )
         sort = request.GET.get('sort')
         filter_by_lower_rate = request.GET.get('lrate')
         filter_by_upper_rate = request.GET.get('urate')
@@ -262,12 +265,11 @@ class UserDetailsV2(UserDetails):
     @detail_route(methods=['get'], permission_classes=[CustomPermission], authentication_classes=[])
     def get_details(self, request, pk=None, user_followed=None, user_logged_in=None):
         response = UserDetails.get_details(self, request, pk, user_followed=user_followed, user_logged_in=user_logged_in)
-        response = self.append_profile_video(response, pk)
+        response = self.append_profile_video(response, pk, user_logged_in)
         return response
 
     def retrieve(self, request, pk):
         response = UserDetails.retrieve(self, request, pk)
-        response = self.append_profile_video(response, pk)
         return response
 
     def average_response_time(self, celebrity):
@@ -307,7 +309,7 @@ class UserDetailsV2(UserDetails):
                     final_rating = ""
         return final_rating
 
-    def append_profile_video(self, response, pk):
+    def append_profile_video(self, response, pk, user_logged_in):
         if response.data.get("status") == 200:
             profile_video = None
             try:
@@ -319,6 +321,12 @@ class UserDetailsV2(UserDetails):
                 celebrity = Celebrity.objects.get(user_id=pk)
                 if celebrity.profile_video:
                     profile_video = get_pre_signed_get_url(celebrity.profile_video, config.value)
+                else:
+                    if user_logged_in != pk:
+                        return self.jp_error_response(
+                            'HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP',
+                            'The celebrity you are looking for is currently unavailable'
+                        )
             except Exception as e:
                 print(str(e))
                 pass
@@ -335,9 +343,11 @@ class UserDetailsV2(UserDetails):
                         'rating': rating,
                         'has_profile_video': True if profile_video else False,
                         'has_password': False if celebrity.user.temp_password else True,
-                        'has_phone_number': True if notification and notification.mobile_number else False
+                        'has_phone_number': True if notification and notification.mobile_number else False,
+                        'allow_booking': True if profile_video and not celebrity.user.temp_password else False
                     }
                 )
+
         return response
 
 
@@ -379,8 +389,8 @@ class StargramzAutocomplete(autocomplete.Select2QuerySetView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.query_set = StargramzUser.objects.filter(
-            celebrity_user__admin_approval=True, is_active=True, celebrity_user__star_approved=True
-        )
+            celebrity_user__admin_approval=True, is_active=True, celebrity_user__star_approved=True, temp_password=False
+        ).exclude(celebrity_user__profile_video__isnull=True)
         self.query_set = self.query_set.annotate(sort_name=Case(
             When(Q(nick_name__isnull=False) & ~Q(nick_name=''), then=F('nick_name')),
             default=Concat('first_name', Value(' '), 'last_name')))
