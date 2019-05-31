@@ -21,7 +21,7 @@ def setting_up_password():
     try:
         mail_dates = Config.objects.get(key='password_reset_dates').value  # the dates from the config is just for testing purpose
         (first, second) = mail_dates.replace(' ', '').split(',')
-        users = StargramzUser.objects.filter(temp_password=True)
+        users = StargramzUser.objects.filter(temp_password=True, expiry_date__isnull=True)
         for user in users:
             date_diff = (datetime.now(pytz.UTC) - user.created_date).days
             template = ""
@@ -98,3 +98,12 @@ def welcome_email_version_2(user_id, not_recordable):
         template = 'welcome_mail_version_2/welcome_celebrity_social'
 
     return sent_email(email, subject, template, ctx)
+
+
+@app.task(name='delete_expired_profiles')
+def delete_expired_profiles():
+    users = StargramzUser.objects.filter(expiry_date__isnull=False)
+    for user in users:
+        if user.expiry_date < datetime.now(pytz.timezone('UTC')):
+            print("Starsona account of %s is expired" % user.get_short_name())
+            user.delete()

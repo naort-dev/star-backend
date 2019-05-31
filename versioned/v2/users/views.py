@@ -27,6 +27,7 @@ from users.serializer import RegisterSerializer, NotificationSettingsSerializerE
 from rest_framework.authtoken.models import Token
 from utilities.konstants import ROLES
 from .tasks import welcome_email_version_2
+from .utils import date_format_conversion
 hashids = Hashids(min_length=8)
 
 
@@ -163,8 +164,10 @@ class Register(UserRegister):
             try:
                 user = StargramzUser.objects.get(id=decode_pk(response.data['data']['user']['id']))
                 user.temp_password = True
+                user.expiry_date = date_format_conversion(request.data.get('expiry_date', None))
                 user.save()
-            except:
+            except Exception as e:
+                print(str(e))
                 pass
         return response
 
@@ -353,6 +356,8 @@ class CelebrityManagementV2(CelebrityManagement):
             pass
         response = CelebrityManagement.post(self, request)
         if response.data['status'] == 200:
+            user.expiry_date = None
+            user.save()
             try:
                 config = Config.objects.get(key='authentication_videos')
                 celebrity = Celebrity.objects.get(user_id=user.id)

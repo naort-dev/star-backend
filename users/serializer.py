@@ -29,6 +29,7 @@ from .tasks import welcome_email, representative_email
 from job.tasks import send_message_to_slack
 from payments.models import PaymentPayout
 from hashids import Hashids
+import pytz
 hashids = Hashids(min_length=8)
 
 
@@ -110,9 +111,16 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def validate_email(self, value):
         email = value.lower()
-        if StargramzUser.objects.filter(email=email).exists():
-            raise serializers.ValidationError("The email has already been registered.")
-        return email
+        user = StargramzUser.objects.filter(email=email)
+        if user:
+            user = user[0]
+            if user.expiry_date and user.expiry_date < datetime.now(pytz.timezone('UTC')):
+                user.delete()
+                return email
+            else:
+                raise serializers.ValidationError("The email has already been registered.")
+        else:
+            return email
 
     def validate(self, data):
         errors = dict()
@@ -417,6 +425,13 @@ class SocialSignupSerializer(serializers.ModelSerializer):
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True, allow_blank=False)
 
+    def validate(self, data):
+        user = StargramzUser.objects.filter(email=data.get('email'))
+        if user and user[0].expiry_date:
+            raise serializers.ValidationError('Account with this email is not completed')
+        return data
+
+
 
 class ResetPasswordSerializer(serializers.Serializer):
     reset_id = serializers.UUIDField(required=True, allow_null=False)
@@ -430,6 +445,8 @@ class ResetPasswordSerializer(serializers.Serializer):
             user = StargramzUser.objects.get(reset_id=reset_id)
         except StargramzUser.DoesNotExist:
             raise serializers.ValidationError('The Link doesnot exist anymore')
+        if user.expiry_date:
+            raise serializers.ValidationError('Account with this email is not completed')
         if (timezone.now() - user.reset_generate_time) > timedelta(LINK_EXPIRY_DAY):
             raise serializers.ValidationError('The Link has been expired')
         try:
