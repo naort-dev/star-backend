@@ -71,11 +71,16 @@ app.conf.beat_schedule = {
         'task': 'delete_expired_profiles',
         'schedule': crontab(minute=0, hour=0, day_of_week='friday', nowfun=get_now_fun),
     },
-    # 'schedule-12': {
+    'schedule-12': {
+        'task': 'deactivate_after_15_days',
+        'schedule': crontab(minute=0, hour=0, nowfun=get_now_fun),
+    },
+
+    # 'schedule-13': {
     #     'task': 'reprocess_pending_video_approval',
     #     'schedule': crontab(minute=0, hour=0),
     # },
-    #'schedule-13': {
+    #'schedule-14': {
     #    'task': 'cancel_booking_on_seven_days_completion',
     #    'schedule': crontab(minute=0, hour=0),
     #},

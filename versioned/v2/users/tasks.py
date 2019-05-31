@@ -1,7 +1,7 @@
 from main.celery import app
 from utilities.utils import sent_email, generate_branch_io_url
 from utilities.constants import BASE_URL, WEB_URL
-from users.models import StargramzUser, Celebrity
+from users.models import StargramzUser, Celebrity, REMINDER_MAIL_COUNT
 from config.models import Config
 import uuid
 from django.utils import timezone
@@ -25,15 +25,15 @@ def setting_up_password():
         for user in users:
             date_diff = (datetime.now(pytz.UTC) - user.created_date).days
             template = ""
-            if date_diff == int(first):
+            if date_diff == int(first) and user.reminder_mail_count == REMINDER_MAIL_COUNT.first_mail:
                 template = "setup_password"
                 subject = "Good news! Then bad news. Then more good news!"
-            elif date_diff == int(second):
+                user.reminder_mail_count = REMINDER_MAIL_COUNT.second_mail
+            elif date_diff == int(second) and user.reminder_mail_count == REMINDER_MAIL_COUNT.second_mail:
                 template = "setup_password_final"
                 subject = "Your fans are waiting for you!"
-                user.temp_password = False
-                user.is_active = False
-                user.save()
+                user.reminder_mail_count = REMINDER_MAIL_COUNT.no_mail
+            user.save()
             if template:
                 send_password_setup_mail(user, template, subject)
                 print("setup mail send to %s" % user.get_short_name())
@@ -107,3 +107,19 @@ def delete_expired_profiles():
         if user.expiry_date < datetime.now(pytz.timezone('UTC')):
             print("Starsona account of %s is expired" % user.get_short_name())
             user.delete()
+
+
+@app.task(name='deactivate_after_15_days')
+def deactivate_after_15_days():
+    users = StargramzUser.objects.filter(
+        temp_password=True, expiry_date__isnull=True, reminder_mail_count=REMINDER_MAIL_COUNT.no_mail
+    )
+    mail_dates = Config.objects.get(key='password_reset_dates').value
+    (first, second) = mail_dates.replace(' ', '').split(',')
+    deactivate_date = int(second) + 1
+    for user in users:
+        date_diff = (datetime.now(pytz.UTC) - user.created_date).days
+        if date_diff > deactivate_date:
+            user.temp_password = False
+            user.is_active = False
+            user.save()
