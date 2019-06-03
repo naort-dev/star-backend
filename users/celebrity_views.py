@@ -18,11 +18,12 @@ from stargramz.models import StargramVideo
 from stargramz.serializer import StargramzVideoSerializer
 from .tasks import alert_admin_celebrity_updates, welcome_email
 from versioned.v2.users.tasks import remove_existing_profile_video_from_s3
+from utilities.authentication import CustomAuthentication
 
 
 class CelebrityManagement(APIView, ResponseViewMixin):
 
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     welcome_mail = welcome_email
@@ -155,7 +156,7 @@ class NotifyAdmin(APIView, ResponseViewMixin):
     """
         Send notification email to Admin
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def get(self, request, *args, **kwargs):
@@ -181,7 +182,7 @@ class ReferralRequest(APIView, ResponseViewMixin):
     """
         Send email notification to admin to request the referral activation
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
@@ -217,7 +218,7 @@ class ReferralList(GenericViewSet, ResponseViewMixin):
     """
         The list of celebrities and celebrity search
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
     pagination_class = CustomOffsetPagination
     serializer_class = ReferralUserSerializer
@@ -250,7 +251,7 @@ class ReferralValidate(APIView, ResponseViewMixin):
 
 class CelebrityRepresentative(APIView, ResponseViewMixin):
 
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request, pk):

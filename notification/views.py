@@ -7,6 +7,7 @@ from job.tasks import send_admin_mail
 import json
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from utilities.authentication import CustomAuthentication
 
 
 class FCMViewset(FCMDeviceAuthorizedViewSet):
@@ -23,7 +24,7 @@ class FCMViewset(FCMDeviceAuthorizedViewSet):
 
 
 class MailAdmin(APIView, ResponseViewMixin):
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):

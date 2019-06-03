@@ -42,6 +42,7 @@ from payments.constants import SECRET_KEY
 from django.http import HttpResponseRedirect
 import stripe
 from django.db.models import F
+from utilities.authentication import CustomAuthentication
 hashids = Hashids(min_length=8)
 
 API_KEY = SECRET_KEY
@@ -59,7 +60,7 @@ class OccasionList(APIView, ResponseViewMixin):
         return self.jp_response('HTTP_200_OK', data={"occasion_list": serializer.data})
 
 class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def create(self, request):
@@ -297,7 +298,7 @@ class ChangeRequestStatus(APIView, ResponseViewMixin):
     """
         The Change status of Request
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
@@ -374,7 +375,7 @@ class RequestList(GenericViewSet, ResponseViewMixin):
     """
         The list of celebrities and celebrity search
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
     pagination_class = CustomOffsetPagination
     serializer_class = StargramzRetrieveSerializer
@@ -467,7 +468,7 @@ class OtherRelationship(APIView, ResponseViewMixin):
 
 
 class StargramzVideo(ViewSet, ResponseViewMixin):
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     @action(detail=True, methods=['get'], permission_classes=[CustomPermission], authentication_classes=[])
@@ -828,7 +829,7 @@ class RequestReportAbuse(APIView, ResponseViewMixin):
     """
         Report Abuse against a Request by user
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission)
 
     def post(self, request):
@@ -1011,7 +1012,7 @@ class CommentsView(GenericAPIView, ResponseViewMixin):
 
     def post(self, request):
 
-        self.authentication_classes = (TokenAuthentication,)
+        self.authentication_classes = (CustomAuthentication,)
         self.permission_classes = (IsAuthenticated, CustomPermission,)
         self.pagination_class = CustomOffsetPagination
 
@@ -1032,7 +1033,7 @@ class BookingFeedbackView(APIView, ResponseViewMixin):
     """
         Reaction video against a booking request video
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission)
 
     def post(self, request):
@@ -1094,7 +1095,7 @@ class RequesterWatchedVideo(APIView, ResponseViewMixin):
     """
         Video viewed by requested user
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission)
 
     def get(self, request, pk):
@@ -1223,7 +1224,7 @@ class RequestReactionAbuse(APIView, ResponseViewMixin):
     """
         Report Abuse in the reactions
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission)
 
     def post(self, request):

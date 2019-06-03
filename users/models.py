@@ -150,6 +150,7 @@ class StargramzUser(AbstractBaseUser, PermissionsMixin):
         'Reminder Mail count', choices=REMINDER_MAIL_COUNT.choices(), default=REMINDER_MAIL_COUNT.no_mail,
         db_index=True
     )
+    server_access_time_stamp = models.DateTimeField('Server access time stamp', null=True, blank=True)
 
     objects = StargramzUserManager()
 

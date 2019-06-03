@@ -39,6 +39,7 @@ import os
 from urllib.parse import urlencode
 from requests_oauthlib import OAuth1Session
 from .tasks import forgot_password_email
+from utilities.authentication import CustomAuthentication
 hashids = Hashids(min_length=8)
 
 
@@ -155,7 +156,7 @@ class SocialSignup(APIView, ResponseViewMixin):
 
 
 class UserLogout(APIView, ResponseViewMixin):
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request, *args, **kwargs):
@@ -225,7 +226,7 @@ class ResetPassword(APIView, ResponseViewMixin):
 
 
 class ChangePassword(APIView, ResponseViewMixin):
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
@@ -274,7 +275,7 @@ class ProfileImages(GenericAPIView, ResponseViewMixin):
         Profile Images
     """
     queryset = StargramzUser.objects.all()
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request, *args, **kwargs):
@@ -325,7 +326,7 @@ class RemoveProfileImage(APIView, ResponseViewMixin):
 
 
 class NotificationSettings(APIView, ResponseViewMixin):
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
@@ -368,7 +369,7 @@ class UserDetails(viewsets.ViewSet, ResponseViewMixin):
     """
         Update and Retrieve User Details
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     @detail_route(methods=['get'], permission_classes=[CustomPermission], authentication_classes=[])
@@ -534,7 +535,7 @@ class DeviceToken(APIView, ResponseViewMixin):
     """
         Add/Update the device token
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
@@ -562,7 +563,7 @@ class ContactSupport(APIView, ResponseViewMixin):
         Sent email to support from the Fans request details screen
     """
 
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
@@ -591,7 +592,7 @@ class RoleUpdate(APIView, ResponseViewMixin):
     """
         Change the user role(Switch the user to fan/celebrity)
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
@@ -637,7 +638,7 @@ class UpdateNotificationBadge(APIView, ResponseViewMixin):
     """
         Change the user role(Switch the user to fan/celebrity)
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def get(self, request):
@@ -651,7 +652,7 @@ class AlertFan(APIView, ResponseViewMixin):
     """
         Alert Fan when celebrity is available
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
@@ -714,7 +715,7 @@ class UpdateBookingCount(APIView, ResponseViewMixin):
     """
         Update the unseen count to 0
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def get(self, request):
@@ -731,7 +732,7 @@ class GetAWSSignedPostUrl(APIView, ResponseViewMixin):
     """
         Create post url for AWS file uploads
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def get(self, request):
@@ -765,7 +766,7 @@ class GetAWSSignedUrl(APIView, ResponseViewMixin):
     """
         Create post url for AWS file uploads
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def get(self, request):
@@ -793,7 +794,7 @@ class SocialMediaUrls(APIView, ResponseViewMixin):
     """
     Create or update social media urls
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
@@ -814,7 +815,7 @@ class ValidateMobile(APIView, ResponseViewMixin):
     """
         Validate mobile by sending OTP to the mobile number
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission)
 
     def post(self, request):
@@ -856,7 +857,7 @@ class VerifyMobile(APIView, ResponseViewMixin):
         Verify mobile number with the OTP verification code
     """
 
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission)
 
     def post(self, request):

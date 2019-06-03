@@ -29,6 +29,7 @@ from config.constants import *
 from utilities.utils import decode_pk
 from .utils import has_ambassador
 from job.tasks import verify_referee_discount
+from utilities.authentication import CustomAuthentication
 
 API_KEY = SECRET_KEY
 stripe.api_key = API_KEY
@@ -36,7 +37,7 @@ stripe.api_key = API_KEY
 
 class GenerateEphemeralKey(APIView, ResponseViewMixin):
 
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
@@ -95,7 +96,7 @@ class GenerateEphemeralKey(APIView, ResponseViewMixin):
 
 
 class CreateChargeFan(APIView, ResponseViewMixin):
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
@@ -319,7 +320,7 @@ class CreateAccount(APIView, ResponseViewMixin):
     """
         Stripe account creation URL
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def get(self, request):
@@ -388,7 +389,7 @@ class EarningsList(GenericViewSet, ResponseViewMixin):
         Get all the requests based on the status and provide the amounts paid/need to be paid to
         the Celebrity
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
     pagination_class = CustomOffsetPagination
     serializer_class = StarsonaTransactionSerializer
@@ -485,7 +486,7 @@ class StripeDashboard(APIView, ResponseViewMixin):
     """
         Generating the Stripe dashboard URL for user
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def get(self, request):
@@ -512,7 +513,7 @@ class CardsList(APIView, ResponseViewMixin):
     """
         Get the card list added to a customer in stripe
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def get(self, request):
@@ -540,7 +541,7 @@ class CardsList(APIView, ResponseViewMixin):
 
 
 class TipPayments(APIView, ResponseViewMixin):
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
@@ -634,7 +635,7 @@ class TipPayments(APIView, ResponseViewMixin):
 
 
 class CreditCardNotification(APIView, ResponseViewMixin):
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def get(self, request):
@@ -655,7 +656,7 @@ class CreditCardNotification(APIView, ResponseViewMixin):
 
 
 class InAppPurchase(APIView, ResponseViewMixin):
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
