@@ -1,13 +1,14 @@
 from main.celery import app
 from utilities.utils import sent_email, generate_branch_io_url
 from utilities.constants import BASE_URL, WEB_URL
-from users.models import StargramzUser, Celebrity, REMINDER_MAIL_COUNT
+from users.models import StargramzUser, Celebrity, REMINDER_MAIL_COUNT, ProfileImage
 from config.models import Config
 import uuid
 from django.utils import timezone
 from datetime import datetime
 import pytz
 from django.apps import apps
+from .utils import remove_files_from_s3
 
 
 @app.task(name='setting_up_password')
@@ -123,3 +124,24 @@ def deactivate_after_15_days():
             user.temp_password = False
             user.is_active = False
             user.save()
+
+
+@app.task
+def remove_existing_profile_video_from_s3(celebrity_id):
+    try:
+        celebrity = Celebrity.objects.get(id=celebrity_id)
+        if celebrity.profile_video:
+            print(celebrity.profile_video)
+            file_path = Config.objects.get(key='authentication_videos').value
+            file = file_path + celebrity.profile_video
+            remove_files_from_s3(file)
+    except Exception as e:
+        print(str(e))
+
+
+@app.task
+def remove_profile_images_from_s3(user_id):
+    images = ProfileImage.objects.filter(user_id=user_id)
+    file_path = Config.objects.get(key='profile_images').value
+    for image in images:
+        remove_files_from_s3(file_path + image.photo)
