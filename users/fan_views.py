@@ -19,10 +19,11 @@ from django.db.models.functions import Concat
 from config.models import Config
 from config.constants import *
 from .utils import search_name
+from utilities.authentication import CustomAuthentication
 
 
 class ApproveFan(APIView, ResponseViewMixin):
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
@@ -38,7 +39,7 @@ class CelebrityList(GenericViewSet, ResponseViewMixin):
     """
         The list of celebrities and celebrity search
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
     pagination_class = CustomOffsetPagination
     serializer_class = UserSerializer
@@ -152,7 +153,7 @@ class FanFavouriteStars(GenericViewSet, ResponseViewMixin):
     """
         The list of Favorite Stars
     """
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
     pagination_class = CustomOffsetPagination
     serializer_class = UserSerializer
@@ -183,7 +184,7 @@ class FanFavouriteStars(GenericViewSet, ResponseViewMixin):
 # Remove this API after the next release Already handled the booking feedback in feedback API
 class CelebrityRate(APIView, ResponseViewMixin):
 
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
@@ -227,7 +228,7 @@ class CelebrityRate(APIView, ResponseViewMixin):
 
 
 class CelebrityProfileFollow(APIView, ResponseViewMixin):
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
@@ -271,7 +272,7 @@ class CelebrityProfileFollow(APIView, ResponseViewMixin):
 
 
 class CelebrityFanAbuse(APIView, ResponseViewMixin):
-    authentication_classes = (TokenAuthentication,)
+    authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
