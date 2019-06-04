@@ -317,8 +317,8 @@ class FanUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
 
 class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     add_form = UserCreationForm
-    list_display = ('id', 'first_name', 'last_name', 'username', 'order', 'trending_star_score', 'view_count', 'fav_count', 'purchase_count','average_response_time', 'temp_password')
-    list_filter = ('celebrity_user__admin_approval', 'stargramz_user__is_complete', 'temp_password', 'celebrity_user__star_approved')
+    list_display = ('id', 'first_name', 'last_name', 'username', 'order', 'trending_star_score')
+    list_filter = ('celebrity_user__admin_approval', 'temp_password', 'celebrity_user__star_approved', 'celebrity_user__created_date')
 
     def trending_star_score(self, obj):
         return Celebrity.objects.get(user_id=obj.id).trending_star_score
