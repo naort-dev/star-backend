@@ -1,4 +1,7 @@
 import datetime
+from job.tasks import check_file_exist_in_s3
+import boto3
+import os
 
 def date_format_conversion(date):
     """
@@ -16,3 +19,14 @@ def date_format_conversion(date):
     else:
         return None
 
+
+def remove_files_from_s3(file):
+    try:
+        if check_file_exist_in_s3(file):
+            objects = {'Objects': [{'Key': file}]}
+            s3 = boto3.client('s3', aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+                              aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'))
+            s3.delete_objects(Bucket=os.environ.get('AWS_STORAGE_BUCKET_NAME'), Delete=objects)
+            print('The file : %s is successfully deleted from s3' % file)
+    except Exception as e:
+        print(str(e))

@@ -27,7 +27,7 @@ from hashids import Hashids
 from users.serializer import RegisterSerializer, NotificationSettingsSerializerEncode
 from rest_framework.authtoken.models import Token
 from utilities.konstants import ROLES
-from .tasks import welcome_email_version_2
+from .tasks import welcome_email_version_2, remove_profile_images_from_s3
 from .utils import date_format_conversion
 hashids = Hashids(min_length=8)
 
@@ -419,6 +419,7 @@ class StargramzAutocomplete(autocomplete.Select2QuerySetView):
 class ProfileImagesV2(ProfileImages):
     def post(self, request):
         user = request.user
+        remove_profile_images_from_s3.dalay(user.id)
         response = ProfileImages.post(self, request)
         if response.data['status'] == 200:
             response.data['data']['avatar_photo'] = ProfilePictureSerializer(user.avatar_photo).data

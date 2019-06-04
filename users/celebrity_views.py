@@ -17,6 +17,7 @@ from utilities.constants import BASE_URL
 from stargramz.models import StargramVideo
 from stargramz.serializer import StargramzVideoSerializer
 from .tasks import alert_admin_celebrity_updates, welcome_email
+from versioned.v2.users.tasks import remove_existing_profile_video_from_s3
 
 
 class CelebrityManagement(APIView, ResponseViewMixin):
@@ -91,13 +92,15 @@ class CelebrityManagement(APIView, ResponseViewMixin):
             return return_data
         fields = []
         # Remove 'check_payments' after next app release
-        field_list = ['profession', 'rate', 'weekly_limits', 'in_app_price',  'availability', 'description', 'charity', 'check_payments']
+        field_list = ['profession', 'rate', 'weekly_limits', 'in_app_price', 'availability', 'description', 'charity', 'check_payments', 'profile_video']
         for list_item in field_list:
             if list_item in request:
                 fields.append(list_item)
         if 'in_app_price' not in request:
             fields.append('in_app_price')
             request.update({"in_app_price": None})
+        if 'profile_video' in request and request.get('profile_video', '') != '':
+            remove_existing_profile_video_from_s3.delay(celebrity.id)
         serializer = CelebrityProfileSerializer(data=request, instance=celebrity, fields=fields)
         if serializer.is_valid():
             celebrity = serializer.save()
