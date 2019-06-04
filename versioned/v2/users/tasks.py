@@ -66,7 +66,7 @@ def send_password_setup_mail(user, template, subject, ctx={}):
             'subject': 'Questions'
         }
     )
-    sent_email('vidyav@qburst.com', subject, template, ctx)
+    sent_email(user.email, subject, template, ctx)
 
 
 @app.task
