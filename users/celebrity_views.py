@@ -35,40 +35,46 @@ class CelebrityManagement(APIView, ResponseViewMixin):
 
         try:
             celebrity = Celebrity.objects.get(user=user)
+            celebrity_update = True
         except Exception:
-            request.data['user'] = user.id
-            fields = ['user']
-            field_list = ['profession', 'rate', 'in_app_price', 'weekly_limits', 'availability',
-                          'profile_video', 'description', 'charity']
-            for list_item in field_list:
-                if list_item in request.data:
-                    fields.append(list_item)
-            not_recordable = request.data.get('recordable', None)
-            not_recordable = True if not_recordable == 'false' else None
-            serializer = CelebrityProfileSerializer(data=request.data, instance=None,
-                                                    fields=fields)
-            if serializer.is_valid():
-                celebrity = serializer.save()
-                try:
-                    role_id = Role.objects.get(code=ROLES.celebrity).id
-                except Exception:
-                    role_id = ROLES.celebrity
-                roles_mapping = UserRoleMapping.objects.get(user=user)
-                if roles_mapping.role.code == ROLES.fan:
-                    celebrity.has_fan_account = True
-                # Celebrity approval by default
-                if user.admin_approval_referral_code and user.admin_approval_referral_code.activate:
-                    celebrity.admin_approval = True
-                celebrity.save()
-                roles_mapping.is_complete = True
-                roles_mapping.role_id = role_id
-                roles_mapping.save()
+            celebrity = None
+            celebrity_update = False
+        request.data['user'] = user.id
+        fields = ['user']
+        field_list = ['profession', 'rate', 'in_app_price', 'weekly_limits', 'availability',
+                      'profile_video', 'description', 'charity']
+        for list_item in field_list:
+            if list_item in request.data:
+                fields.append(list_item)
+        not_recordable = request.data.get('recordable', None)
+        not_recordable = True if not_recordable == 'false' else None
+        serializer = CelebrityProfileSerializer(data=request.data, instance=celebrity,
+                                                fields=fields)
+        if serializer.is_valid():
+            if celebrity_update and request.data.get('profile_video', '') != '':
+                remove_existing_profile_video_from_s3.delay(celebrity.id)
+            celebrity = serializer.save()
+            try:
+                role_id = Role.objects.get(code=ROLES.celebrity).id
+            except Exception:
+                role_id = ROLES.celebrity
+            roles_mapping = UserRoleMapping.objects.get(user=user)
+            if roles_mapping.role.code == ROLES.fan:
+                celebrity.has_fan_account = True
+            # Celebrity approval by default
+            if user.admin_approval_referral_code and user.admin_approval_referral_code.activate:
+                celebrity.admin_approval = True
+            celebrity.save()
+            roles_mapping.is_complete = True
+            roles_mapping.role_id = role_id
+            roles_mapping.save()
+            if not celebrity_update:
                 self.welcome_mail.delay(celebrity.user.id, not_recordable)
                 alert_admin_celebrity_updates.delay(celebrity.user.id, 1)
-            else:
-                return self.jp_error_response(
-                    'HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', self.error_msg_string(serializer.errors)
-                )
+        else:
+            return self.jp_error_response(
+                'HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', self.error_msg_string(serializer.errors)
+            )
 
         if celebrity:
             data = CelebrityProfileSerializer(celebrity).data
