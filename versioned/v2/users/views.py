@@ -422,7 +422,7 @@ class ProfileImagesV2(ProfileImages):
         images = ProfileImage.objects.values_list('id', flat=True).filter(user_id=user.id)
         if images:
             images = list(images)
-            remove_profile_images_from_s3.dalay(images)
+            remove_profile_images_from_s3.delay(images)
         response = ProfileImages.post(self, request)
         if response.data['status'] == 200:
             response.data['data']['avatar_photo'] = ProfilePictureSerializer(user.avatar_photo).data
