@@ -1,5 +1,6 @@
-from stargramz.views import FeaturedVideo, OccasionList
-from .serializer import StargramzVideoSerializerV2, OccasionSerializerV2, ReactionListingSerializerV2
+from stargramz.views import FeaturedVideo, OccasionList, StargramzRequest
+from .serializer import StargramzVideoSerializerV2, OccasionSerializerV2, ReactionListingSerializerV2,\
+    StargramzSerializerV2, StargramzRetrieveSerializerV2
 from rest_framework.viewsets import GenericViewSet
 from utilities.mixins import ResponseViewMixin
 from stargramz.models import Reaction
@@ -34,3 +35,18 @@ class ReactionsFullListing(GenericViewSet, ResponseViewMixin):
             return self.paginator.get_paginated_response(serializer.data, key_name='reactions-details')
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
+
+
+def update_booking_v2(obj, star_request, request):
+    star_request.occasion_id = request.data['occasion']
+    star_request.request_details = request.data['request_details']
+    star_request.public_request = request.data['public_request']
+    star_request.booking_title = request.data['booking_title']
+    star_request.booking_statement = request.data['booking_statement']
+    star_request.save()
+
+
+class StargramzRequestV2(StargramzRequest):
+    serializer = StargramzSerializerV2
+    retrieve_serializer = StargramzRetrieveSerializerV2
+    update_data_in_booking = update_booking_v2

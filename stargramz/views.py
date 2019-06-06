@@ -59,9 +59,21 @@ class OccasionList(APIView, ResponseViewMixin):
         serializer = self.serializer(occasion, many=True)
         return self.jp_response('HTTP_200_OK', data={"occasion_list": serializer.data})
 
+
+def update_booking(obj, star_request, request):
+    star_request.occasion_id = request.data['occasion']
+    star_request.request_details = request.data['request_details']
+    star_request.public_request = request.data['public_request']
+    star_request.booking_title = request.data['booking_title']
+    star_request.save()
+
+
 class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
     authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
+    serializer = StargramzSerializer
+    retrieve_serializer = StargramzRetrieveSerializer
+    update_data_in_booking = update_booking
 
     def create(self, request):
         """
@@ -100,7 +112,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
 
         request.data['booking_title'] = self.generate_title(request.data, celebrity, occasions)
         request.POST._mutable = mutable
-        serializer = StargramzSerializer(data=request.data)
+        serializer = self.serializer(data=request.data)
         if serializer.is_valid():
             request_created = serializer.save()
             process_audio = False
@@ -121,7 +133,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
                     request_created.save()
             if process_audio:
                 convert_audio.delay(request_created.id)
-            data = StargramzRetrieveSerializer(request_created).data
+            data = self.retrieve_serializer(request_created).data
             return self.jp_response('HTTP_200_OK', data={'stargramz_response': data})
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN',
@@ -213,7 +225,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
         except StarsonaTransaction.DoesNotExist:
             pass
         request.POST._mutable = mutable
-        serializer = StargramzSerializer(data=request.data)
+        serializer = self.serializer(data=request.data)
         if serializer.is_valid():
             process_audio = False
             for INPUT_FILE_LABEL in INPUT_FILE_LABELS:
@@ -241,12 +253,8 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
                     setattr(star_request, INPUT_FILE_LABEL, file_name)
             if process_audio:
                 convert_audio.delay(star_request.id)
-            star_request.occasion_id = request.data['occasion']
-            star_request.request_details = request.data['request_details']
-            star_request.public_request = request.data['public_request']
-            star_request.booking_title = request.data['booking_title']
-            star_request.save()
-            data = StargramzRetrieveSerializer(star_request).data
+            self.update_data_in_booking(star_request, request)
+            data = self.retrieve_serializer(star_request).data
             return self.jp_response('HTTP_200_OK', data={'stargramz_response': data})
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN',
@@ -273,7 +281,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
                 'INVALID_CODE',
                 'You are not allowed to view the request'
             )
-        data = StargramzRetrieveSerializer(star_request).data
+        data = self.retrieve_serializer(star_request).data
         return self.jp_response('HTTP_200_OK', data={'stargramz_response': data})
 
     def generate_title(self, request, celebrity, occasion):

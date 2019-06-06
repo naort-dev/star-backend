@@ -132,6 +132,7 @@ class Stargramrequest(models.Model):
         default=REQUEST_TYPES.personalised_video
     )
     reprocessed = models.BooleanField('Reprocessing', default=False)
+    booking_statement = models.CharField('Booking Statement', max_length=500, blank=True, null=True)
     __original_request_status = None
 
     def __init__(self, *args, **kwargs):
