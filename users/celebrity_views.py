@@ -52,8 +52,8 @@ class CelebrityManagement(APIView, ResponseViewMixin):
         serializer = CelebrityProfileSerializer(data=request.data, instance=celebrity,
                                                 fields=fields)
         if serializer.is_valid():
-            if celebrity_update and request.data.get('profile_video', '') != '':
-                remove_existing_profile_video_from_s3.delay(celebrity.id)
+            if celebrity_update and request.data.get('profile_video', '') != '' and celebrity.profile_video:
+                remove_existing_profile_video_from_s3.delay(celebrity.profile_video)
             celebrity = serializer.save()
             try:
                 role_id = Role.objects.get(code=ROLES.celebrity).id
@@ -106,8 +106,8 @@ class CelebrityManagement(APIView, ResponseViewMixin):
         if 'in_app_price' not in request:
             fields.append('in_app_price')
             request.update({"in_app_price": None})
-        if 'profile_video' in request and request.get('profile_video', '') != '':
-            remove_existing_profile_video_from_s3.delay(celebrity.id)
+        if 'profile_video' in request and request.get('profile_video', '') != '' and celebrity.profile_video:
+            remove_existing_profile_video_from_s3.delay(celebrity.profile_video)
         serializer = CelebrityProfileSerializer(data=request, instance=celebrity, fields=fields)
         if serializer.is_valid():
             celebrity = serializer.save()
