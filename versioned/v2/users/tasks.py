@@ -127,21 +127,18 @@ def deactivate_after_15_days():
 
 
 @app.task
-def remove_existing_profile_video_from_s3(celebrity_id):
-    try:
-        celebrity = Celebrity.objects.get(id=celebrity_id)
-        if celebrity.profile_video:
-            print(celebrity.profile_video)
-            file_path = Config.objects.get(key='authentication_videos').value
-            file = file_path + celebrity.profile_video
-            remove_files_from_s3(file)
-    except Exception as e:
-        print(str(e))
+def remove_existing_profile_video_from_s3(profile_video):
+    file_path = Config.objects.get(key='authentication_videos').value
+    file = file_path + profile_video
+    remove_files_from_s3(file)
 
 
 @app.task
-def remove_profile_images_from_s3(user_id):
-    images = ProfileImage.objects.filter(user_id=user_id)
+def remove_profile_images_from_s3(images):
     file_path = Config.objects.get(key='profile_images').value
-    for image in images:
-        remove_files_from_s3(file_path + image.photo)
+    for im in images:
+        try:
+            image = ProfileImage.objects.get(id=im)
+            remove_files_from_s3(file_path + image.photo)
+        except Exception as e:
+            print(str(e))

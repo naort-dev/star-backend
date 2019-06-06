@@ -11,7 +11,7 @@ from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_para
     get_user_role_details, encode_pk
 from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo
 from users.models import StargramzUser, Profession, Celebrity, AdminReferral, FanRating, SettingsNotifications,\
-    REMINDER_MAIL_COUNT
+    REMINDER_MAIL_COUNT, ProfileImage
 from users.utils import generate_random_code
 from users.fan_views import CelebrityList
 from django.db.models import Q, F, Value, Case, When
@@ -419,7 +419,10 @@ class StargramzAutocomplete(autocomplete.Select2QuerySetView):
 class ProfileImagesV2(ProfileImages):
     def post(self, request):
         user = request.user
-        remove_profile_images_from_s3.dalay(user.id)
+        images = ProfileImage.objects.values_list('id', flat=True).filter(user_id=user.id)
+        if images:
+            images = list(images)
+            remove_profile_images_from_s3.dalay(images)
         response = ProfileImages.post(self, request)
         if response.data['status'] == 200:
             response.data['data']['avatar_photo'] = ProfilePictureSerializer(user.avatar_photo).data
