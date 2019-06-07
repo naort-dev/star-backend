@@ -176,6 +176,51 @@ def tip_payments_payout(tip_id):
         print('Tip payment not valid. %s', str(e))
 
 
+@app.task(name='tip_payments_payout_retry')
+def tip_payments_payout_retry():
+    """
+    Send tip payments to celebrity accounts again
+    :return:
+    """
+    stripe.api_key = SECRET_KEY
+    try:
+        stripe_id_empty_comment = 'Insufficient balance. or stripe ID empty.'
+        tip_details = TipPayment.objects.filter(transaction_status=TIP_STATUS.failed, comments=stripe_id_empty_comment)
+        for tip_detail in tip_details:
+            balance = stripe.Balance.retrieve()
+            available_balance = balance.available[0]['amount']
+            payout_amount = stripe.Charge.retrieve(tip_detail.stripe_transaction_id, expand=['balance_transaction'])
+            celebrity_tip_amount = payout_amount.balance_transaction.net
+
+            if tip_detail.celebrity.stripe_user_id and available_balance > celebrity_tip_amount:
+                try:
+                    transfer = stripe.Transfer.create(
+                        amount=celebrity_tip_amount,
+                        currency="usd",
+                        destination=tip_detail.celebrity.stripe_user_id,
+                        description="Tip payment for booking %d" % int(tip_detail.booking_id)
+                    )
+
+                    tip_detail.transaction_status = TIP_STATUS.tip_payed_out
+                    tip_detail.tip_payed_out = float(celebrity_tip_amount / 100)
+                    tip_detail.payed_out_transaction_id = transfer.id
+                    tip_detail.payed_out_response = json.dumps(transfer)
+                    tip_detail.save()
+                    tip_payment_celebrity_notification.delay(tip_details.id)
+                    print('Successfully transferred amount to celebrity account')
+                except Exception as e:
+                    tip_detail.transaction_status = TIP_STATUS.failed
+                    tip_detail.comments = str(e)
+                    tip_detail.save()
+                    print("Tip not payed: %s" % str(e))
+            else:
+                tip_detail.transaction_status = TIP_STATUS.failed
+                tip_detail.comments = stripe_id_empty_comment
+                tip_detail.save()
+    except Exception as e:
+        print(str(e))
+
+
 @app.task
 def tip_payment_celebrity_notification(tip_id):
     try:

@@ -79,12 +79,16 @@ app.conf.beat_schedule = {
         'task': 'deactivate_after_15_days',
         'schedule': crontab(minute=0, hour=0, nowfun=get_now_fun),
     },
+    'schedule-14': {
+        'task': 'tip_payments_payout_retry',
+        'schedule': crontab(minute=0, hour=0, nowfun=get_now_fun),
+    },
 
-    # 'schedule-13': {
+    # 'schedule-15': {
     #     'task': 'reprocess_pending_video_approval',
     #     'schedule': crontab(minute=0, hour=0),
     # },
-    #'schedule-14': {
+    #'schedule-16': {
     #    'task': 'cancel_booking_on_seven_days_completion',
     #    'schedule': crontab(minute=0, hour=0),
     #},
