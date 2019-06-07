@@ -354,7 +354,7 @@
     "pk": 36,
     "fields": {
       "key": "team_email",
-      "value": "xxxxxxx@starsona.com",
+      "value": "info@starsona.com",
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }
