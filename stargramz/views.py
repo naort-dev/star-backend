@@ -786,7 +786,7 @@ class FeaturedVideo(GenericViewSet, ResponseViewMixin):
                 except:
                     filter_by_related_id = filter_by_related_id
             query_set = query_set.filter(stragramz_request__celebrity=filter_by_related_id)
-
+        query_set = query_set.distinct()
         page = self.paginate_queryset(query_set)
         serializer = self.get_serializer(
             page, fields=self.required_fields,
