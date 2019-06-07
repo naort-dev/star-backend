@@ -1,7 +1,7 @@
 from users.authenticate_views import FilterProfessions, Professions, UserRegister, UserDetails, ProfileImages
 from .serializer import ProfessionFilterSerializerV2, ProfessionSerializerV2, SearchSerializer,\
     CelebrityDisplaySerializer, TrendingCelebritySerializer, HomePageVideoSerializer, RegisterUserSerializer, \
-    ProfilePictureSerializer, CelebrityApprovalSerializer
+    ProfilePictureSerializer, CelebrityApprovalSerializer, CelebrityShareSerializer, CelebrityDashboardSerializer
 from elasticsearch_dsl.connections import connections
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
@@ -9,7 +9,7 @@ from .constants import *
 from rest_framework.views import APIView
 from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params, get_pre_signed_get_url, decode_pk, \
     get_user_role_details, encode_pk
-from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo
+from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo, CelebrityDashboard
 from users.models import StargramzUser, Profession, Celebrity, AdminReferral, FanRating, SettingsNotifications,\
     REMINDER_MAIL_COUNT, ProfileImage
 from users.utils import generate_random_code
@@ -27,8 +27,11 @@ from hashids import Hashids
 from users.serializer import RegisterSerializer, NotificationSettingsSerializerEncode
 from rest_framework.authtoken.models import Token
 from utilities.konstants import ROLES
-from .tasks import welcome_email_version_2, remove_profile_images_from_s3
-from .utils import date_format_conversion
+from .tasks import welcome_email_version_2, remove_profile_images_from_s3, celebrity_dashboard_update
+from .utils import date_format_conversion, recent_deposit_amount, apply_the_checks
+from rest_framework.permissions import IsAuthenticated
+from utilities.authentication import CustomAuthentication
+from utilities.utils import removefromdict
 hashids = Hashids(min_length=8)
 
 
@@ -456,3 +459,49 @@ class CelebrityApproval(APIView, ResponseViewMixin):
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE',
                                           self.error_msg_string(serializer.errors))
+
+
+class CelebrityShare(APIView, ResponseViewMixin):
+    authentication_classes = (CustomAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def post(self, request):
+        serializer = CelebrityShareSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(request.user)
+            return self.jp_response('HTTP_200_OK', data={"comments": "Added share details"})
+        else:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE',
+                                          self.error_msg_string(serializer.errors))
+
+
+class CelebrityDashboardView(APIView, ResponseViewMixin):
+    authentication_classes = (CustomAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def get(self, request):
+        try:
+            dashboard = CelebrityDashboard.objects.get(user_id=request.user.id)
+            data = CelebrityDashboardSerializer(dashboard).data
+            amount, date = recent_deposit_amount(request.user, dashboard)
+            data = apply_the_checks(request.user, data)  # apply all the checks required for the front-end
+            data.update(
+                {
+                    'recent_deposit_amount': amount,
+                    'recent_deposit_date': date
+                }
+            )
+            keys = ['id', 'created_date', 'modified_date', 'last_updated_by_update_API']
+            data = removefromdict(data, keys)
+            return self.jp_response('HTTP_200_OK', data={"Dashboard": data})
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', str(e))
+
+
+class DashboardUpdateView(APIView, ResponseViewMixin):
+    authentication_classes = (CustomAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def get(self, request):
+        celebrity_dashboard_update(request.user.id)
+        return self.jp_response('HTTP_200_OK', data="Dashboard Updating")

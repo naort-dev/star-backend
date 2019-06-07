@@ -373,6 +373,18 @@ def index_celebrity(sender, instance, **kwargs):
         instance.indexing()
 
 
+@receiver(post_save, sender=Celebrity)
+def update_bio_in_dashboard(sender, instance, **kwargs):
+    from versioned.v2.users.models import CelebrityDashboard
+    from versioned.v2.users.utils import biography_referral_update
+    try:
+        dashboard = CelebrityDashboard.objects.get(user_id=instance.celebrity.id)
+        biography_referral_update(dashboard)
+    except Exception as e:
+        print(str(e))
+        pass
+
+
 class ProfessionsManager(models.Manager):
     def get_queryset(self):
         with connection.cursor() as cursor:
@@ -432,6 +444,18 @@ def save_rating_count(sender, instance, **kwargs):
     Celebrity.objects.filter(user_id=instance.celebrity_id).update(rating=round_off_avg)
     # Updating video read status at the time of submitting rating
     StargramVideo.objects.filter(stragramz_request_id=instance.starsona).update(read_status=True)
+
+
+@receiver(post_save, sender=FanRating)
+def update_rating_in_dashboard(sender, instance, **kwargs):
+    from versioned.v2.users.models import CelebrityDashboard
+    from versioned.v2.users.utils import rating_data_update
+    try:
+        dashboard = CelebrityDashboard.objects.get(user_id=instance.celebrity.id)
+        rating_data_update(dashboard)
+    except Exception as e:
+        print(str(e))
+        pass
 
 
 class CelebrityFollow(models.Model):
@@ -530,6 +554,17 @@ class Referral(models.Model):
 
     def __str__(self):
         return 'Referral ID %d' % self.pk
+
+@receiver(post_save, sender=Referral)
+def update_referral_in_dashboard(sender, instance, **kwargs):
+    from versioned.v2.users.models import CelebrityDashboard
+    from versioned.v2.users.utils import biography_referral_update
+    try:
+        dashboard = CelebrityDashboard.objects.get(user_id=instance.celebrity.id)
+        biography_referral_update(dashboard)
+    except Exception as e:
+        print(str(e))
+        pass
 
 
 class VanityUrl(models.Model):

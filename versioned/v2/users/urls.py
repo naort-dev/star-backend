@@ -2,7 +2,7 @@ from django.conf.urls import url
 from rest_framework.routers import DefaultRouter
 from .views import FilterProfessionsV2, ProfessionsV2, CelebritySuggestionListV2, CelebrityDisplayView,\
     TrendingStars, Register, CelebrityListV2, UserDetailsV2, CelebrityManagementV2, StargramzAutocomplete, \
-    ProfileImagesV2, CelebrityApproval
+    ProfileImagesV2, CelebrityApproval, CelebrityShare, CelebrityDashboardView, DashboardUpdateView
 
 urlpatterns = [
     url(r'^professions/$', ProfessionsV2.as_view(), name='profession-v2'),
@@ -14,6 +14,9 @@ urlpatterns = [
     url(r'^user_autocomplete/$', StargramzAutocomplete.as_view(), name='user_autocomplete'),
     url(r'^profileimages/$', ProfileImagesV2.as_view(), name='profile_images-v2'),
     url(r'^celebrity_approval/$', CelebrityApproval.as_view(), name='celebrity_approval'),
+    url(r'^celebrity_share/$', CelebrityShare.as_view(), name='celebrity_share'),
+    url(r'^celebrity_dashboard/$', CelebrityDashboardView.as_view(), name='celebrity_dashboard'),
+    url(r'^dashboard_update/$', DashboardUpdateView.as_view(), name='dashboard_update'),
 ]
 
 router = DefaultRouter()

@@ -1,10 +1,13 @@
 from utilities.utils import encode_pk, get_pre_signed_get_url
 from rest_framework import serializers
 from users.serializer import ProfessionSerializer, ProfessionFilterSerializer, ProfilePictureSerializer
-from .models import CelebrityDisplay, HomePageVideo, VIDEO_TYPES
+from .models import CelebrityDisplay, HomePageVideo, VIDEO_TYPES, CelebrityDashboard
 from users.serializer import UserSerializer
 from users.models import CelebrityProfession, Profession, VanityUrl, StargramzUser, Celebrity
 from config.models import Config
+from django.db.models import F
+import datetime
+import pytz
 
 
 class ProfessionSerializerV2(ProfessionSerializer):
@@ -137,3 +140,36 @@ class CelebrityApprovalSerializer(serializers.Serializer):
         except StargramzUser.DoesNotExist:
             raise serializers.ValidationError('Data not found')
         return celebrity, user
+
+
+class CelebrityShareSerializer(serializers.Serializer):
+    share_type = serializers.IntegerField(required=True)
+
+    def validate(self, data):
+        if data['share_type'] < 1 or data['share_type'] > 2:
+            raise serializers.ValidationError('share_type must be 1 or 2')
+        return data
+
+    def save(self, user):
+        try:
+            dashboard = CelebrityDashboard.objects.get(user_id=user.id)
+            if self.validated_data['share_type'] == 1:
+                dashboard.profile_share_count = F('profile_share_count') + 1
+                dashboard.last_profile_shared_at = datetime.datetime.now(pytz.UTC)
+            elif self.validated_data['share_type'] == 2:
+                dashboard.video_share_count = F('video_share_count') + 1
+                dashboard.last_video_shared_at = datetime.datetime.now(pytz.UTC)
+            dashboard.save()
+        except:
+            pass
+
+
+class CelebrityDashboardSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = CelebrityDashboard
+        fields = '__all__'
+
+    def get_user(self, obj):
+        return encode_pk(obj.user.id)

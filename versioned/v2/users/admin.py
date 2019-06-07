@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo
+from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo, CelebrityDashboard
 from utilities.admin_utils import ReadOnlyModelAdmin
 from users.models import Profession, StargramzUser
 from django import forms
@@ -269,7 +269,19 @@ class HomePageVideoAdmin(admin.ModelAdmin):
         else:
             return True
 
+class CelebrityProfileShareAdmin(admin.ModelAdmin):
+    list_display = ('id', 'username', 'share_type', 'video', 'created_date')
+
+    def username(self, obj):
+        return obj.user.get_short_name()
+
+
+class CelebrityDashboardAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'last_updated_by_update_API')
+    search_fields = ('user__first_name', 'user__last_name', 'user__nick_name', 'user__email',)
+
 
 admin.site.register(HomePageVideo, HomePageVideoAdmin)
 admin.site.register(CelebrityDisplay, CelebrityDisplayAdmin)
 admin.site.register(CelebrityDisplayOrganizer, CelebrityDisplayOrganizerAdmin)
+admin.site.register(CelebrityDashboard, CelebrityDashboardAdmin)
