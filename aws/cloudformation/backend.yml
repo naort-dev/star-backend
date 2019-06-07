@@ -786,8 +786,8 @@ Resources:
      Type: AWS::ECS::TaskDefinition
      Properties:
        Family: !Join ['-', [!Ref 'AWS::StackName', 'celery-videos']]
-       Cpu: 512
-       Memory: 2048
+       Cpu: 2048
+       Memory: 4096
        NetworkMode: awsvpc
        RequiresCompatibilities:
          - FARGATE
