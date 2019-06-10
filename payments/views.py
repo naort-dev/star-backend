@@ -674,11 +674,7 @@ class InAppPurchase(APIView, ResponseViewMixin):
             except Stargramrequest.DoesNotExist:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE',
                                               'Request does not exist for this user')
-            if str(stargram_request.celebrity.celebrity_user.in_app_price) != str(request.data['amount']):
-                return self.jp_error_response(
-                    'HTTP_400_BAD_REQUEST', 'UNKNOWN_QUERY',
-                    'The amount has been updated to %s' % stargram_request.celebrity.celebrity_user.in_app_price)
-            actual_amount = round((float(stargram_request.celebrity.celebrity_user.in_app_price) * (70.0/100.0)), 2)
+            actual_amount = round((float(request.data['amount']) * (70.0/100.0)), 2)
             ambassador_amount = 0.0
             if has_ambassador(stargram_request.celebrity.id):
                 ambassador_amount = round((float(actual_amount) * (20.0 / 100.0)), 2)
@@ -690,7 +686,7 @@ class InAppPurchase(APIView, ResponseViewMixin):
                 starsona_id=serializer.validated_data.get('starsona', ''),
                 fan_id=serializer.validated_data.get('fan'),
                 celebrity_id=stargram_request.celebrity.id,
-                amount=stargram_request.celebrity.celebrity_user.in_app_price,
+                amount=float(request.data['amount']),
                 actual_amount=actual_amount,
                 ambassador_amount=ambassador_amount,
                 transaction_status=TRANSACTION_STATUS.captured,
