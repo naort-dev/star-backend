@@ -117,6 +117,13 @@ class NotificationSettingInline(ReadOnlyStackedInline):
         return True
 
 
+class CelebrityForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(CelebrityForm, self).__init__(*args, **kwargs)
+
+        self.fields['in_app_price'].required = True
+
+
 class CelebrityInline(ReadOnlyStackedInline):
     model = Celebrity
     fields = ('rate', 'availability', 'admin_approval', 'star_approved', 'migrated', 'rating', 'in_app_price', 'weekly_limits', 'remaining_limit', 'follow_count',
@@ -126,6 +133,7 @@ class CelebrityInline(ReadOnlyStackedInline):
     max_num = 1
     verbose_name_plural = 'Celebrity Details'
     can_delete = False
+    form = CelebrityForm
 
     def get_readonly_fields(self, request, obj=None):
         user = StargramzUser.objects.get(username=request.user)
