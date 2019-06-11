@@ -451,7 +451,8 @@ class ReactionSerializer(serializers.ModelSerializer):
                 )
                 if file.get('file_type') == 2:
                     generate_reaction_videos.apply_async(
-                        (reaction.id,),
+                        queue='videos',
+                        args=(reaction.id,),
                         eta=datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
                     )
                 elif file.get('file_type') == 1:
