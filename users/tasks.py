@@ -261,6 +261,7 @@ def trending_score_update():
     for celebrity in celebrities:
         # view count in last 60 days
         date_diff = (current_date - celebrity.created_date).days
+        date_diff = date_diff if date_diff > 0 else 1
         views = celebrity.view_count
         views = int(views * int(60/date_diff))
 
