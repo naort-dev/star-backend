@@ -68,10 +68,14 @@ app.conf.beat_schedule = {
         'schedule': crontab(minute=0, hour=0, nowfun=get_now_fun),
     },
     'schedule-11': {
+        'task': 'trending_score_update',
+        'schedule': crontab(minute=0, hour=0, day_of_month=8, nowfun=get_now_fun),
+    },
+    'schedule-12': {
         'task': 'delete_expired_profiles',
         'schedule': crontab(minute=0, hour=0, day_of_week='friday', nowfun=get_now_fun),
     },
-    'schedule-12': {
+    'schedule-13': {
         'task': 'deactivate_after_15_days',
         'schedule': crontab(minute=0, hour=0, nowfun=get_now_fun),
     },

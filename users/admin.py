@@ -5,7 +5,7 @@ from django.contrib import admin
 from django import forms
 from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profession, GroupAccountUser, GroupAccount,\
     UserRoleMapping, Celebrity, CelebrityProfession, SettingsNotifications, FanRating, Campaign, Referral, VanityUrl, \
-    CelebrityAvailableAlert, GroupType, CelebrityGroupAccount, Representative, AdminReferral, ProfileImage
+    CelebrityAvailableAlert, GroupType, CelebrityGroupAccount, Representative, AdminReferral, ProfileImage, SocialMediaLinks
 from role.models import Role
 from payments.models import PaymentPayout, TipPayment
 from utilities.konstants import ROLES
@@ -93,6 +93,13 @@ class VanityUrlInline(ReadOnlyStackedInline):
     fields = ('name',)
     can_delete = False
     max_num = 1
+
+
+class SocialMediaLinksInline(ReadOnlyStackedInline):
+    model = SocialMediaLinks
+    fields = ('social_link_key', 'social_link_value')
+    can_delete = False
+    max_num = 4
 
 
 class NotificationSettingInline(ReadOnlyStackedInline):
@@ -378,9 +385,9 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     readonly_fields = ('created_date', 'modified_date', 'profile_images', 'profile_video',
                        'stripe_customer_id', 'featured_image', 'stripe_user_id', 'admin_approval_referral_code')
     list_per_page = 10
-    inlines = [RoleInline, ReferralInline, VanityUrlInline, CelebrityInline, ProfessionInline, NotificationSettingInline, PayoutsTabular,
+    inlines = [RoleInline, ReferralInline, VanityUrlInline, SocialMediaLinksInline, CelebrityInline, ProfessionInline, NotificationSettingInline, PayoutsTabular,
                RatingInline, ReferralTabular, TipPaymentAdmin, RepresentativeInline]
-    inlines2 = [RoleInline, VanityUrlInline, CelebrityInline, ProfessionInline,
+    inlines2 = [RoleInline, VanityUrlInline, SocialMediaLinksInline, CelebrityInline, ProfessionInline,
                NotificationSettingInline, PayoutsTabular,
                RatingInline, ReferralTabular, TipPaymentAdmin, RepresentativeInline]
     ordering = ['-id', ]

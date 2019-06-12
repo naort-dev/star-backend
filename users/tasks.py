@@ -8,6 +8,8 @@ from config.models import Config
 from django.db.models import F
 from django.utils.safestring import mark_safe
 from django.apps import apps
+from django.utils import timezone
+import datetime
 
 
 @app.task
@@ -247,3 +249,35 @@ def send_star_approval_mail(user_id):
     except Exception as e:
         print(str(e))
         return False
+
+
+@app.task(name='trending_score_update')
+def trending_score_update():
+    from users.models import Celebrity, CelebrityFollow
+    from stargramz.models import Stargramrequest, STATUS_TYPES
+    celebrities = Celebrity.objects.filter(admin_approval=True, user__is_active=True)
+    current_date = timezone.now()
+
+    for celebrity in celebrities:
+        # view count in last 60 days
+        date_diff = (current_date - celebrity.created_date).days
+        views = celebrity.view_count
+        views = int(views * int(60/date_diff))
+
+        # follow count in last 60 days
+        favorites = CelebrityFollow.objects.filter(
+            celebrity_id=celebrity.user.id,
+            created_date__gt=timezone.now()-datetime.timedelta(days=60)
+        ).count()
+
+        # purchase in the last 60 days
+        purchase = Stargramrequest.objects.filter(
+            celebrity=celebrity.user,
+            created_date__gt=timezone.now() - datetime.timedelta(days=60)
+        ).exclude(
+            request_status=STATUS_TYPES.draft
+        ).count()
+
+        score = views + (5 * favorites) + (10 * purchase)
+        celebrity.trending_star_score = score
+        celebrity.save()
