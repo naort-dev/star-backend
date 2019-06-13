@@ -387,6 +387,9 @@ class RequestList(GenericViewSet, ResponseViewMixin):
     permission_classes = (IsAuthenticated, CustomPermission,)
     pagination_class = CustomOffsetPagination
     serializer_class = StargramzRetrieveSerializer
+    queryset = Stargramrequest.objects.select_related('occasion', 'fan', 'celebrity')\
+                .prefetch_related('request_video', 'request_transaction')
+
 
     def list(self, request):
         """
@@ -414,9 +417,7 @@ class RequestList(GenericViewSet, ResponseViewMixin):
 
             # status_list = [[2, 3], [5], [6]]
             custom_filter = {role: user.id}
-            query_set = Stargramrequest.objects.filter(**custom_filter)\
-                .select_related('occasion', 'fan', 'celebrity')\
-                .prefetch_related('request_video', 'request_transaction')
+            query_set = self.queryset.filter(**custom_filter)
 
             filter_by_status = request.GET.get("status")
             if filter_by_status:
