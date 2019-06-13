@@ -179,7 +179,7 @@ def biography_referral_update(dashboard):
         campaign = False
     if referral_count == 0:
         has_referral = False
-    elif campaign and datetime.now().date() > campaign.valid_till:
+    elif campaign and datetime.datetime.now().date() > campaign.valid_till:
         has_referral = False
     else:
         has_referral = True
