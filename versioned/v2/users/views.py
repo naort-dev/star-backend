@@ -493,7 +493,7 @@ class CelebrityDashboardView(APIView, ResponseViewMixin):
             )
             keys = ['id', 'created_date', 'modified_date', 'last_updated_by_update_API']
             data = removefromdict(data, keys)
-            return self.jp_response('HTTP_200_OK', data={"Dashboard": data})
+            return self.jp_response('HTTP_200_OK', data={"dashboard": data})
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', str(e))
 

@@ -163,7 +163,7 @@ def biography_referral_update(dashboard):
     user = dashboard.user
 
     try:
-        celebrity = Celebrity.object.get(user_id=user.id)
+        celebrity = Celebrity.objects.get(user_id=user.id)
         bio = celebrity.description
         if len(bio) > 120:
             has_biography = True
