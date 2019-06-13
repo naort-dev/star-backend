@@ -5,7 +5,8 @@ from django.contrib import admin
 from django import forms
 from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profession, GroupAccountUser, GroupAccount,\
     UserRoleMapping, Celebrity, CelebrityProfession, SettingsNotifications, FanRating, Campaign, Referral, VanityUrl, \
-    CelebrityAvailableAlert, GroupType, CelebrityGroupAccount, Representative, AdminReferral, ProfileImage, SocialMediaLinks
+    CelebrityAvailableAlert, GroupType, CelebrityGroupAccount, Representative, AdminReferral, ProfileImage, \
+    SocialMediaLinks, CelebrityFollow
 from role.models import Role
 from payments.models import PaymentPayout, TipPayment
 from utilities.konstants import ROLES
@@ -332,7 +333,7 @@ class FanUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
 
 class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     add_form = UserCreationForm
-    list_display = ('id', 'first_name', 'last_name', 'username', 'order', 'trending_star_score')
+    list_display = ('id', 'first_name', 'last_name', 'username', 'order', 'view_count', 'trending_star_score')
     list_filter = ('celebrity_user__admin_approval', 'temp_password', 'celebrity_user__star_approved', 'celebrity_user__created_date')
 
     def trending_star_score(self, obj):
@@ -881,6 +882,12 @@ class AdminReferralAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'referral_code', 'activate', 'created_date')
 
 
+class CelebrityFollowAdmin(ReadOnlyModelAdmin):
+    model = CelebrityFollow
+    list_display = ('id', 'celebrity', 'fan', 'is_group', 'created_date')
+    search_fields = ('celebrity__email',)
+
+
 admin.site.register(GroupType, GroupTypeAdmin)
 admin.site.register(Profession, ProfessionAdmin)
 admin.site.register(StargramzUser, StargramzUserAdmin)
@@ -894,3 +901,4 @@ admin.site.register(Referral, ReferralAdmin)
 admin.site.register(CelebrityGroupAccount, JoinGroupAdmin)
 admin.site.register(CelebrityAvailableAlert, CelebrityAvailabilityAlertAdmin)
 admin.site.register(AdminReferral, AdminReferralAdmin)
+admin.site.register(CelebrityFollow, CelebrityFollowAdmin)

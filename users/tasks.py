@@ -263,7 +263,7 @@ def trending_score_update():
         date_diff = (current_date - celebrity.created_date).days
         date_diff = date_diff if date_diff > 0 else 1
         views = celebrity.view_count
-        views = int(views * int(60/date_diff))
+        views = int((views/date_diff) * 60)
 
         # follow count in last 60 days
         favorites = CelebrityFollow.objects.filter(
