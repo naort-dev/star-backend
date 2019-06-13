@@ -219,6 +219,18 @@ def update_remaining_limits(sender, instance, **kwargs):
         print(str(e))
 
 
+@receiver(post_save, sender=Stargramrequest)
+def update_booking_in_dashboard(sender, instance, **kwargs):
+    from versioned.v2.users.models import CelebrityDashboard
+    from versioned.v2.users.utils import booking_count_update
+    try:
+        dashboard = CelebrityDashboard.objects.get(user_id=instance.celebrity.id)
+        booking_count_update(dashboard)
+    except Exception as e:
+        print(str(e))
+        pass
+
+
 class StargramVideo(models.Model):
     stragramz_request = models.ForeignKey('Stargramrequest', related_name='request_video', on_delete=models.CASCADE)
     video = models.CharField('Request Video', max_length=600, null=True, blank=True)
@@ -243,6 +255,19 @@ class StargramVideo(models.Model):
         verbose_name = 'Videos'
         verbose_name_plural = 'Video'
         ordering = ['-id', '-created_date']
+
+
+@receiver(post_save, sender=StargramVideo)
+def update_video_in_dashboard(sender, instance, **kwargs):
+    from versioned.v2.users.models import CelebrityDashboard
+    from versioned.v2.users.utils import video_data_update
+    try:
+        dashboard = CelebrityDashboard.objects.get(user_id=instance.stragramz_request.celebrity.id)
+        video_data_update(dashboard)
+    except Exception as e:
+        print(str(e))
+        pass
+
 
 
 class ReportAbuse(models.Model):
@@ -275,6 +300,19 @@ class Comment(models.Model):
     class Meta:
         ordering = ['-created_date']
 
+
+@receiver(post_save, sender=Comment)
+def update_comment_in_dashboard(sender, instance, **kwargs):
+    from versioned.v2.users.models import CelebrityDashboard
+    from versioned.v2.users.utils import video_data_update
+    try:
+        dashboard = CelebrityDashboard.objects.get(user_id=instance.video.stragramz_request.celebrity.id)
+        video_data_update(dashboard)
+    except Exception as e:
+        print(str(e))
+        pass
+
+
 @receiver(post_save, sender=Comment)
 def update_comments_count(sender, instance, **kwargs):
     video_comments_count = Comment.objects.filter(video=instance.video).count()
@@ -304,6 +342,19 @@ class Reaction(models.Model):
         verbose_name = 'Reactions'
         verbose_name_plural = 'Reaction'
         ordering = ['-id', '-created_date']
+
+
+@receiver(post_save, sender=Reaction)
+def update_reaction_in_dashboard(sender, instance, **kwargs):
+    from versioned.v2.users.models import CelebrityDashboard
+    from versioned.v2.users.utils import video_data_update
+    try:
+        dashboard = CelebrityDashboard.objects.get(user_id=instance.booking.celebrity.id)
+        video_data_update(dashboard)
+    except Exception as e:
+        print(str(e))
+        pass
+
 
 class BookingAdminAdd(Stargramrequest):
     """

@@ -8,7 +8,9 @@ from django.utils import timezone
 from datetime import datetime
 import pytz
 from django.apps import apps
-from .utils import remove_files_from_s3
+from .utils import remove_files_from_s3, total_earnings_update, video_data_update, rating_data_update, tip_amount_update,\
+    booking_count_update, biography_referral_update
+from .models import CelebrityDashboard
 
 
 @app.task(name='setting_up_password')
@@ -142,3 +144,32 @@ def remove_profile_images_from_s3(images):
             remove_files_from_s3(file_path + image.photo)
         except Exception as e:
             print(str(e))
+
+
+@app.task
+def celebrity_dashboard_update(user_id):
+    current_date = datetime.now(pytz.UTC)
+    dashboard, created = CelebrityDashboard.objects.get_or_create(user_id=user_id)
+    if created:
+        total_earnings_update(dashboard)  # total_earnings and pending_payments updates
+        video_data_update(dashboard)  # video, reaction and comment count updates
+        rating_data_update(dashboard)  # rating data updates
+        tip_amount_update(dashboard)  # recent tip amount update
+        booking_count_update(dashboard)  # booking count and its details update
+        biography_referral_update(dashboard)  # updates the biography and referral check
+        dashboard.last_updated_by_update_API = current_date
+        dashboard.save()
+    else:
+        if dashboard.last_updated_by_update_API:
+            diff_days = (current_date - dashboard.last_updated_by_update_API).days
+            # the process only work if the last modified date if 24 hours back
+            if diff_days >= 1:
+                total_earnings_update(dashboard)  # total_earnings and pending_payments updates
+                video_data_update(dashboard)  # video, reaction and comment count updates
+                rating_data_update(dashboard)  # rating data updates
+                tip_amount_update(dashboard)  # recent tip amount update
+                booking_count_update(dashboard)  # booking count and its details update
+                biography_referral_update(dashboard)  # updates the biography and referral check
+
+                dashboard.last_updated_by_update_API = current_date
+                dashboard.save()

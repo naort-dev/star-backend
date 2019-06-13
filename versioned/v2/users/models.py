@@ -58,8 +58,8 @@ def uploading_function(sender, instance, **kwargs):
 
 class CelebrityDashboard(models.Model):
     user = models.ForeignKey('users.StargramzUser', related_name='celebrity', on_delete=models.CASCADE)
-    total_earnings = models.DecimalField('Total Earnings', max_digits=10, decimal_places=2, blank=True)
-    pending_payments = models.DecimalField('Pending Payments', max_digits=10, decimal_places=2, blank=True)
+    total_earnings = models.DecimalField('Total Earnings', max_digits=10, decimal_places=2, blank=True, default=0.00)
+    pending_payments = models.DecimalField('Pending Payments', max_digits=10, decimal_places=2, blank=True, default=0.00)
     total_video_count = models.IntegerField('Total Video Count', default=0, blank=True)
     total_comment_count = models.IntegerField('Total Comment Count', default=0, blank=True)
     total_reaction_video_count = models.IntegerField('Total Reaction Video Count', default=0, blank=True)
@@ -71,8 +71,8 @@ class CelebrityDashboard(models.Model):
     recent_reaction_video_count = models.IntegerField('Recent Reaction Video Count', default=0, blank=True)
     recent_rating_count = models.IntegerField('Recent Rating Count', default=0, blank=True)
     recent_tip_count = models.IntegerField('Recent Tip Count', default=0, blank=True)
-    recent_tip_amount = models.DecimalField('Recent Tip Amount', max_digits=10, decimal_places=2, blank=True)
-    recent_deposit_amount = models.DecimalField('Recent Deposit Amount', max_digits=7, decimal_places=2, blank=True)
+    recent_tip_amount = models.DecimalField('Recent Tip Amount', max_digits=10, decimal_places=2, blank=True, default=0.00)
+    recent_deposit_amount = models.DecimalField('Recent Deposit Amount', max_digits=10, decimal_places=2, blank=True, default=0.00)
     recent_deposit_date = models.DateTimeField('Recent Deposit Date', default=None, blank=True, null=True)
     profile_share_count = models.IntegerField('Profile Share Count', default=0, blank=True)
     last_profile_shared_at = models.DateTimeField('Last Profile Shared Date', default=None, blank=True, null=True)
@@ -83,3 +83,6 @@ class CelebrityDashboard(models.Model):
     one_eighty_days_booking_count = models.IntegerField('180 Days Booking Count', default=0, blank=True)
     has_biography = models.BooleanField('Check Biography', default=False)
     has_referral = models.BooleanField('Check Referral', default=False)
+    created_date = models.DateTimeField('Created Date', auto_now_add=True)
+    modified_date = models.DateTimeField('Modified Date', auto_now=True)
+    last_updated_by_update_API = models.DateTimeField('Last updated by update API', null=True, blank=True)

@@ -3,6 +3,8 @@ from django.db import models
 from stargramz.models import Stargramrequest
 from users.models import StargramzUser
 from utilities.konstants import K, Konstants
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 # Create your models here.
 
 TRANSACTION_STATUS = Konstants(
@@ -73,6 +75,18 @@ class StarsonaTransaction(models.Model):
         return 'OR-%s' % str(self.pk)
 
 
+@receiver(post_save, sender=StarsonaTransaction)
+def update_payment_in_dashboard(sender, instance, **kwargs):
+    from versioned.v2.users.models import CelebrityDashboard
+    from versioned.v2.users.utils import total_earnings_update
+    try:
+        dashboard = CelebrityDashboard.objects.get(user_id=instance.celebrity.id)
+        total_earnings_update(dashboard)
+    except Exception as e:
+        print(str(e))
+        pass
+
+
 class StripeAccount(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     celebrity = models.ForeignKey(StargramzUser, related_name='stripe_celebrity_user', on_delete=models.CASCADE)
@@ -101,6 +115,19 @@ class PaymentPayout(models.Model):
         return str(self.pk)
 
 
+@receiver(post_save, sender=PaymentPayout)
+def update_payment_in_dashboard(sender, instance, **kwargs):
+    from versioned.v2.users.models import CelebrityDashboard
+    from versioned.v2.users.utils import total_earnings_update
+    try:
+        dashboard = CelebrityDashboard.objects.get(user_id=instance.celebrity.id)
+        total_earnings_update(dashboard)
+    except Exception as e:
+        print(str(e))
+        pass
+
+
+
 class TipPayment(models.Model):
     booking = models.ForeignKey(Stargramrequest, related_name='tip_payment', blank=False, null=False, on_delete=models.CASCADE)
     fan = models.ForeignKey(StargramzUser, related_name='tip_fan', on_delete=models.CASCADE)
@@ -119,3 +146,15 @@ class TipPayment(models.Model):
 
     def __str__(self):
         return 'Tip %d' % self.pk
+
+
+@receiver(post_save, sender=TipPayment)
+def update_tip_in_dashboard(sender, instance, **kwargs):
+    from versioned.v2.users.models import CelebrityDashboard
+    from versioned.v2.users.utils import tip_amount_update
+    try:
+        dashboard = CelebrityDashboard.objects.get(user_id=instance.celebrity.id)
+        tip_amount_update(dashboard)
+    except Exception as e:
+        print(str(e))
+        pass
