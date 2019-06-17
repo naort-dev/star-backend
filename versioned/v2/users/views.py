@@ -11,7 +11,7 @@ from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_para
     get_user_role_details, encode_pk
 from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo, CelebrityDashboard
 from users.models import StargramzUser, Profession, Celebrity, AdminReferral, FanRating, SettingsNotifications,\
-    REMINDER_MAIL_COUNT, ProfileImage
+    REMINDER_MAIL_COUNT, ProfileImage, Referral
 from users.utils import generate_random_code
 from users.fan_views import CelebrityList
 from django.db.models import Q, F, Value, Case, When
@@ -312,6 +312,13 @@ class UserDetailsV2(UserDetails):
                     final_rating = ""
         return final_rating
 
+    def referral_code(self, pk):
+        try:
+            referral = Referral.objects.get(referee_id=pk)
+            return referral.referrer.referral_code
+        except:
+            return None
+
     def append_profile_video(self, response, pk, user_logged_in):
         if response.data.get("status") == 200:
             profile_video = None
@@ -324,6 +331,7 @@ class UserDetailsV2(UserDetails):
                 celebrity = Celebrity.objects.get(user_id=pk)
                 if celebrity.profile_video:
                     profile_video = get_pre_signed_get_url(celebrity.profile_video, config.value)
+                    duration = celebrity.duration
                 else:
                     if user_logged_in != pk:
                         return self.jp_error_response(
@@ -341,9 +349,11 @@ class UserDetailsV2(UserDetails):
                 response.data['data']['celebrity_details'].update(
                     {
                         'profile_video': profile_video,
+                        'duration': duration,
                         'average_response_time': average_response_time,
                         'average_response_value': avg_response_value,
                         'rating': rating,
+                        'used_referral_code': self.referral_code(pk),
                         'has_profile_video': True if profile_video else False,
                         'has_password': False if celebrity.user.temp_password else True,
                         'has_phone_number': True if notification and notification.mobile_number else False,
@@ -380,6 +390,8 @@ class CelebrityManagementV2(CelebrityManagement):
                     response.data['data']['celebrity']['profile_video'] = get_pre_signed_get_url(
                         celebrity.profile_video, config.value
                     )
+                celebrity.star_approved = True
+                celebrity.save()
             except Exception as e:
                 print(str(e))
                 pass

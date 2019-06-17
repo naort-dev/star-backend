@@ -225,21 +225,22 @@ def change_file_bucket(file, file_name):
 
 @app.task
 def send_star_approval_mail(user_id):
-    from users.models import StargramzUser
+    from users.models import StargramzUser, VanityUrl
     from utilities.utils import sent_email, generate_branch_io_url, BASE_URL, WEB_URL
     try:
         user = StargramzUser.objects.get(id=user_id)
+        vanity = VanityUrl.objects.get(user_id=user_id)
         template = 'star_approval'
         subject = 'Approve the star account'
         ctx = {
             'username': user.first_name + ' ' + user.last_name,
             'approval_link': generate_branch_io_url(
-                mob_url='%sstar_approval?reset_id=%s' % (WEB_URL, user.reset_id),
+                mob_url='%sstar_approval?reset_id=%s&vanity_id=%s&migrated=true' % (WEB_URL, user.reset_id, vanity),
                 title="Star approval for %s" % user.get_short_name(),
                 desc="Star approval for %s" % user.get_short_name(),
                 image_url='%smedia/web-images/starsona_logo.png' % BASE_URL,
-                desktop_url='%sstar_approval?reset_id=%s' % (WEB_URL, user.reset_id),
-                canonical_url='%sstar_approval?reset_id=%s' % (WEB_URL, user.reset_id)
+                desktop_url='%sstar_approval?reset_id=%s&vanity_id=%s&migrated=true' % (WEB_URL, user.reset_id, vanity),
+                canonical_url='%sstar_approval?reset_id=%s&vanity_id=%s&migrated=true' % (WEB_URL, user.reset_id, vanity)
             )
         }
         user.reset_id = None

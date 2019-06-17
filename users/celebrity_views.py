@@ -43,7 +43,7 @@ class CelebrityManagement(APIView, ResponseViewMixin):
         request.data['user'] = user.id
         fields = ['user']
         field_list = ['profession', 'rate', 'in_app_price', 'weekly_limits', 'availability',
-                      'profile_video', 'description', 'charity']
+                      'profile_video', 'duration', 'description', 'charity']
         for list_item in field_list:
             if list_item in request.data:
                 fields.append(list_item)
