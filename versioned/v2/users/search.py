@@ -36,7 +36,7 @@ def bulk_indexing():
     bulk(client=es, actions=(profession_indexing(profession) for profession in Profession.objects.all().iterator()))
     bulk(client=es, actions=(celebrity_indexing(celebrity) for celebrity in Celebrity.objects.filter(
         admin_approval=True, availability=True, star_approved=True, user__temp_password=False
-    ).exclude(profile_video__isnull=True).all().iterator()))
+    ).exclude(profile_video="").all().iterator()))
 
 
 def profession_indexing(profession):

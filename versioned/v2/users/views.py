@@ -213,8 +213,7 @@ class CelebrityListV2(CelebrityList):
     """
     def list(self, request):
         query_set = self.query_set.filter(is_active=True, temp_password=False).exclude(
-            group_account__admin_approval=True, celebrity_user__profile_video__isnull=True
-        )
+            group_account__admin_approval=True, celebrity_user__profile_video="")
         sort = request.GET.get('sort')
         filter_by_lower_rate = request.GET.get('lrate')
         filter_by_upper_rate = request.GET.get('urate')
