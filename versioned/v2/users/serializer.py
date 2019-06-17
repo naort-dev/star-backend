@@ -1,13 +1,18 @@
-from utilities.utils import encode_pk, get_pre_signed_get_url
+from utilities.utils import encode_pk, get_pre_signed_get_url, get_s3_public_url
 from rest_framework import serializers
-from users.serializer import ProfessionSerializer, ProfessionFilterSerializer, ProfilePictureSerializer
+from users.serializer import ProfessionSerializer, ProfessionFilterSerializer, ProfilePictureSerializer, \
+    CelebrityRatingSerializerEncoder
 from .models import CelebrityDisplay, HomePageVideo, VIDEO_TYPES, CelebrityDashboard
 from users.serializer import UserSerializer
-from users.models import CelebrityProfession, Profession, VanityUrl, StargramzUser, Celebrity
+from users.models import CelebrityProfession, Profession, VanityUrl, StargramzUser, Celebrity, RecentActivity, ACTIVITY_TYPES
 from config.models import Config
 from django.db.models import F
 import datetime
 import pytz
+from versioned.v2.stargramz.serializer import StargramzRetrieveSerializerV2, ReactionListingSerializerV2, \
+    TippingSerializerV2
+from stargramz.serializer import CommentReplySerializer
+from config.constants import *
 
 
 class ProfessionSerializerV2(ProfessionSerializer):
@@ -173,3 +178,44 @@ class CelebrityDashboardSerializer(serializers.ModelSerializer):
 
     def get_user(self, obj):
         return encode_pk(obj.user.id)
+
+
+class CelebrityRatingSerializerEncoderV2(CelebrityRatingSerializerEncoder):
+    user = serializers.CharField(read_only=True, source="fan.get_short_name")
+    user_image_url = serializers.SerializerMethodField(read_only=True)
+
+    class Meta(CelebrityRatingSerializerEncoder.Meta):
+        fields = CelebrityRatingSerializerEncoder.Meta.fields + ('created_date', 'user', 'user_image_url')
+
+    def get_user_image_url(self, obj):
+        config = PROFILE_IMAGES
+        return get_s3_public_url(str(obj.fan.avatar_photo), config)
+
+
+class RecentActivitySerializer(serializers.ModelSerializer):
+    activity_from_user = serializers.CharField(read_only=True, source="activity_from_user.get_short_name")
+    activity_to_user = serializers.CharField(read_only=True, source="activity_to_user.get_short_name")
+    request = StargramzRetrieveSerializerV2(read_only=True)
+    activity_type = serializers.SerializerMethodField(read_only=True)
+    activity_details = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = RecentActivity
+        fields = ('id', 'activity_from_user', 'activity_to_user', 'request', 'activity_type', 'activity_details',
+                  'created_date')
+
+    def get_activity_type(self, obj):
+        activity_types = dict(ACTIVITY_TYPES.choices())
+        return activity_types[obj.activity_type]
+
+    def get_activity_details(self, obj):
+        if obj.activity_type == ACTIVITY_TYPES.comment:
+            activity_details = CommentReplySerializer(obj.content_object, read_only=True).data
+        elif obj.activity_type == ACTIVITY_TYPES.reaction:
+            activity_details = ReactionListingSerializerV2(obj.content_object, read_only=True).data
+        elif obj.activity_type == ACTIVITY_TYPES.tip:
+            activity_details = TippingSerializerV2(obj.content_object, read_only=True).data
+        elif obj.activity_type == ACTIVITY_TYPES.rating:
+            activity_details = CelebrityRatingSerializerEncoderV2(obj.content_object, read_only=True).data
+
+        return activity_details
