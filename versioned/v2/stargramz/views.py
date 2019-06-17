@@ -3,10 +3,11 @@ from .serializer import StargramzVideoSerializerV2, OccasionSerializerV2, Reacti
     StargramzSerializerV2, StargramzRetrieveSerializerV2, VideoFavoritesSerializer
 from rest_framework.viewsets import GenericViewSet
 from utilities.mixins import ResponseViewMixin
-from stargramz.models import Reaction, Stargramrequest
+from stargramz.models import Reaction, Stargramrequest, STATUS_TYPES
 from utilities.pagination import CustomOffsetPagination
 from rest_framework.views import APIView
 from users.models import UserRoleMapping, ROLES
+from .utils import high_cancel_check
 
 
 class FeaturedVideoV2(FeaturedVideo):
@@ -136,6 +137,9 @@ class RequestListV2(RequestList):
 
             page = self.paginate_queryset(query_set.distinct())
             serializer = self.get_serializer(page, many=True)
-            return self.paginator.get_paginated_response(serializer.data, key_name='request_list')
+            data = self.paginator.get_paginated_response(serializer.data, key_name='request_list')
+            if filter_by_status and len(filter_by_status) == 1 and filter_by_status[0] == STATUS_TYPES.cancelled:
+                data.data['data'].update({'high_cancel': high_cancel_check(query_set)})
+            return data
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
