@@ -322,6 +322,7 @@ class UserDetailsV2(UserDetails):
     def append_profile_video(self, response, pk, user_logged_in):
         if response.data.get("status") == 200:
             profile_video = None
+            duration = None
             try:
                 pk = self.verify_hash_token(pk)
             except:
