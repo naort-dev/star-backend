@@ -289,6 +289,7 @@ class Celebrity(models.Model):
                                              MaxValueValidator(MAX_RATING_VALUE)])
     weekly_limits = models.IntegerField('Weekly limits', blank=False)
     profile_video = models.CharField('Profile video', max_length=250, null=True, blank=True)
+    duration = models.TimeField('Duration', blank=True, null=True)
     follow_count = models.IntegerField('Followers', default=0, blank=True)
     description = models.TextField('Description', blank=True)
     charity = models.TextField('Charity', blank=True)
@@ -378,7 +379,7 @@ def update_bio_in_dashboard(sender, instance, **kwargs):
     from versioned.v2.users.models import CelebrityDashboard
     from versioned.v2.users.utils import biography_referral_update
     try:
-        dashboard = CelebrityDashboard.objects.get(user_id=instance.celebrity.id)
+        dashboard = CelebrityDashboard.objects.get(user_id=instance.user.id)
         biography_referral_update(dashboard)
     except Exception as e:
         print(str(e))

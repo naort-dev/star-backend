@@ -581,13 +581,14 @@ class CelebrityProfileSerializer(CustomModelSerializer):
         in_app_price = validated_data.get('in_app_price')
         weekly_limits = validated_data.get('weekly_limits')
         profile_video = validated_data.get('profile_video')
+        duration = validated_data.get('duration')
         professions = validated_data.get('profession')
         availability = validated_data.get('availability')
         description = validated_data.get('description', '')
         charity = validated_data.get('charity', '')
         celebrity = Celebrity.objects.\
             create(rate=rate, in_app_price=in_app_price, weekly_limits=weekly_limits, profile_video=profile_video,
-                   user=user_id, availability=availability, description=description, charity=charity)
+                   user=user_id, availability=availability, description=description, charity=charity, duration=duration)
         for profession in professions:
             CelebrityProfession.objects.create(user=user_id, profession_id=profession)
 
@@ -611,7 +612,7 @@ class CelebrityProfileSerializer(CustomModelSerializer):
             CelebrityProfession.objects.filter(user=instance.user_id).delete()
             for profession in professions:
                 CelebrityProfession.objects.create(user_id=instance.user_id, profession_id=profession)
-        field_list = ['rate', 'in_app_price', 'weekly_limits', 'availability', 'description', 'charity', 'profile_video']
+        field_list = ['rate', 'in_app_price', 'weekly_limits', 'availability', 'description', 'charity', 'profile_video', 'duration']
         for list_item in field_list:
             if list_item in validated_data:
                 setattr(instance, list_item, validated_data.get(list_item))
