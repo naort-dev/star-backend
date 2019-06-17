@@ -113,9 +113,12 @@ class StargramzRetrieveSerializerV2(StargramzRetrieveSerializer):
     tip_amount = serializers.SerializerMethodField(read_only=True)
     reaction_count = serializers.SerializerMethodField(read_only=True)
     video_thumbnail = serializers.SerializerMethodField(read_only=True)
+    video_created_date = serializers.SerializerMethodField(read_only=True)
 
     class Meta(StargramzRetrieveSerializer.Meta):
-        fields = StargramzRetrieveSerializer.Meta.fields + ['comments', 'tip_amount', 'reaction_count', 'video_thumbnail']
+        fields = StargramzRetrieveSerializer.Meta.fields + [
+            'comments', 'tip_amount', 'reaction_count', 'video_thumbnail', 'video_created_date'
+        ]
 
     def __init__(self, *args, **kwargs):
         self.stargram_video_thumb = Config.objects.get(key='stargram_video_thumb').value
@@ -140,9 +143,14 @@ class StargramzRetrieveSerializerV2(StargramzRetrieveSerializer):
     def get_video_thumbnail(self, obj):
         try:
             video = StargramVideo.objects.get(status=VIDEO_STATUS.completed, stragramz_request_id=obj.id)
+            self.video_date = video.created_date
             if video.thumbnail is not None:
                 config = self.stargram_video_thumb
                 return '{}/{}'.format(self.bucket_url, config + video.thumbnail)
         except Exception as e:
             print(str(e))
+            self.video_date = None
             return None
+
+    def get_video_created_date(self, obj):
+        return self.video_date
