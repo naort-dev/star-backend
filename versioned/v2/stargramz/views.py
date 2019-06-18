@@ -130,10 +130,7 @@ class RequestListV2(RequestList):
 
             # sorting
 
-            if oldest:
-                query_set = query_set.order_by('-created_date')
-            else:
-                query_set = query_set.order_by('created_date')
+            query_set = query_set.order_by('created_date') if oldest else query_set.order_by('-created_date')
 
             page = self.paginate_queryset(query_set.distinct())
             serializer = self.get_serializer(page, many=True)
