@@ -215,8 +215,11 @@ class CelebrityListV2(CelebrityList):
         The list of celebrities and celebrity search
     """
     def list(self, request):
-        exclude_condition = {'group_account__admin_approval': True, 'celebrity_user__profile_video': ''}
-        query_set = self.query_set.filter(is_active=True, temp_password=False).exclude(**exclude_condition)
+        # exclude_condition = {'group_account__admin_approval': True, 'celebrity_user__profile_video': ''}
+        # query_set = self.query_set.filter(is_active=True, temp_password=False).exclude(**exclude_condition)
+        query_set = self.query_set.filter(is_active=True, temp_password=False).exclude(
+            group_account__admin_approval=True
+        )
         sort = request.GET.get('sort')
         filter_by_lower_rate = request.GET.get('lrate')
         filter_by_upper_rate = request.GET.get('urate')
@@ -335,12 +338,12 @@ class UserDetailsV2(UserDetails):
                 if celebrity.profile_video:
                     profile_video = get_pre_signed_get_url(celebrity.profile_video, config.value)
                     duration = celebrity.duration
-                else:
-                    if user_logged_in != pk:
-                        return self.jp_error_response(
-                            'HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP',
-                            'The celebrity you are looking for is currently unavailable'
-                        )
+                # else:
+                #     if user_logged_in != pk:
+                #         return self.jp_error_response(
+                #             'HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP',
+                #             'The celebrity you are looking for is currently unavailable'
+                #         )
             except Exception as e:
                 print(str(e))
                 pass
