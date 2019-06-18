@@ -1,7 +1,8 @@
 from users.authenticate_views import FilterProfessions, Professions, UserRegister, UserDetails, ProfileImages
 from .serializer import ProfessionFilterSerializerV2, ProfessionSerializerV2, SearchSerializer,\
     CelebrityDisplaySerializer, TrendingCelebritySerializer, HomePageVideoSerializer, RegisterUserSerializer, \
-    ProfilePictureSerializer, CelebrityApprovalSerializer, CelebrityShareSerializer, CelebrityDashboardSerializer
+    ProfilePictureSerializer, CelebrityApprovalSerializer, CelebrityShareSerializer, CelebrityDashboardSerializer, \
+    RecentActivitySerializer
 from elasticsearch_dsl.connections import connections
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
@@ -11,7 +12,7 @@ from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_para
     get_user_role_details, encode_pk
 from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo, CelebrityDashboard
 from users.models import StargramzUser, Profession, Celebrity, AdminReferral, FanRating, SettingsNotifications,\
-    REMINDER_MAIL_COUNT, ProfileImage, Referral
+    REMINDER_MAIL_COUNT, ProfileImage, Referral, RecentActivity
 from users.utils import generate_random_code
 from users.fan_views import CelebrityList
 from django.db.models import Q, F, Value, Case, When
@@ -32,6 +33,8 @@ from .utils import date_format_conversion, recent_deposit_amount, apply_the_chec
 from rest_framework.permissions import IsAuthenticated
 from utilities.authentication import CustomAuthentication
 from utilities.utils import removefromdict
+from utilities.pagination import CustomOffsetPagination
+from rest_framework.viewsets import GenericViewSet
 hashids = Hashids(min_length=8)
 
 
@@ -517,3 +520,24 @@ class DashboardUpdateView(APIView, ResponseViewMixin):
     def get(self, request):
         celebrity_dashboard_update(request.user.id)
         return self.jp_response('HTTP_200_OK', data="Dashboard Updating")
+
+
+class RecentActivityView(GenericViewSet, ResponseViewMixin):
+    authentication_classes = (CustomAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+    pagination_class = CustomOffsetPagination
+    serializer_class = RecentActivitySerializer
+
+    def list(self, request):
+        if request.GET['role'] == CELEBRITY:
+            query_set = RecentActivity.objects.filter(
+                activity_to_user=request.user, is_celebrity_activity=False
+            ).order_by('-created_date')
+        elif request.GET['role'] == FAN:
+            query_set = RecentActivity.objects.filter(
+                activity_to_user=request.user, is_celebrity_activity=True
+            ).order_by('-created_date')
+
+        page = self.paginate_queryset(query_set.distinct())
+        serializer = self.get_serializer(page, many=True)
+        return self.paginator.get_paginated_response(serializer.data, key_name='recent_activities')

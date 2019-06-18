@@ -1,11 +1,13 @@
 from rest_framework import serializers
 from stargramz.serializer import StargramzVideoSerializer, OccasionSerializer, ReactionListingSerializer,\
-    StargramzSerializer, StargramzRetrieveSerializer, StargramzRetrieveSerializer
+    StargramzSerializer, StargramzRetrieveSerializer, TippingSerializer
 from stargramz.models import Comment, Stargramrequest, REQUEST_TYPES, StargramVideo, Reaction, VIDEO_STATUS
-from utilities.utils import encode_pk, decode_pk, get_bucket_url
+from utilities.utils import encode_pk, decode_pk, get_bucket_url, get_s3_public_url
 from .models import VideoFavorites
 from payments.models import TipPayment
 from config.models import Config
+from config.constants import *
+
 
 class CommentSerializerV2(serializers.ModelSerializer):
     user_id = serializers.SerializerMethodField(read_only=True)
@@ -16,6 +18,7 @@ class CommentSerializerV2(serializers.ModelSerializer):
 
     def get_user_id(self, obj):
         return encode_pk(obj.user.id)
+
 
 class StargramzVideoSerializerV2(StargramzVideoSerializer):
     comments = serializers.SerializerMethodField(read_only=True)
@@ -37,12 +40,17 @@ class OccasionSerializerV2(OccasionSerializer):
 
 class ReactionListingSerializerV2(ReactionListingSerializer):
     booking_id = serializers.SerializerMethodField(read_only=True)
+    user_image_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta(ReactionListingSerializer.Meta):
-        fields = ReactionListingSerializer.Meta.fields + ('booking_id',)
+        fields = ReactionListingSerializer.Meta.fields + ('booking_id', 'created_date', 'user_image_url',)
 
     def get_booking_id(self, obj):
         return encode_pk(obj.booking.id)
+
+    def get_user_image_url(self, obj):
+        config = PROFILE_IMAGES
+        return get_s3_public_url(str(obj.user.avatar_photo), config)
 
 
 class StargramzSerializerV2(StargramzSerializer):
@@ -154,3 +162,15 @@ class StargramzRetrieveSerializerV2(StargramzRetrieveSerializer):
 
     def get_video_created_date(self, obj):
         return self.video_date
+
+
+class TippingSerializerV2(TippingSerializer):
+    user = serializers.CharField(read_only=True, source="fan.get_short_name")
+    user_image_url = serializers.SerializerMethodField(read_only=True)
+
+    class Meta(TippingSerializer.Meta):
+        fields = TippingSerializer.Meta.fields + ('created_date', 'user', 'user_image_url')
+
+    def get_user_image_url(self, obj):
+        config = PROFILE_IMAGES
+        return get_s3_public_url(str(obj.fan.avatar_photo), config)

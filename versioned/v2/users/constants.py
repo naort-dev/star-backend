@@ -6,3 +6,5 @@ SORT_LIST = {
         'az': 'search_name',
         'popularity': '-celebrity_user__trending_star_score'
 }
+CELEBRITY = 'celebrity'
+FAN = 'fan'

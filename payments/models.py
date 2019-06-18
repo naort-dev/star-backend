@@ -1,10 +1,11 @@
 import uuid
 from django.db import models
 from stargramz.models import Stargramrequest
-from users.models import StargramzUser
+from users.models import StargramzUser, RecentActivity, ACTIVITY_TYPES
 from utilities.konstants import K, Konstants
 from django.dispatch import receiver
 from django.db.models.signals import post_save
+from django.contrib.contenttypes.fields import GenericRelation
 # Create your models here.
 
 TRANSACTION_STATUS = Konstants(
@@ -127,7 +128,6 @@ def update_payment_in_dashboard(sender, instance, **kwargs):
         pass
 
 
-
 class TipPayment(models.Model):
     booking = models.ForeignKey(Stargramrequest, related_name='tip_payment', blank=False, null=False, on_delete=models.CASCADE)
     fan = models.ForeignKey(StargramzUser, related_name='tip_fan', on_delete=models.CASCADE)
@@ -143,6 +143,7 @@ class TipPayment(models.Model):
     tip_payed_out = models.DecimalField('Tip payed out', max_digits=7, decimal_places=2, blank=True, null=True)
     payed_out_transaction_id = models.CharField('Payed out transaction', max_length=30, blank=True)
     payed_out_response = models.TextField('Payed out response', max_length=1500, blank=True)
+    activities = GenericRelation(RecentActivity)
 
     def __str__(self):
         return 'Tip %d' % self.pk
@@ -158,3 +159,18 @@ def update_tip_in_dashboard(sender, instance, **kwargs):
     except Exception as e:
         print(str(e))
         pass
+
+
+@receiver(post_save, sender=TipPayment)
+def create_tip_activity(sender, instance, **kwargs):
+    if instance.fan == instance.booking.celebrity:
+        activity = RecentActivity(
+            content_object=instance, activity_from_user=instance.fan, activity_to_user=instance.booking.fan,
+            request=instance.booking, activity_type=ACTIVITY_TYPES.tip, is_celebrity_activity=True
+        )
+    else:
+        activity = RecentActivity(
+            content_object=instance, activity_from_user=instance.fan, activity_to_user=instance.celebrity,
+            request=instance.booking, activity_type=ACTIVITY_TYPES.tip, is_celebrity_activity=False
+        )
+    activity.save()

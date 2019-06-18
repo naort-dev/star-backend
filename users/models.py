@@ -19,6 +19,9 @@ from decimal import Decimal
 from math import ceil
 from django.db.models import Sum
 from users.country import COUNTRIES
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericRelation
 
 
 USER_STATUS = Konstants(
@@ -65,6 +68,14 @@ REMINDER_MAIL_COUNT = Konstants(
     K(no_mail=0, label='No Mail'),
     K(first_mail=1, label='First Mail'),
     K(second_mail=2, label='Second Mail'),
+)
+
+
+ACTIVITY_TYPES = Konstants(
+    K(comment=1, label='comment'),
+    K(reaction=2, label='reaction'),
+    K(tip=3, label='tip'),
+    K(rating=4, label='rating')
 )
 
 
@@ -419,6 +430,18 @@ class ProfileImage(models.Model):
         ordering = ['id']
 
 
+class RecentActivity(models.Model):
+    activity_from_user = models.ForeignKey('StargramzUser', related_name='activity_from', on_delete=models.CASCADE)
+    activity_to_user = models.ForeignKey('StargramzUser', related_name='activity_to', on_delete=models.CASCADE)
+    request = models.ForeignKey('stargramz.Stargramrequest', related_name='activity_request', on_delete=models.CASCADE)
+    activity_type = models.IntegerField('Activity Type', choices=ACTIVITY_TYPES.choices(), default=ACTIVITY_TYPES.comment)
+    created_date = models.DateTimeField('Created Date', auto_now_add=True)
+    is_celebrity_activity = models.BooleanField('Is Celebrity Activity', default=False)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+
 class FanRating(models.Model):
     fan = models.ForeignKey(StargramzUser, on_delete=models.CASCADE, related_name='fan_rate_user')
     celebrity = models.ForeignKey(StargramzUser, on_delete=models.CASCADE, related_name='celebrity_rate_user')
@@ -429,9 +452,25 @@ class FanRating(models.Model):
     reason = models.CharField('Reason', max_length=260, blank=True)
     comments = models.CharField('Comments', max_length=260, blank=True)
     created_date = models.DateTimeField('Created date', auto_now_add=True)
+    activities = GenericRelation(RecentActivity)
 
     def __str__(self):
         return 'Fan Rating for Booking - %s' % self.starsona_id
+
+
+@receiver(post_save, sender=FanRating)
+def create_rating_activity(sender, instance, **kwargs):
+    if instance.fan == instance.starsona.celebrity:
+        activity = RecentActivity(
+            content_object=instance, activity_from_user=instance.fan, activity_to_user=instance.starsona.fan,
+            request=instance.starsona, activity_type=ACTIVITY_TYPES.rating, is_celebrity_activity=True
+        )
+    else:
+        activity = RecentActivity(
+            content_object=instance, activity_from_user=instance.fan, activity_to_user=instance.celebrity,
+            request=instance.starsona, activity_type=ACTIVITY_TYPES.rating, is_celebrity_activity=False
+        )
+    activity.save()
 
 
 @receiver(post_save, sender=FanRating)

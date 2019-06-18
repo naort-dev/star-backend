@@ -9,6 +9,7 @@ from django.db.models import F
 from django.apps import apps
 import datetime
 from .utils import average_response_time_calculator
+from django.contrib.contenttypes.fields import GenericRelation
 
 
 REQUEST_TYPES = Konstants(
@@ -293,6 +294,7 @@ class Comment(models.Model):
     user = models.ForeignKey('users.StargramzUser', related_name='commented_user', on_delete=models.CASCADE)
     reply = models.ForeignKey('self', blank=True, null=True, related_name='reply_comment', on_delete=models.CASCADE)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
+    activities = GenericRelation('users.RecentActivity')
 
     def __str__(self):
         return 'Comment - %s' % str(self.pk)
@@ -322,6 +324,25 @@ def update_comments_count(sender, instance, **kwargs):
         pass
 
 
+@receiver(post_save, sender=Comment)
+def create_comment_activity(sender, instance, **kwargs):
+    from users.models import RecentActivity, ACTIVITY_TYPES
+
+    if instance.user == instance.video.stragramz_request.celebrity:
+        activity = RecentActivity(
+            content_object=instance, activity_from_user=instance.user,
+            activity_to_user=instance.video.stragramz_request.fan, request=instance.video.stragramz_request,
+            activity_type=ACTIVITY_TYPES.comment, is_celebrity_activity=True
+        )
+    else:
+        activity = RecentActivity(
+            content_object=instance, activity_from_user=instance.user,
+            activity_to_user=instance.video.stragramz_request.celebrity, request=instance.video.stragramz_request,
+            activity_type=ACTIVITY_TYPES.comment, is_celebrity_activity=False
+        )
+    activity.save()
+
+
 class Reaction(models.Model):
     booking = models.ForeignKey('Stargramrequest', related_name='booking_reaction', on_delete=models.CASCADE)
     user = models.ForeignKey('users.StargramzUser', related_name='user_reaction', on_delete=models.CASCADE)
@@ -334,6 +355,7 @@ class Reaction(models.Model):
     height = models.IntegerField('Height', blank=True, null=True)
     duration = models.TimeField('Duration', blank=True, null=True)
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
+    activities = GenericRelation('users.RecentActivity')
 
     def __str__(self):
         return 'Reaction - %s' % str(self.pk)
@@ -354,6 +376,23 @@ def update_reaction_in_dashboard(sender, instance, **kwargs):
     except Exception as e:
         print(str(e))
         pass
+
+
+@receiver(post_save, sender=Reaction)
+def create_reaction_activity(sender, instance, **kwargs):
+    from users.models import RecentActivity, ACTIVITY_TYPES
+
+    if instance.user == instance.booking.celebrity:
+        activity = RecentActivity(
+            content_object=instance, activity_from_user=instance.user, activity_to_user=instance.booking.fan,
+            request=instance.booking, activity_type=ACTIVITY_TYPES.reaction, is_celebrity_activity=True
+        )
+    else:
+        activity = RecentActivity(
+            content_object=instance, activity_from_user=instance.user, activity_to_user=instance.booking.celebrity,
+            request=instance.booking, activity_type=ACTIVITY_TYPES.reaction, is_celebrity_activity=False
+        )
+    activity.save()
 
 
 class BookingAdminAdd(Stargramrequest):
