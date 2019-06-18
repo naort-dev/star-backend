@@ -215,8 +215,8 @@ class CelebrityListV2(CelebrityList):
         The list of celebrities and celebrity search
     """
     def list(self, request):
-        query_set = self.query_set.filter(is_active=True, temp_password=False).exclude(
-            group_account__admin_approval=True, celebrity_user__profile_video="")
+        exclude_condition = {'group_account__admin_approval': True, 'celebrity_user__profile_video': ''}
+        query_set = self.query_set.filter(is_active=True, temp_password=False).exclude(**exclude_condition)
         sort = request.GET.get('sort')
         filter_by_lower_rate = request.GET.get('lrate')
         filter_by_upper_rate = request.GET.get('urate')
