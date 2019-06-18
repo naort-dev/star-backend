@@ -358,5 +358,15 @@
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }
+  },
+  {
+    "model": "config.config",
+    "pk": 37,
+    "fields": {
+      "key": "quick_comments",
+      "value": "{\"quick_comments\":[\"Thanks!\",\"Thanks, Susan\",\"You da man\",\"You go girl\",\"Happy to do that\",\"Appreciate you\",\"Come back again\",\"You're so kind!\"]}",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
   }
 ]

@@ -720,7 +720,7 @@ class UpdateBookingCount(APIView, ResponseViewMixin):
 
     def get(self, request):
         try:
-            user = StargramzUser.objects.get(username=request.user)
+            user = StargramzUser.objects.get(id=request.user.id)
             user.unseen_bookings = 0
             user.save()
         except Exception:

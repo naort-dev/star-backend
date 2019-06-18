@@ -19,6 +19,8 @@ class ConfigSerializer(serializers.ModelSerializer):
         try:
             if obj.key == 'decline_reasons':
                 return json.loads(obj.value)
+            elif obj.key == 'quick_comments':
+                return json.loads(obj.value)
             elif obj.key in environmental_variables:
                 return os.environ.get(environmental_variables[obj.key], None)
         except Exception as e:
