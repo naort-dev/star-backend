@@ -4,6 +4,6 @@ import datetime
 def high_cancel_check(query_set):
     count = query_set.filter(modified_date__gt=timezone.now() - datetime.timedelta(days=30)).count()
     if count > 3:
-        return True
+        return True, count
     else:
-        return False
+        return False, 0

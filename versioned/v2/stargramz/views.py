@@ -136,7 +136,12 @@ class RequestListV2(RequestList):
             serializer = self.get_serializer(page, many=True)
             data = self.paginator.get_paginated_response(serializer.data, key_name='request_list')
             if filter_by_status and len(filter_by_status) == 1 and filter_by_status[0] == STATUS_TYPES.cancelled:
-                data.data['data'].update({'high_cancel': high_cancel_check(query_set)})
+                data.data['data'].update(
+                    {
+                        'high_cancel': high_cancel_check(query_set)[0],
+                        'high_cancel_count': high_cancel_check(query_set)[1]
+                    }
+                )
             return data
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
