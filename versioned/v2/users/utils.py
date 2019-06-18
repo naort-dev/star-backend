@@ -226,10 +226,6 @@ def apply_the_checks(user, data):
         created_date__lt=timezone.now() - datetime.timedelta(days=5),
         created_date__gt=timezone.now() - datetime.timedelta(days=7)
     ).count()
-    if expiring_bookings > 0:
-        expiring_bookings = True
-    else:
-        expiring_bookings = False
 
     # social media promotion
 
@@ -257,6 +253,10 @@ def apply_the_checks(user, data):
     else:
         condider_pricing = False
 
+    # welcome_video
+
+    update_welcome_video = True if one_eighty_days_booking_count == 0 else False
+
     # bio check
 
     bio = data.get('has_biography', False)
@@ -273,6 +273,7 @@ def apply_the_checks(user, data):
             'expiring_bookings': expiring_bookings,
             'social_promotion': social_promotion,
             'condider_pricing': condider_pricing,
+            'update_welcome_video': update_welcome_video,
             'has_biography': bio_check
         }
     )
