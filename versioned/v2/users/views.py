@@ -532,15 +532,27 @@ class RecentActivityView(GenericViewSet, ResponseViewMixin):
     serializer_class = RecentActivitySerializer
 
     def list(self, request):
-        if request.GET['role'] == CELEBRITY:
-            query_set = RecentActivity.objects.filter(
-                activity_to_user=request.user, is_celebrity_activity=False
-            ).order_by('-created_date')
-        elif request.GET['role'] == FAN:
-            query_set = RecentActivity.objects.filter(
-                activity_to_user=request.user, is_celebrity_activity=True
-            ).order_by('-created_date')
-
+        filter_by_role = request.GET.get('role', None)
+        filter_by_request = request.GET.get('booking_id', None)
+        if filter_by_role:
+            if filter_by_role == CELEBRITY:
+                query_set = RecentActivity.objects.filter(
+                    activity_to_user=request.user, is_celebrity_activity=False
+                )
+            elif filter_by_role == FAN:
+                query_set = RecentActivity.objects.filter(
+                    activity_to_user=request.user, is_celebrity_activity=True
+                )
+        if filter_by_request:
+            booking_id = None
+            try:
+                booking_id = decode_pk(filter_by_request)
+            except:
+                pass
+            if booking_id:
+                query_set = query_set.filter(request_id=booking_id)
+        query_set = query_set.order_by('-created_date')
         page = self.paginate_queryset(query_set.distinct())
         serializer = self.get_serializer(page, many=True)
+
         return self.paginator.get_paginated_response(serializer.data, key_name='recent_activities')
