@@ -6,7 +6,7 @@ from django import forms
 from users.models import StargramzUser, AdminUser, FanUser, CelebrityUser, Profession, GroupAccountUser, GroupAccount,\
     UserRoleMapping, Celebrity, CelebrityProfession, SettingsNotifications, FanRating, Campaign, Referral, VanityUrl, \
     CelebrityAvailableAlert, GroupType, CelebrityGroupAccount, Representative, AdminReferral, ProfileImage, \
-    SocialMediaLinks, CelebrityFollow
+    SocialMediaLinks, CelebrityFollow, RecentActivity
 from role.models import Role
 from payments.models import PaymentPayout, TipPayment
 from utilities.konstants import ROLES
@@ -888,6 +888,11 @@ class CelebrityFollowAdmin(ReadOnlyModelAdmin):
     search_fields = ('celebrity__email',)
 
 
+class RecentActivityAdmin(admin.ModelAdmin):
+    list_display = ('id', 'activity_from_user', 'activity_to_user', 'request', 'activity_type', 'created_date')
+
+
+
 admin.site.register(GroupType, GroupTypeAdmin)
 admin.site.register(Profession, ProfessionAdmin)
 admin.site.register(StargramzUser, StargramzUserAdmin)
@@ -902,3 +907,4 @@ admin.site.register(CelebrityGroupAccount, JoinGroupAdmin)
 admin.site.register(CelebrityAvailableAlert, CelebrityAvailabilityAlertAdmin)
 admin.site.register(AdminReferral, AdminReferralAdmin)
 admin.site.register(CelebrityFollow, CelebrityFollowAdmin)
+admin.site.register(RecentActivity, RecentActivityAdmin)
