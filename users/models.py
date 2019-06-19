@@ -75,7 +75,8 @@ ACTIVITY_TYPES = Konstants(
     K(comment=1, label='comment'),
     K(reaction=2, label='reaction'),
     K(tip=3, label='tip'),
-    K(rating=4, label='rating')
+    K(rating=4, label='rating'),
+    K(video=5, label='video')
 )
 
 

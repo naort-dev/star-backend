@@ -204,13 +204,14 @@ class RecentActivitySerializer(serializers.ModelSerializer):
     class Meta:
         model = RecentActivity
         fields = ('id', 'activity_from_user', 'activity_to_user', 'request', 'activity_type', 'activity_details',
-                  'created_date')
+                  'created_date', 'public_visibility')
 
     def get_activity_type(self, obj):
         activity_types = dict(ACTIVITY_TYPES.choices())
         return activity_types[obj.activity_type]
 
     def get_activity_details(self, obj):
+        activity_details = {}
         if obj.activity_type == ACTIVITY_TYPES.comment:
             activity_details = CommentReplySerializer(obj.content_object, read_only=True).data
         elif obj.activity_type == ACTIVITY_TYPES.reaction:

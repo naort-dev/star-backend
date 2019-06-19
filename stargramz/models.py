@@ -270,6 +270,18 @@ def update_video_in_dashboard(sender, instance, **kwargs):
         pass
 
 
+@receiver(post_save, sender=StargramVideo)
+def create_video_activity(sender, instance, **kwargs):
+    from users.models import RecentActivity, ACTIVITY_TYPES
+
+    if instance.status == VIDEO_STATUS.completed:
+        activity = RecentActivity(
+            content_object=instance, activity_from_user=instance.stragramz_request.celebrity,
+            activity_to_user=instance.stragramz_request.fan, request=instance.stragramz_request,
+            activity_type=ACTIVITY_TYPES.video, is_celebrity_activity=True
+        )
+        activity.save()
+
 
 class ReportAbuse(models.Model):
     request = models.ForeignKey('Stargramrequest', related_name='request_abuse', on_delete=models.CASCADE)
