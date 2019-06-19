@@ -1,4 +1,4 @@
-from utilities.utils import encode_pk, get_pre_signed_get_url, get_s3_public_url
+from utilities.utils import encode_pk, get_pre_signed_get_url, get_s3_public_url, decode_pk
 from rest_framework import serializers
 from users.serializer import ProfessionSerializer, ProfessionFilterSerializer, ProfilePictureSerializer, \
     CelebrityRatingSerializerEncoder
@@ -6,7 +6,7 @@ from .models import CelebrityDisplay, HomePageVideo, VIDEO_TYPES, CelebrityDashb
 from users.serializer import UserSerializer
 from users.models import CelebrityProfession, Profession, VanityUrl, StargramzUser, Celebrity, RecentActivity, ACTIVITY_TYPES
 from config.models import Config
-from django.db.models import F
+from django.db.models import F, Q
 import datetime
 import pytz
 from versioned.v2.stargramz.serializer import StargramzRetrieveSerializerV2, ReactionListingSerializerV2, \
@@ -198,6 +198,7 @@ class RecentActivitySerializer(serializers.ModelSerializer):
     request = StargramzRetrieveSerializerV2(read_only=True)
     activity_type = serializers.SerializerMethodField(read_only=True)
     activity_details = serializers.SerializerMethodField(read_only=True)
+    id = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = RecentActivity
@@ -219,3 +220,38 @@ class RecentActivitySerializer(serializers.ModelSerializer):
             activity_details = CelebrityRatingSerializerEncoderV2(obj.content_object, read_only=True).data
 
         return activity_details
+
+    def get_id(self, obj):
+        return encode_pk(obj.id)
+
+
+class ActivityPublicVisibilitySerializer(serializers.ModelSerializer):
+    activity = serializers.CharField(required=True)
+
+    class Meta:
+        model = RecentActivity
+        fields = ('activity', 'activity_from_user', 'activity_to_user')
+
+    def validate(self, data):
+        try:
+            activity = RecentActivity.objects.get(
+                id=decode_pk(data.get('activity')),
+                activity_to_user=data.get('activity_to_user')
+            )
+            data.update(
+                {
+                    'activity': activity,
+                }
+            )
+        except:
+            raise serializers.ValidationError('activity_id is invalid')
+
+        return data
+
+    def save(self, **kwargs):
+        activity = self.validated_data['activity']
+        if activity.public_visibility:
+            activity.public_visibility = False
+        else:
+            activity.public_visibility = True
+        activity.save()

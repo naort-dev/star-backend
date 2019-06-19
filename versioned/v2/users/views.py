@@ -2,7 +2,7 @@ from users.authenticate_views import FilterProfessions, Professions, UserRegiste
 from .serializer import ProfessionFilterSerializerV2, ProfessionSerializerV2, SearchSerializer,\
     CelebrityDisplaySerializer, TrendingCelebritySerializer, HomePageVideoSerializer, RegisterUserSerializer, \
     ProfilePictureSerializer, CelebrityApprovalSerializer, CelebrityShareSerializer, CelebrityDashboardSerializer, \
-    RecentActivitySerializer
+    RecentActivitySerializer, ActivityPublicVisibilitySerializer
 from elasticsearch_dsl.connections import connections
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
@@ -556,3 +556,23 @@ class RecentActivityView(GenericViewSet, ResponseViewMixin):
         serializer = self.get_serializer(page, many=True)
 
         return self.paginator.get_paginated_response(serializer.data, key_name='recent_activities')
+
+
+class ActivityPublicVisibility(APIView, ResponseViewMixin):
+    authentication_classes = (CustomAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def post(self, request):
+        request.data.update(
+            {
+                'activity_to_user': request.user.id,
+                'activity_from_user': request.user.id
+            }
+        )
+        serializer = ActivityPublicVisibilitySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return self.jp_response(s_code='HTTP_200_OK', data='success')
+        else:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE',
+                                          self.error_msg_string(serializer.errors))
