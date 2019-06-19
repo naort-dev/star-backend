@@ -1355,25 +1355,29 @@ def generate_reaction_videos(reaction_id):
     your_media_root = settings.MEDIA_ROOT + 'thumbnails/'
     watermark_location = your_media_root + 'watermark/'
     width = height = 0
-
+    print('before s3 file check')
     if check_file_exist_in_s3(s3folder + reactions.reaction_file) is not False:
-
+        print('reaction file exist in S3')
         try:
             video_name = reactions.reaction_file
 
             # Generating the pre-signed s3 URL
             video_url = get_pre_signed_get_url(video_name, s3folder)
             video_original = delete_original_video = your_media_root + video_name
+            print('reaction original video - %s', video_original)
 
             # Downloading video from s3
             urllib.request.urlretrieve(video_url, video_original)
             name = video_name.split(".", 1)[0]
             video_thumbnail_name = re.sub('[^a-zA-Z0-9]', '', name) + "_thumbnail.jpg"
             video_thumb = your_media_root + video_thumbnail_name
+            print("reaction video downloaded")
 
             try:
+                print("reaction video clipping started")
                 VideoFileClip(video_original)
             except Exception:
+                print("reaction video clipping exception")
                 new_file = your_media_root + 'REACTIONS_%s.mp4' % name
                 fix_corrupted_video(video_original, new_file)
                 try:
@@ -1384,6 +1388,7 @@ def generate_reaction_videos(reaction_id):
 
             try:
                 # Creating the image thumbnail from the video
+                print("reaction thumbnail")
                 clip = VideoFileClip(video_original)
                 if clip.rotation in [90, 270]:
                     clip = clip.resize(clip.size[::-1])
@@ -1393,10 +1398,12 @@ def generate_reaction_videos(reaction_id):
 
                 duration = clip.duration
             except Exception as e:
+                print("thumbnail generation failed")
                 print(str(e))
 
             # Creating a water mark for video
             if watermark_videos(video_original, name, your_media_root):
+                print("reaction video watermarking success")
                 if os.path.exists(watermark_location + "%s.mp4" % name):
                     for i in range(0, 3):
                         try:
@@ -1447,7 +1454,8 @@ def generate_reaction_videos(reaction_id):
 
         except (AttributeError, KeyError, IndexError):
             print('Video file not available in S3 bucket.')
-    print('Completed reactions thumbnail creations.')
+
+        print('Completed reactions thumbnail creations.')
 
 
 @app.task(name='generate_reaction_image')
