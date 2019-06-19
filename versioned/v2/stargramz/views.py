@@ -115,6 +115,7 @@ class RequestListV2(RequestList):
         tips = request.GET.get('tips', False)
         favorites = request.GET.get('favorites', False)
         oldest = request.GET.get('oldest', False)
+        recent_activity = request.GET.get('recent_activity', False)
 
         try:
             if rated:
@@ -131,6 +132,7 @@ class RequestListV2(RequestList):
             # sorting
 
             query_set = query_set.order_by('created_date') if oldest else query_set.order_by('-created_date')
+            query_set = query_set.order_by('-activity_request__created_date') if recent_activity else query_set
 
             page = self.paginate_queryset(query_set.distinct())
             serializer = self.get_serializer(page, many=True)
