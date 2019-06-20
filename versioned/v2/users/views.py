@@ -1,8 +1,9 @@
-from users.authenticate_views import FilterProfessions, Professions, UserRegister, UserDetails, ProfileImages
+from users.authenticate_views import FilterProfessions, Professions, UserRegister, UserDetails, ProfileImages,\
+    ChangePassword
 from .serializer import ProfessionFilterSerializerV2, ProfessionSerializerV2, SearchSerializer,\
     CelebrityDisplaySerializer, TrendingCelebritySerializer, HomePageVideoSerializer, RegisterUserSerializer, \
     ProfilePictureSerializer, CelebrityApprovalSerializer, CelebrityShareSerializer, CelebrityDashboardSerializer, \
-    RecentActivitySerializer, ActivityPublicVisibilitySerializer, ContactSupportSerializerV2
+    RecentActivitySerializer, ActivityPublicVisibilitySerializer, ContactSupportSerializerV2, ChangePasswordSerializerV2
 from elasticsearch_dsl.connections import connections
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
@@ -603,3 +604,7 @@ class ContactSupportV2(APIView, ResponseViewMixin):
             return self.jp_response(s_code='HTTP_200_OK', data='Submitted your comments to our support team')
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', self.error_msg_string(serializer.errors))
+
+
+class ChangePasswordV2(ChangePassword):
+    serializer_class = ChangePasswordSerializerV2

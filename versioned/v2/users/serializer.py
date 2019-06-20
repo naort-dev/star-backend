@@ -13,6 +13,7 @@ from versioned.v2.stargramz.serializer import StargramzRetrieveSerializerV2, Rea
     TippingSerializerV2
 from stargramz.serializer import CommentReplySerializer
 from config.constants import *
+import django.contrib.auth.password_validation as validators
 
 
 class ProfessionSerializerV2(ProfessionSerializer):
@@ -264,3 +265,15 @@ class ContactSupportSerializerV2(serializers.Serializer):
 
     comments = serializers.CharField(required=True)
     topic = serializers.CharField(required=True)
+
+
+class ChangePasswordSerializerV2(serializers.Serializer):
+    new_password = serializers.CharField(required=True, allow_blank=False, allow_null=False)
+
+    def validate(self, data):
+        new_password = data.get('new_password', '')
+        try:
+            validators.validate_password(new_password)
+        except Exception as e:
+            raise serializers.ValidationError(str(e))
+        return data

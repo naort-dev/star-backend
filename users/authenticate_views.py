@@ -228,12 +228,13 @@ class ResetPassword(APIView, ResponseViewMixin):
 class ChangePassword(APIView, ResponseViewMixin):
     authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
+    serializer_class = ChangePasswordSerializer
 
     def post(self, request):
         """
             Change the password
         """
-        serializer = ChangePasswordSerializer(data=request.data, context={'user': request.user})
+        serializer = self.serializer_class(data=request.data, context={'user': request.user})
         if serializer.is_valid():
             request.user.set_password(request.data['new_password'])
             request.user.save()
