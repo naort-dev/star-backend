@@ -50,7 +50,7 @@ class PayoutAdmin(ReadOnlyModelAdmin):
 
 
 class TipPaymentAdmin(ReadOnlyModelAdmin):
-    list_display = ('id', 'booking_id', 'fan', 'celebrity', 'transaction_status')
+    list_display = ('id', 'booking_id', 'fan', 'celebrity', 'transaction_status', 'created_date')
 
     fieldsets = (
         (_('Starsona Details'), {'fields': ('booking', 'fan', 'celebrity')}),
@@ -61,7 +61,7 @@ class TipPaymentAdmin(ReadOnlyModelAdmin):
     )
     search_fields = ('id', 'fan__username', 'celebrity__username',)
     list_display_links = ('id',)
-    list_filter = ('transaction_status',)
+    list_filter = ('transaction_status', 'created_date')
     readonly_fields = ('created_date', 'fan', 'celebrity', 'modified_date', 'source_id',
                        'stripe_transaction_id', 'booking', 'amount', 'comments', 'tip_payed_out',
                        'payed_out_transaction_id', 'payed_out_response')
