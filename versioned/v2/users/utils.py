@@ -122,7 +122,7 @@ def tip_amount_update(dashboard):
     tip_payments = TipPayment.objects.filter(
         celebrity_id=user.id,
         created_date__gt=timezone.now()-datetime.timedelta(days=14),
-        transaction_status=TIP_STATUS.captured
+        transaction_status=TIP_STATUS.tip_payed_out
     )
     amount = tip_payments.aggregate(Sum('tip_payed_out'))
     recent_tip_amount = float(amount['tip_payed_out__sum']) if amount['tip_payed_out__sum'] else 0
@@ -230,8 +230,11 @@ def apply_the_checks(user, data):
     # social media promotion
 
     profile_share_date = data.get('last_profile_shared_at', None)
+    profile_share_date = datetime.datetime.strptime(profile_share_date, "%Y-%m-%dT%I:%M:%S.%fZ") if profile_share_date else None
     last_video_shared_at = data.get('last_video_shared_at', None)
+    last_video_shared_at = datetime.datetime.strptime(last_video_shared_at, "%Y-%m-%dT%I:%M:%S.%fZ") if last_video_shared_at else None
     if profile_share_date or last_video_shared_at:
+        current_time = current_time.replace(tzinfo=None)
         if profile_share_date and (current_time - profile_share_date).days < 30:
             social_promotion = True
         elif last_video_shared_at and (current_time - last_video_shared_at).days < 30:
