@@ -368,5 +368,15 @@
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }
+  },
+  {
+    "model": "config.config",
+    "pk": 38,
+    "fields": {
+      "key": "topics",
+      "value": "{\"topics\":[\"Getting started\",\"Your account\",\"Bookings\",\"Payments, payouts, and refunds\",\"Videos\",\"Reviews and reactions\",\"General\",\"Technical issues\",\"Safety and privacy\"]}",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
   }
 ]

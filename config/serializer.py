@@ -21,6 +21,8 @@ class ConfigSerializer(serializers.ModelSerializer):
                 return json.loads(obj.value)
             elif obj.key == 'quick_comments':
                 return json.loads(obj.value)
+            elif obj.key == 'topics':
+                return json.loads(obj.value)
             elif obj.key in environmental_variables:
                 return os.environ.get(environmental_variables[obj.key], None)
         except Exception as e:

@@ -255,3 +255,12 @@ class ActivityPublicVisibilitySerializer(serializers.ModelSerializer):
         else:
             activity.public_visibility = True
         activity.save()
+
+
+class ContactSupportSerializerV2(serializers.Serializer):
+    """
+        Comments field serializer
+    """
+
+    comments = serializers.CharField(required=True)
+    topic = serializers.CharField(required=True)

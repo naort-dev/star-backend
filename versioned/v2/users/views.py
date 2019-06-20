@@ -2,7 +2,7 @@ from users.authenticate_views import FilterProfessions, Professions, UserRegiste
 from .serializer import ProfessionFilterSerializerV2, ProfessionSerializerV2, SearchSerializer,\
     CelebrityDisplaySerializer, TrendingCelebritySerializer, HomePageVideoSerializer, RegisterUserSerializer, \
     ProfilePictureSerializer, CelebrityApprovalSerializer, CelebrityShareSerializer, CelebrityDashboardSerializer, \
-    RecentActivitySerializer, ActivityPublicVisibilitySerializer
+    RecentActivitySerializer, ActivityPublicVisibilitySerializer, ContactSupportSerializerV2
 from elasticsearch_dsl.connections import connections
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
@@ -32,7 +32,7 @@ from .tasks import welcome_email_version_2, remove_profile_images_from_s3, celeb
 from .utils import date_format_conversion, recent_deposit_amount, apply_the_checks
 from rest_framework.permissions import IsAuthenticated
 from utilities.authentication import CustomAuthentication
-from utilities.utils import removefromdict
+from utilities.utils import removefromdict, sent_email
 from utilities.pagination import CustomOffsetPagination
 from rest_framework.viewsets import GenericViewSet
 hashids = Hashids(min_length=8)
@@ -576,3 +576,30 @@ class ActivityPublicVisibility(APIView, ResponseViewMixin):
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE',
                                           self.error_msg_string(serializer.errors))
+
+
+class ContactSupportV2(APIView, ResponseViewMixin):
+    """
+        Sent email to support from the Fans request details screen
+    """
+
+    authentication_classes = (CustomAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def post(self, request):
+        serializer = ContactSupportSerializerV2(data=request.data)
+        if serializer.is_valid():
+            support_email = Config.objects.get(key='support_email').value
+
+            subject = 'Starsona Contact Support'
+            template = 'contact_support_v2'
+            ctx = {
+                'username': request.user.get_short_name(),
+                'email': request.user.email,
+                'topic': serializer.validated_data.get('topic'),
+                'comments': serializer.validated_data.get('comments'),
+            }
+            sent_email(support_email, subject, template, ctx)
+            return self.jp_response(s_code='HTTP_200_OK', data='Submitted your comments to our support team')
+        else:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', self.error_msg_string(serializer.errors))
