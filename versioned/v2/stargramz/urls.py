@@ -1,11 +1,12 @@
 from rest_framework.routers import DefaultRouter
 from .views import FeaturedVideoV2, OccasionListV2, ReactionsFullListing, StargramzRequestV2, RequestListV2,\
-    VideoFavoritesView
+    VideoFavoritesView, VideoHideFromPublic
 from django.conf.urls import url
 
 urlpatterns = [
     url(r'^occasion_list/$', OccasionListV2.as_view(), name='occasion_list-v2'),
     url(r'^request_favorites/$', VideoFavoritesView.as_view(), name='request_favorites'),
+    url(r'^video_hide_from_public/$', VideoHideFromPublic.as_view(), name='video_hide_from_public'),
 ]
 
 router = DefaultRouter()

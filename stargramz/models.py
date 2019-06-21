@@ -246,6 +246,7 @@ class StargramVideo(models.Model):
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
     modified_date = models.DateTimeField('Modified Date', auto_now=True)
     visibility = models.BooleanField('Public Visibility', default=True)
+    public_visibility = models.BooleanField('New Public Visibility', default=True)
     width = models.IntegerField('Width', blank=True, null=True)
     height = models.IntegerField('Height', blank=True, null=True)
     comments_count = models.IntegerField('Comments count', blank=True, null=True, default=0)

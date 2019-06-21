@@ -1,6 +1,6 @@
 from stargramz.views import FeaturedVideo, OccasionList, StargramzRequest, RequestList
 from .serializer import StargramzVideoSerializerV2, OccasionSerializerV2, ReactionListingSerializerV2,\
-    StargramzSerializerV2, StargramzRetrieveSerializerV2, VideoFavoritesSerializer
+    StargramzSerializerV2, StargramzRetrieveSerializerV2, VideoFavoritesSerializer, VideoHideFromPublicSerializer
 from rest_framework.viewsets import GenericViewSet
 from utilities.mixins import ResponseViewMixin
 from stargramz.models import Reaction, Stargramrequest, STATUS_TYPES
@@ -8,6 +8,9 @@ from utilities.pagination import CustomOffsetPagination
 from rest_framework.views import APIView
 from users.models import UserRoleMapping, ROLES
 from .utils import high_cancel_check
+from utilities.authentication import CustomAuthentication
+from rest_framework.permissions import IsAuthenticated
+from utilities.permissions import CustomPermission
 
 
 class FeaturedVideoV2(FeaturedVideo):
@@ -15,7 +18,10 @@ class FeaturedVideoV2(FeaturedVideo):
 
     def list(self, request):
         self.required_fields.append('comments')
-        self.queryset = self.queryset.filter(stragramz_request__request_rating__fan_rate__gte=4.00)
+        self.queryset = self.queryset.filter(
+            stragramz_request__request_rating__fan_rate__gte=4.00,
+            public_visibility=True
+        )
         return FeaturedVideo.list(self, request)
 
 
@@ -148,3 +154,16 @@ class RequestListV2(RequestList):
             return data
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
+
+
+class VideoHideFromPublic(APIView, ResponseViewMixin):
+    authentication_classes = (CustomAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def post(self, request):
+        serializer = VideoHideFromPublicSerializer(data=request.data, context={'user': request.user})
+        if serializer.is_valid():
+            serializer.save()
+            return self.jp_response(s_code='HTTP_200_OK', data='success')
+        else:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', self.error_msg_string(serializer.errors))
