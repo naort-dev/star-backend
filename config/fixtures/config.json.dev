@@ -184,7 +184,7 @@
     "pk": 19,
     "fields": {
       "key": "decline_reasons",
-      "value": "{\"personlised\":[\"Cannot pronounce name\",\"Request unclear\",\"Inappropriate request/audio clip\",\"Request is too long\"],\"event\":[\"Cannot pronounce name\",\"Request unclear\",\"Inappropriate request/audio clip\",\"Request is too long\"],\"q_and_a\":[\"Video not Clear\",\"Not audible\"]}",
+      "value": "{\"personlised\":[\"Unclear request details\",\"Inappropriate request / content\",\"Not sure how to pronounce name/names\",\"Request is too long\",\"Request is to promote a business / charity / etc that star does not support\",\"Unavailable at this time\",\"Other\"]}",
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }
