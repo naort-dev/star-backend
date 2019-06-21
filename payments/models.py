@@ -6,6 +6,8 @@ from utilities.konstants import K, Konstants
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.contrib.contenttypes.fields import GenericRelation
+import datetime
+import pytz
 # Create your models here.
 
 TRANSACTION_STATUS = Konstants(
@@ -173,4 +175,6 @@ def create_tip_activity(sender, instance, **kwargs):
             content_object=instance, activity_from_user=instance.fan, activity_to_user=instance.celebrity,
             request=instance.booking, activity_type=ACTIVITY_TYPES.tip, is_celebrity_activity=False
         )
+        instance.booking.recent_activity_date = datetime.datetime.now(pytz.UTC)
+        instance.booking.save()
     activity.save()

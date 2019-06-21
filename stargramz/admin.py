@@ -234,7 +234,7 @@ class TipPaymentAdmin(ReadOnlyTabularInline):
 class StargramrequestAdmin(ReadOnlyModelAdmin):
 
     actions = ['make_complete']
-    list_display = ('id', 'fan', 'celebrity', 'occasion', 'request_status',)
+    list_display = ('id', 'fan', 'celebrity', 'occasion', 'request_status', 'recent_activity_date')
     list_filter = ('request_status', 'request_type')
     fieldsets = (
         (_('Basic info'), {'fields': ('booking_title', 'fan', 'celebrity', 'occasion', 'request_data', 'request_type')}),

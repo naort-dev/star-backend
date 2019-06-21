@@ -15,6 +15,7 @@ from .tasks import alert_fans_celebrity_available, alert_admin_celebrity_updates
 from django.apps import apps
 from django.db.models.signals import pre_save
 import datetime
+import pytz
 from decimal import Decimal
 from math import ceil
 from django.db.models import Sum
@@ -472,6 +473,8 @@ def create_rating_activity(sender, instance, **kwargs):
             content_object=instance, activity_from_user=instance.fan, activity_to_user=instance.celebrity,
             request=instance.starsona, activity_type=ACTIVITY_TYPES.rating, is_celebrity_activity=False
         )
+        instance.starsona.recent_activity_date = datetime.datetime.now(pytz.UTC)
+        instance.starsona.save()
     activity.save()
 
 
