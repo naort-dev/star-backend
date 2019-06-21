@@ -13,7 +13,7 @@ from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_para
     get_user_role_details, encode_pk
 from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo, CelebrityDashboard
 from users.models import StargramzUser, Profession, Celebrity, AdminReferral, FanRating, SettingsNotifications,\
-    REMINDER_MAIL_COUNT, ProfileImage, Referral, RecentActivity
+    REMINDER_MAIL_COUNT, ProfileImage, Referral, RecentActivity, ACTIVITY_TYPES
 from users.utils import generate_random_code
 from users.fan_views import CelebrityList
 from django.db.models import Q, F, Value, Case, When
@@ -36,6 +36,8 @@ from utilities.authentication import CustomAuthentication
 from utilities.utils import removefromdict, sent_email
 from utilities.pagination import CustomOffsetPagination
 from rest_framework.viewsets import GenericViewSet
+from datetime import datetime, timedelta
+import pytz
 hashids = Hashids(min_length=8)
 
 
@@ -535,15 +537,24 @@ class RecentActivityView(GenericViewSet, ResponseViewMixin):
     def list(self, request):
         filter_by_role = request.GET.get('role', None)
         filter_by_request = request.GET.get('booking_id', None)
+        current_date = datetime.now(pytz.UTC)
         if filter_by_role:
             if filter_by_role == CELEBRITY:
                 query_set = RecentActivity.objects.filter(
                     activity_to_user=request.user, is_celebrity_activity=False
                 )
             elif filter_by_role == FAN:
-                query_set = RecentActivity.objects.filter(
-                    activity_to_user=request.user, is_celebrity_activity=True
+                comment_activity = RecentActivity.objects.filter(
+                    activity_to_user=request.user, is_celebrity_activity=True,
+                    activity_type=ACTIVITY_TYPES.comment,
+                    created_date__range=(current_date - timedelta(days=14), current_date)
                 )
+                video_activity = RecentActivity.objects.filter(
+                    activity_to_user=request.user, is_celebrity_activity=True,
+                    activity_type=ACTIVITY_TYPES.video
+                )
+                query_set = comment_activity | video_activity
+
         if filter_by_request:
             booking_id = None
             try:
@@ -551,7 +562,9 @@ class RecentActivityView(GenericViewSet, ResponseViewMixin):
             except:
                 pass
             if booking_id:
-                query_set = query_set.filter(request_id=booking_id)
+                query_set = RecentActivity.objects.filter(request_id=booking_id).exclude(
+                    activity_type=ACTIVITY_TYPES.video
+                )
         query_set = query_set.order_by('-created_date')
         page = self.paginate_queryset(query_set.distinct())
         serializer = self.get_serializer(page, many=True)
