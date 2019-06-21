@@ -206,7 +206,7 @@ def tip_payments_payout_retry():
                     tip_detail.payed_out_transaction_id = transfer.id
                     tip_detail.payed_out_response = json.dumps(transfer)
                     tip_detail.save()
-                    tip_payment_celebrity_notification.delay(tip_details.id)
+                    tip_payment_celebrity_notification.delay(tip_detail.id)
                     print('Successfully transferred amount to celebrity account')
                 except Exception as e:
                     tip_detail.transaction_status = TIP_STATUS.failed
