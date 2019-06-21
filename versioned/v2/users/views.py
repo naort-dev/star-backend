@@ -621,3 +621,17 @@ class ContactSupportV2(APIView, ResponseViewMixin):
 
 class ChangePasswordV2(ChangePassword):
     serializer_class = ChangePasswordSerializerV2
+
+
+class SettingsViewed(APIView, ResponseViewMixin):
+    authentication_classes = (CustomAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def post(self, request):
+        try:
+            settings = SettingsNotifications.objects.get(user_id=request.user.id)
+            settings.is_viewed = True
+            settings.save()
+            return self.jp_response(s_code='HTTP_200_OK', data='successful')
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', str(e))

@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import FilterProfessionsV2, ProfessionsV2, CelebritySuggestionListV2, CelebrityDisplayView,\
     TrendingStars, Register, CelebrityListV2, UserDetailsV2, CelebrityManagementV2, StargramzAutocomplete, \
     ProfileImagesV2, CelebrityApproval, CelebrityShare, CelebrityDashboardView, DashboardUpdateView, RecentActivityView,\
-    ActivityPublicVisibility, ContactSupportV2, ChangePasswordV2
+    ActivityPublicVisibility, ContactSupportV2, ChangePasswordV2, SettingsViewed
 
 urlpatterns = [
     url(r'^professions/$', ProfessionsV2.as_view(), name='profession-v2'),
@@ -21,6 +21,7 @@ urlpatterns = [
     url(r'^activity_public_visibility/$', ActivityPublicVisibility.as_view(), name='activity_public_visibility'),
     url(r'^contact_support/$', ContactSupportV2.as_view(), name='contact-support-v2'),
     url(r'^changepassword/$', ChangePasswordV2.as_view(), name='change-password-v2'),
+    url(r'^settings_viewed/$', SettingsViewed.as_view(), name='settings_viewed'),
 ]
 
 router = DefaultRouter()

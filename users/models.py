@@ -561,6 +561,7 @@ class SettingsNotifications(models.Model):
     mobile_notification = models.BooleanField(default=False)
     mobile_verified = models.BooleanField(default=False)
     verification_uuid = models.CharField(blank=True, null=True, max_length=120)
+    is_viewed = models.BooleanField(default=False)
 
 
 class CelebrityAvailableAlert(models.Model):
