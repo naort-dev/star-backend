@@ -76,7 +76,9 @@ class RequestListV2(RequestList):
         :param request:
         :return:
         """
-        query_set = self.queryset.prefetch_related('request_rating', 'booking_reaction', 'tip_payment', 'favorite_booking')
+        query_set = self.queryset.prefetch_related(
+            'request_rating', 'booking_reaction', 'tip_payment', 'favorite_booking', 'activity_request'
+        )
 
         mappings = UserRoleMapping.objects.get(user=request.user)
 
@@ -118,23 +120,22 @@ class RequestListV2(RequestList):
         recent_activity = request.GET.get('recent_activity', False)
 
         try:
-            if rated:
+            if rated == 'true':
                 query_set = query_set.filter(request_rating__fan_rate__gt=0)
-            if comments:
+            if comments == 'true':
                 query_set = query_set.filter(request_video__comment_video__comments__isnull=False)
-            if reactions:
+            if reactions == 'true':
                 query_set = query_set.filter(booking_reaction__reaction_file__isnull=False)
-            if tips:
+            if tips == 'true':
                 query_set = query_set.filter(tip_payment__amount__isnull=False)
-            if favorites:
+            if favorites == 'true':
                 query_set = query_set.filter(favorite_booking__celebrity__isnull=False)
 
             # sorting
-
-            query_set = query_set.order_by('created_date') if oldest else query_set.order_by('-created_date')
-            query_set = query_set.order_by('-activity_request__created_date') if recent_activity else query_set
-
-            page = self.paginate_queryset(query_set.distinct())
+            query_set = query_set.order_by('created_date') if oldest == 'true' else query_set.order_by('-created_date')
+            query_set = query_set.order_by('-recent_activity_date') if recent_activity == 'true' else query_set
+            query_set = query_set.distinct()
+            page = self.paginate_queryset(query_set)
             serializer = self.get_serializer(page, many=True)
             data = self.paginator.get_paginated_response(serializer.data, key_name='request_list')
             if filter_by_status and len(filter_by_status) == 1 and filter_by_status[0] == STATUS_TYPES.cancelled:

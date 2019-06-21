@@ -8,8 +8,10 @@ from .constants import *
 from django.db.models import F
 from django.apps import apps
 import datetime
+import pytz
 from .utils import average_response_time_calculator
 from django.contrib.contenttypes.fields import GenericRelation
+from django.utils import timezone
 
 
 REQUEST_TYPES = Konstants(
@@ -134,6 +136,7 @@ class Stargramrequest(models.Model):
     )
     reprocessed = models.BooleanField('Reprocessing', default=False)
     booking_statement = models.CharField('Booking Statement', max_length=500, blank=True, null=True)
+    recent_activity_date = models.DateTimeField(blank=True, null=True, default=timezone.now)
     __original_request_status = None
 
     def __init__(self, *args, **kwargs):
@@ -352,6 +355,8 @@ def create_comment_activity(sender, instance, **kwargs):
             activity_to_user=instance.video.stragramz_request.celebrity, request=instance.video.stragramz_request,
             activity_type=ACTIVITY_TYPES.comment, is_celebrity_activity=False
         )
+        instance.video.stragramz_request.recent_activity_date = datetime.datetime.now(pytz.UTC)
+        instance.video.stragramz_request.save()
     activity.save()
 
 
@@ -404,6 +409,8 @@ def create_reaction_activity(sender, instance, **kwargs):
             content_object=instance, activity_from_user=instance.user, activity_to_user=instance.booking.celebrity,
             request=instance.booking, activity_type=ACTIVITY_TYPES.reaction, is_celebrity_activity=False
         )
+        instance.booking.recent_activity_date = datetime.datetime.now(pytz.UTC)
+        instance.booking.save()
     activity.save()
 
 
