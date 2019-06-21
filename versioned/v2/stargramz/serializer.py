@@ -1,10 +1,10 @@
 from rest_framework import serializers
 from stargramz.serializer import StargramzVideoSerializer, OccasionSerializer, ReactionListingSerializer,\
     StargramzSerializer, StargramzRetrieveSerializer, TippingSerializer
-from stargramz.models import Comment, Stargramrequest, REQUEST_TYPES, StargramVideo, Reaction, VIDEO_STATUS
+from stargramz.models import Comment, Stargramrequest, REQUEST_TYPES, StargramVideo, Reaction, VIDEO_STATUS, STATUS_TYPES
 from utilities.utils import encode_pk, decode_pk, get_bucket_url, get_s3_public_url
 from .models import VideoFavorites
-from payments.models import TipPayment
+from payments.models import TipPayment, PaymentPayout, StarsonaTransaction, PAYOUT_STATUS
 from config.models import Config
 from config.constants import *
 
@@ -122,10 +122,11 @@ class StargramzRetrieveSerializerV2(StargramzRetrieveSerializer):
     reaction_count = serializers.SerializerMethodField(read_only=True)
     video_thumbnail = serializers.SerializerMethodField(read_only=True)
     video_created_date = serializers.SerializerMethodField(read_only=True)
+    fund_payed_out = serializers.SerializerMethodField(read_only=True)
 
     class Meta(StargramzRetrieveSerializer.Meta):
         fields = StargramzRetrieveSerializer.Meta.fields + [
-            'comments', 'tip_amount', 'reaction_count', 'video_thumbnail', 'video_created_date'
+            'comments', 'tip_amount', 'reaction_count', 'video_thumbnail', 'video_created_date', 'fund_payed_out'
         ]
 
     def __init__(self, *args, **kwargs):
@@ -162,6 +163,27 @@ class StargramzRetrieveSerializerV2(StargramzRetrieveSerializer):
 
     def get_video_created_date(self, obj):
         return self.video_date
+
+    def get_fund_payed_out(self, obj):
+        if obj.request_status == STATUS_TYPES.completed:
+            try:
+                transaction = StarsonaTransaction.objects.get(starsona_id=obj.id, ambassador_transaction=False)
+                payment = PaymentPayout.objects.get(
+                    transaction_id=transaction.id,
+                    referral_payout=False,
+                    status=PAYOUT_STATUS.transferred
+                )
+                return {
+                    "payed_out_amount": payment.fund_payed_out,
+                    "payed_out_date": payment.modified_date
+                }
+            except:
+                return {
+                    "payed_out_amount": None,
+                    "payed_out_date": None
+                }
+        else:
+            return None
 
 
 class TippingSerializerV2(TippingSerializer):
