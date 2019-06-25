@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from stargramz.serializer import StargramzVideoSerializer, OccasionSerializer, ReactionListingSerializer,\
-    StargramzSerializer, StargramzRetrieveSerializer, TippingSerializer
-from stargramz.models import Comment, Stargramrequest, REQUEST_TYPES, StargramVideo, Reaction, VIDEO_STATUS, STATUS_TYPES
+    StargramzSerializer, StargramzRetrieveSerializer, TippingSerializer, CommentReplySerializer
+from stargramz.models import Comment, Stargramrequest, REQUEST_TYPES, StargramVideo, Reaction, VIDEO_STATUS, \
+    STATUS_TYPES
 from utilities.utils import encode_pk, decode_pk, get_bucket_url, get_s3_public_url
 from .models import VideoFavorites
 from payments.models import TipPayment, PaymentPayout, StarsonaTransaction, PAYOUT_STATUS

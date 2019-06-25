@@ -537,6 +537,7 @@ class RecentActivityView(GenericViewSet, ResponseViewMixin):
     def list(self, request):
         filter_by_role = request.GET.get('role', None)
         filter_by_request = request.GET.get('booking_id', None)
+        is_public = request.GET.get('is_public', None)
         current_date = datetime.now(pytz.UTC)
         if filter_by_role:
             if filter_by_role == CELEBRITY:
@@ -565,6 +566,9 @@ class RecentActivityView(GenericViewSet, ResponseViewMixin):
                 query_set = RecentActivity.objects.filter(request_id=booking_id).exclude(
                     activity_type=ACTIVITY_TYPES.video
                 )
+                if is_public:
+                    query_set = query_set.filter(public_visibility=True)
+
         query_set = query_set.order_by('-created_date')
         page = self.paginate_queryset(query_set.distinct())
         serializer = self.get_serializer(page, many=True)
