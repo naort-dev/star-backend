@@ -76,6 +76,9 @@ class VideoFavoritesView(APIView, ResponseViewMixin):
 class RequestListV2(RequestList):
     serializer_class = StargramzRetrieveSerializerV2
 
+    def get_serializer_context(self):
+        return {"user": self.user}
+
     def list(self, request):
         """
         This listing is similar to the version one but more filtering parameters
@@ -141,6 +144,7 @@ class RequestListV2(RequestList):
             query_set = query_set.order_by('created_date') if oldest == 'true' else query_set.order_by('-created_date')
             query_set = query_set.order_by('-recent_activity_date') if recent_activity == 'true' else query_set
             query_set = query_set.distinct()
+            self.user = request.user
             page = self.paginate_queryset(query_set)
             serializer = self.get_serializer(page, many=True)
             data = self.paginator.get_paginated_response(serializer.data, key_name='request_list')

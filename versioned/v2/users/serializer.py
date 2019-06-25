@@ -242,8 +242,8 @@ class ActivityPublicVisibilitySerializer(serializers.ModelSerializer):
     def validate(self, data):
         try:
             activity = RecentActivity.objects.get(
+                Q(activity_to_user=data.get('activity_to_user')) | Q(activity_from_user=data.get('activity_from_user')),
                 id=decode_pk(data.get('activity')),
-                activity_to_user=data.get('activity_to_user')
             )
             data.update(
                 {

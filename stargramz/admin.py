@@ -283,7 +283,8 @@ class StargramVideosAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'stragramz_request', 'video_duration', 'status', 'created_date')
 
     fieldsets = (
-        (_('Stargramz info'), {'fields': ('stragramz_request', 'video_thumbnail', 'video_link', 'video', 'read_status')}),
+        (_('Stargramz info'), {'fields': ('stragramz_request', 'video_thumbnail', 'video_link', 'video', 'read_status',
+                                          'public_visibility')}),
         (_('Video info'), {'fields': ('duration', 'created_date',)}),
     )
     readonly_fields = ('created_date', 'video_thumbnail', 'video_link', 'status')
