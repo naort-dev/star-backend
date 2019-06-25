@@ -4,7 +4,8 @@ from users.serializer import ProfessionSerializer, ProfessionFilterSerializer, P
     CelebrityRatingSerializerEncoder
 from .models import CelebrityDisplay, HomePageVideo, VIDEO_TYPES, CelebrityDashboard
 from users.serializer import UserSerializer
-from users.models import CelebrityProfession, Profession, VanityUrl, StargramzUser, Celebrity, RecentActivity, ACTIVITY_TYPES
+from users.models import CelebrityProfession, Profession, VanityUrl, StargramzUser, Celebrity, RecentActivity, \
+    ACTIVITY_TYPES
 from config.models import Config
 from django.db.models import F, Q
 import datetime
@@ -200,11 +201,12 @@ class RecentActivitySerializer(serializers.ModelSerializer):
     activity_type = serializers.SerializerMethodField(read_only=True)
     activity_details = serializers.SerializerMethodField(read_only=True)
     id = serializers.SerializerMethodField(read_only=True)
+    user_id = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = RecentActivity
         fields = ('id', 'activity_from_user', 'activity_to_user', 'request', 'activity_type', 'activity_details',
-                  'created_date', 'public_visibility')
+                  'created_date', 'public_visibility', 'user_id')
 
     def get_activity_type(self, obj):
         activity_types = dict(ACTIVITY_TYPES.choices())
@@ -225,6 +227,9 @@ class RecentActivitySerializer(serializers.ModelSerializer):
 
     def get_id(self, obj):
         return encode_pk(obj.id)
+
+    def get_user_id(self, obj):
+        return encode_pk(obj.activity_from_user.id)
 
 
 class ActivityPublicVisibilitySerializer(serializers.ModelSerializer):
