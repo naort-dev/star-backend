@@ -378,5 +378,35 @@
       "created_date": "2017-08-21 14:37:41.046314+05:30",
       "modified_date": "2017-08-21 14:37:41.046314+05:30"
     }
+  },
+  {
+    "model": "config.config",
+    "pk": 39,
+    "fields": {
+      "key": "default_price",
+      "value": "20",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 40,
+    "fields": {
+      "key": "booking_limit",
+      "value": "25",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
+  },
+  {
+    "model": "config.config",
+    "pk": 41,
+    "fields": {
+      "key": "cancel_booking_reasons",
+      "value": "{\"cancel_booking_reasons\":[\"I changed my mind\",\"I needed the video faster\",\"I will resubmit this request\",\"I chose a different Star\",\"Other\"]}",
+      "created_date": "2017-08-21 14:37:41.046314+05:30",
+      "modified_date": "2017-08-21 14:37:41.046314+05:30"
+    }
   }
 ]

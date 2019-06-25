@@ -612,7 +612,8 @@ class CelebrityProfileSerializer(CustomModelSerializer):
             CelebrityProfession.objects.filter(user=instance.user_id).delete()
             for profession in professions:
                 CelebrityProfession.objects.create(user_id=instance.user_id, profession_id=profession)
-        field_list = ['rate', 'in_app_price', 'weekly_limits', 'availability', 'description', 'charity', 'profile_video', 'duration']
+        field_list = ['rate', 'in_app_price', 'weekly_limits', 'availability', 'description', 'charity',
+                      'profile_video', 'duration', 'website']
         for list_item in field_list:
             if list_item in validated_data:
                 setattr(instance, list_item, validated_data.get(list_item))

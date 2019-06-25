@@ -99,7 +99,8 @@ class CelebrityManagement(APIView, ResponseViewMixin):
             return return_data
         fields = []
         # Remove 'check_payments' after next app release
-        field_list = ['profession', 'rate', 'weekly_limits', 'in_app_price', 'availability', 'description', 'charity', 'check_payments', 'profile_video']
+        field_list = ['profession', 'rate', 'weekly_limits', 'in_app_price', 'availability', 'description', 'charity',
+                      'website', 'check_payments', 'profile_video']
         for list_item in field_list:
             if list_item in request:
                 fields.append(list_item)
