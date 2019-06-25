@@ -196,3 +196,27 @@ class TippingSerializerV2(TippingSerializer):
     def get_user_image_url(self, obj):
         config = PROFILE_IMAGES
         return get_s3_public_url(str(obj.fan.avatar_photo), config)
+
+
+class VideoHideFromPublicSerializer(serializers.Serializer):
+    video = serializers.CharField(required=True)
+
+    def validate(self, data):
+        try:
+            data.update(
+                {
+                    'video': StargramVideo.objects.get(id=decode_pk(data.get('video')), stragramz_request__celebrity=self.context.get('user'))
+                }
+            )
+        except Exception as e:
+            print(str(e))
+            raise serializers.ValidationError('video id is in valid')
+        return data
+
+    def save(self):
+        video = self.validated_data.get('video')
+        if video.public_visibility:
+            video.public_visibility = False
+        else:
+            video.public_visibility = True
+        video.save()
