@@ -16,12 +16,9 @@ class ConfigSerializer(serializers.ModelSerializer):
             'aws_bucket_name': 'AWS_STORAGE_BUCKET_NAME',
             'elastic_search_endpoint': 'ELASTICSEARCH_ENDPOINT'
         }
+        json_data = ['decline_reasons', 'quick_comments', 'topics', 'cancel_booking_reasons']
         try:
-            if obj.key == 'decline_reasons':
-                return json.loads(obj.value)
-            elif obj.key == 'quick_comments':
-                return json.loads(obj.value)
-            elif obj.key == 'topics':
+            if obj.key in json_data:
                 return json.loads(obj.value)
             elif obj.key in environmental_variables:
                 return os.environ.get(environmental_variables[obj.key], None)

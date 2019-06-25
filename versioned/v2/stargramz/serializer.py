@@ -177,7 +177,8 @@ class StargramzRetrieveSerializerV2(StargramzRetrieveSerializer):
                     "payed_out_amount": payment.fund_payed_out,
                     "payed_out_date": payment.modified_date
                 }
-            except:
+            except Exception as e:
+                print(str(e))
                 return {
                     "payed_out_amount": None,
                     "payed_out_date": None

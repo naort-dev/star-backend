@@ -306,6 +306,8 @@ class Celebrity(models.Model):
     follow_count = models.IntegerField('Followers', default=0, blank=True)
     description = models.TextField('Description', blank=True)
     charity = models.TextField('Charity', blank=True)
+    website = models.CharField('Website', max_length=260, blank=True, null=True)
+    visibility = models.BooleanField('Visibility', default=True)
     availability = models.BooleanField('Availability', default=True)
     admin_approval = models.BooleanField('Admin Approved', default=False)
     featured = models.BooleanField('Featured', default=False)

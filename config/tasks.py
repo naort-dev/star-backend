@@ -7,7 +7,7 @@ import json
 def build_config():
     try:
         with open("config/constants.py", mode='w') as file:
-            exclude_keys = ['decline_reasons']
+            exclude_keys = ['decline_reasons', 'quick_comments', 'topics', 'cancel_booking_reasons']
             configs = Config.objects.all().order_by('id')
             if configs:
                 file.truncate()
