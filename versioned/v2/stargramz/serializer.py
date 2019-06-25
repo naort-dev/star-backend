@@ -124,10 +124,13 @@ class StargramzRetrieveSerializerV2(StargramzRetrieveSerializer):
     video_thumbnail = serializers.SerializerMethodField(read_only=True)
     video_created_date = serializers.SerializerMethodField(read_only=True)
     fund_payed_out = serializers.SerializerMethodField(read_only=True)
+    video_favorite = serializers.SerializerMethodField(read_only=True)
+    video_visibility = serializers.SerializerMethodField(read_only=True)
 
     class Meta(StargramzRetrieveSerializer.Meta):
         fields = StargramzRetrieveSerializer.Meta.fields + [
-            'comments', 'tip_amount', 'reaction_count', 'video_thumbnail', 'video_created_date', 'fund_payed_out'
+            'comments', 'tip_amount', 'reaction_count', 'video_thumbnail', 'video_created_date', 'fund_payed_out',
+            'video_favorite', 'video_visibility'
         ]
 
     def __init__(self, *args, **kwargs):
@@ -179,12 +182,26 @@ class StargramzRetrieveSerializerV2(StargramzRetrieveSerializer):
                     "payed_out_date": payment.modified_date
                 }
             except Exception as e:
-                print(str(e))
                 return {
                     "payed_out_amount": None,
-                    "payed_out_date": None
+                    "payed_out_date": str(e)
                 }
         else:
+            return None
+
+    def get_video_favorite(self, obj):
+        from versioned.v2.stargramz.models import VideoFavorites
+        try:
+            VideoFavorites.objects.get(booking_id=obj.id, celebrity=self.context['user'])
+            return True
+        except:
+            return False
+
+    def get_video_visibility(self, obj):
+        try:
+            video = StargramVideo.objects.get(stragramz_request_id=obj.id)
+            return video.public_visibility
+        except:
             return None
 
 
