@@ -1,7 +1,7 @@
 from stargramz.views import FeaturedVideo, OccasionList, StargramzRequest, RequestList, BookingFeedbackView, CommentsView
 from .serializer import StargramzVideoSerializerV2, OccasionSerializerV2, ReactionListingSerializerV2,\
     StargramzSerializerV2, StargramzRetrieveSerializerV2, VideoFavoritesSerializer, VideoHideFromPublicSerializer,\
-    ReactionSerializerV2, CommentSerializerSavingV2
+    ReactionSerializerV2, CommentSerializerSavingV2, MakeBookingPrivateSerializer
 from rest_framework.viewsets import GenericViewSet
 from utilities.mixins import ResponseViewMixin
 from stargramz.models import Reaction, Stargramrequest, STATUS_TYPES, FILE_TYPES
@@ -202,3 +202,17 @@ class ReactionProcess(APIView, ResponseViewMixin):
         except Exception as e:
             print(str(e))
         return self.jp_response(s_code='HTTP_200_OK', data='success')
+
+
+class MakeBookingPrivate(APIView, ResponseViewMixin):
+    authentication_classes = (CustomAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def post(self, request):
+        serializer = MakeBookingPrivateSerializer(data=request.data, context={'user': request.user})
+        if serializer.is_valid():
+            serializer.save()
+            return self.jp_response(s_code='HTTP_200_OK', data='success')
+        else:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE',
+                                          self.error_msg_string(serializer.errors))
