@@ -1074,7 +1074,7 @@ class BookingFeedbackView(APIView, ResponseViewMixin):
             request.data['starsona'] = booking
             request.data['celebrity'] = celebrity
             rating = CelebrityRatingSerializer(data=request.data)
-            reaction = self.reaction_serializer(data=request.data)
+            reaction = self.reaction_serializer(data=request.data, context={'user': request.user})
 
             if reaction.is_valid() and rating.is_valid():
                 reaction.save()

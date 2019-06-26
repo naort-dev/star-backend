@@ -128,11 +128,14 @@ class StargramzRetrieveSerializerV2(StargramzRetrieveSerializer):
     fund_payed_out = serializers.SerializerMethodField(read_only=True)
     video_favorite = serializers.SerializerMethodField(read_only=True)
     video_visibility = serializers.SerializerMethodField(read_only=True)
+    has_reaction = serializers.SerializerMethodField(read_only=True)
+    has_comment = serializers.SerializerMethodField(read_only=True)
+    has_rating = serializers.SerializerMethodField(read_only=True)
 
     class Meta(StargramzRetrieveSerializer.Meta):
         fields = StargramzRetrieveSerializer.Meta.fields + [
             'comments', 'tip_amount', 'reaction_count', 'video_thumbnail', 'video_created_date', 'fund_payed_out',
-            'video_favorite', 'video_visibility'
+            'video_favorite', 'video_visibility', 'has_reaction', 'has_comment', 'has_rating'
         ]
 
     def __init__(self, *args, **kwargs):
@@ -205,6 +208,33 @@ class StargramzRetrieveSerializerV2(StargramzRetrieveSerializer):
             return video.public_visibility
         except:
             return None
+
+    def get_has_reaction(self, obj):
+        try:
+            Reaction.objects.get(booking_id=obj.id, user_id=self.context['user'].id)
+        except:
+            return False
+        else:
+            return True
+
+    def get_has_comment(self, obj):
+        try:
+            video = StargramVideo.objects.get(stragramz_request_id=obj.id)
+            if Comment.objects.filter(video_id=video.id, user_id=self.context['user'].id).count() > 0:
+                return True
+            else:
+                return False
+        except Exception as e:
+            return False
+
+    def get_has_rating(self, obj):
+        from users.models import FanRating
+        try:
+            FanRating.objects.get(starsona_id=obj.id, fan_id=self.context['user'].id)
+        except:
+            return False
+        else:
+            return True
 
 
 class TippingSerializerV2(TippingSerializer):
