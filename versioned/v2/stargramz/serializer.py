@@ -303,3 +303,28 @@ class CommentSerializerSavingV2(CommentSerializer):
                 super().save()
             else:
                 raise serializers.ValidationError('the user already has a comment')
+
+
+class MakeBookingPrivateSerializer(serializers.Serializer):
+    booking = serializers.CharField(required=True)
+    public = serializers.BooleanField(required=True)
+
+    def validate(self, data):
+        try:
+            data.update(
+                {
+                    'booking': Stargramrequest.objects.get(
+                        id=decode_pk(data.get('booking')),
+                        fan_id=self.context['user'].id
+                    )
+                }
+            )
+
+        except:
+            raise serializers.ValidationError('booking id is incorrect')
+        return data
+
+    def save(self):
+        self.validated_data['booking'].public_request = self.validated_data['public']
+        self.validated_data['booking'].save()
+

@@ -1,6 +1,6 @@
 from rest_framework.routers import DefaultRouter
 from .views import FeaturedVideoV2, OccasionListV2, ReactionsFullListing, StargramzRequestV2, RequestListV2,\
-    VideoFavoritesView, VideoHideFromPublic, BookingFeedbackViewV2, CommentsViewV2, ReactionProcess
+    VideoFavoritesView, VideoHideFromPublic, BookingFeedbackViewV2, CommentsViewV2, ReactionProcess, MakeBookingPrivate
 from django.conf.urls import url
 
 urlpatterns = [
@@ -10,6 +10,7 @@ urlpatterns = [
     url(r'^feedback/$', BookingFeedbackViewV2.as_view(), name='feedback-v2'),
     url(r'^comments/$', CommentsViewV2.as_view(), name='comments-v2'),
     url(r'^reaction_process/$', ReactionProcess.as_view(), name='reaction'),
+    url(r'^make_booking_private/$', MakeBookingPrivate.as_view(), name='make_booking_private'),
 ]
 
 router = DefaultRouter()
