@@ -138,8 +138,9 @@ class CelebrityManagement(APIView, ResponseViewMixin):
             data = CelebrityProfileSerializer(
                 # Remove 'check_payments' from celebrity after next app release
                 celebrity, fields=['rating', 'weekly_limits', 'featured', 'remaining_limit', 'profession',
-                                   'profession_name', 'charity', 'description', 'follow_count', 'rate', 'in_app_price',
-                                   'availability', 'stripe_user_id', 'pending_requests_count', 'check_payments'
+                                   'profession_name', 'charity', 'website', 'description', 'follow_count', 'rate',
+                                   'in_app_price', 'availability', 'stripe_user_id', 'pending_requests_count',
+                                   'check_payments'
                                    ]).data
             in_app_price_limit(data)
             celebrity_professions = CelebrityProfession.objects.filter(user_id=pk).select_related('profession')
