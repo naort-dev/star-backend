@@ -1,9 +1,10 @@
-from stargramz.views import FeaturedVideo, OccasionList, StargramzRequest, RequestList
+from stargramz.views import FeaturedVideo, OccasionList, StargramzRequest, RequestList, BookingFeedbackView, CommentsView
 from .serializer import StargramzVideoSerializerV2, OccasionSerializerV2, ReactionListingSerializerV2,\
-    StargramzSerializerV2, StargramzRetrieveSerializerV2, VideoFavoritesSerializer, VideoHideFromPublicSerializer
+    StargramzSerializerV2, StargramzRetrieveSerializerV2, VideoFavoritesSerializer, VideoHideFromPublicSerializer,\
+    ReactionSerializerV2, CommentSerializerSavingV2
 from rest_framework.viewsets import GenericViewSet
 from utilities.mixins import ResponseViewMixin
-from stargramz.models import Reaction, Stargramrequest, STATUS_TYPES
+from stargramz.models import Reaction, Stargramrequest, STATUS_TYPES, FILE_TYPES
 from utilities.pagination import CustomOffsetPagination
 from rest_framework.views import APIView
 from users.models import UserRoleMapping, ROLES
@@ -11,6 +12,9 @@ from .utils import high_cancel_check
 from utilities.authentication import CustomAuthentication
 from rest_framework.permissions import IsAuthenticated
 from utilities.permissions import CustomPermission
+from job.tasks import generate_reaction_videos, generate_reaction_image
+from utilities.utils import decode_pk
+import datetime
 
 
 class FeaturedVideoV2(FeaturedVideo):
@@ -171,3 +175,30 @@ class VideoHideFromPublic(APIView, ResponseViewMixin):
             return self.jp_response(s_code='HTTP_200_OK', data='success')
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CODE', self.error_msg_string(serializer.errors))
+
+
+class BookingFeedbackViewV2(BookingFeedbackView):
+    reaction_serializer = ReactionSerializerV2
+
+
+class CommentsViewV2(CommentsView):
+    comment_adding_serializer = CommentSerializerSavingV2
+
+
+class ReactionProcess(APIView, ResponseViewMixin):
+    authentication_classes = (CustomAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def post(self, request):
+        try:
+            reaction = Reaction.objects.get(
+                booking=decode_pk(request.data.get('booking')),
+                user=request.user
+            )
+            if reaction.file_type == FILE_TYPES.video:
+                generate_reaction_videos.delay(reaction.id)
+            elif reaction.file_type == FILE_TYPES.image:
+                generate_reaction_image.delay(reaction.id)
+        except Exception as e:
+            print(str(e))
+        return self.jp_response(s_code='HTTP_200_OK', data='success')

@@ -996,6 +996,8 @@ class CommentsView(GenericAPIView, ResponseViewMixin):
     """
         The list of celebrities and celebrity search
     """
+    comment_adding_serializer = CommentSerializer
+
     def get(self, request, pk):
         self.pagination_class = CustomOffsetPagination
         self.permission_classes = (CustomPermission,)
@@ -1030,7 +1032,7 @@ class CommentsView(GenericAPIView, ResponseViewMixin):
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', self.exception_response(str(e)))
         request.data['user'] = user.id
-        serializer = CommentSerializer(data=request.data)
+        serializer = self.comment_adding_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return self.jp_response('HTTP_200_OK', data={"comments": "Added the comments"})
@@ -1044,6 +1046,7 @@ class BookingFeedbackView(APIView, ResponseViewMixin):
     """
     authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission)
+    reaction_serializer = ReactionSerializer
 
     def post(self, request):
 
@@ -1071,7 +1074,7 @@ class BookingFeedbackView(APIView, ResponseViewMixin):
             request.data['starsona'] = booking
             request.data['celebrity'] = celebrity
             rating = CelebrityRatingSerializer(data=request.data)
-            reaction = ReactionSerializer(data=request.data)
+            reaction = self.reaction_serializer(data=request.data)
 
             if reaction.is_valid() and rating.is_valid():
                 reaction.save()

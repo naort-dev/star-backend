@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from stargramz.serializer import StargramzVideoSerializer, OccasionSerializer, ReactionListingSerializer,\
-    StargramzSerializer, StargramzRetrieveSerializer, TippingSerializer, CommentReplySerializer
+    StargramzSerializer, StargramzRetrieveSerializer, TippingSerializer, CommentReplySerializer, ReactionSerializer,\
+    CommentSerializer
 from stargramz.models import Comment, Stargramrequest, REQUEST_TYPES, StargramVideo, Reaction, VIDEO_STATUS, \
     STATUS_TYPES
 from utilities.utils import encode_pk, decode_pk, get_bucket_url, get_s3_public_url
@@ -8,6 +9,7 @@ from .models import VideoFavorites
 from payments.models import TipPayment, PaymentPayout, StarsonaTransaction, PAYOUT_STATUS
 from config.models import Config
 from config.constants import *
+import datetime
 
 
 class CommentSerializerV2(serializers.ModelSerializer):
@@ -181,10 +183,10 @@ class StargramzRetrieveSerializerV2(StargramzRetrieveSerializer):
                     "payed_out_amount": payment.fund_payed_out,
                     "payed_out_date": payment.modified_date
                 }
-            except Exception as e:
+            except:
                 return {
                     "payed_out_amount": None,
-                    "payed_out_date": str(e)
+                    "payed_out_date": None
                 }
         else:
             return None
@@ -239,3 +241,35 @@ class VideoHideFromPublicSerializer(serializers.Serializer):
         else:
             video.public_visibility = True
         video.save()
+
+
+class ReactionSerializerV2(ReactionSerializer):
+
+    class Meta(ReactionSerializer.Meta):
+        fields = ('booking', 'reaction_file', 'file_type', 'user')
+
+    def create(self, validated_data):
+        try:
+            Reaction.objects.create(
+                booking=validated_data.get('booking'),
+                user=validated_data.get('user'),
+                file_type=validated_data.get('file_type'),
+                reaction_file=validated_data.get('reaction_file'),
+            )
+        except Exception as e:
+            print(str(e))
+        return True
+
+
+class CommentSerializerSavingV2(CommentSerializer):
+
+    def save(self):
+        request = Stargramrequest.objects.get(request_video=self.validated_data['video'])
+        if request.celebrity.id == self.validated_data['user'].id:
+            super().save()
+        else:
+            comments = self.Meta.model.objects.filter(user_id=self.validated_data['user'].id).count()
+            if comments == 0:
+                super().save()
+            else:
+                raise serializers.ValidationError('the user already has a comment')
