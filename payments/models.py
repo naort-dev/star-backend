@@ -168,12 +168,14 @@ def create_tip_activity(sender, instance, **kwargs):
     if instance.fan == instance.booking.celebrity:
         activity = RecentActivity(
             content_object=instance, activity_from_user=instance.fan, activity_to_user=instance.booking.fan,
-            request=instance.booking, activity_type=ACTIVITY_TYPES.tip, is_celebrity_activity=True
+            request=instance.booking, activity_type=ACTIVITY_TYPES.tip, is_celebrity_activity=True,
+            public_visibility=False
         )
     else:
         activity = RecentActivity(
             content_object=instance, activity_from_user=instance.fan, activity_to_user=instance.celebrity,
-            request=instance.booking, activity_type=ACTIVITY_TYPES.tip, is_celebrity_activity=False
+            request=instance.booking, activity_type=ACTIVITY_TYPES.tip, is_celebrity_activity=False,
+            public_visibility=False
         )
         instance.booking.recent_activity_date = datetime.datetime.now(pytz.UTC)
         instance.booking.save()
