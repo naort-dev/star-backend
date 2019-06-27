@@ -16,8 +16,7 @@ class TransactionAdmin(ReadOnlyModelAdmin):
     search_fields = ('id', 'fan__username', 'celebrity__username',)
     list_display_links = ('id',)
     list_filter = ('transaction_status',)
-    readonly_fields = ('created_date', 'fan', 'celebrity', 'modified_date', 'source_id',
-                       'stripe_transaction_id', 'stripe_refund_id')
+    readonly_fields = ('created_date', 'modified_date')
 
 
 class LogEventAdmin(ReadOnlyModelAdmin):
@@ -44,9 +43,7 @@ class PayoutAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'transaction_id', 'status', 'celebrity',)
     list_filter = ('status',)
 
-    readonly_fields = ('celebrity', 'fan_charged', 'stripe_processing_fees', 'starsona_company_charges',
-                       'stripe_response', 'stripe_transaction_id', 'created_date',
-                       'modified_date', 'referral_payout')
+    readonly_fields = ('created_date', 'modified_date')
 
 
 class TipPaymentAdmin(ReadOnlyModelAdmin):
