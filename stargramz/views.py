@@ -133,7 +133,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
                     request_created.save()
             if process_audio:
                 convert_audio.delay(request_created.id)
-            data = self.retrieve_serializer(request_created).data
+            data = self.retrieve_serializer(request_created, context={'user': request.user}).data
             return self.jp_response('HTTP_200_OK', data={'stargramz_response': data})
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN',
@@ -254,7 +254,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
             if process_audio:
                 convert_audio.delay(star_request.id)
             self.update_data_in_booking(star_request, request)
-            data = self.retrieve_serializer(star_request).data
+            data = self.retrieve_serializer(star_request, context={'user': request.user}).data
             return self.jp_response('HTTP_200_OK', data={'stargramz_response': data})
         else:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN',
@@ -281,7 +281,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
                 'INVALID_CODE',
                 'You are not allowed to view the request'
             )
-        data = self.retrieve_serializer(star_request).data
+        data = self.retrieve_serializer(star_request, context={'user': request.user}).data
         return self.jp_response('HTTP_200_OK', data={'stargramz_response': data})
 
     def generate_title(self, request, celebrity, occasion):
