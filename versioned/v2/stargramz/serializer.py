@@ -120,6 +120,9 @@ class VideoFavoritesSerializer(serializers.ModelSerializer):
 
 
 class StargramzRetrieveSerializerV2(StargramzRetrieveSerializer):
+    """
+        When calling this serializer it requires the user object in the context
+    """
     comments = serializers.SerializerMethodField(read_only=True)
     tip_amount = serializers.SerializerMethodField(read_only=True)
     reaction_count = serializers.SerializerMethodField(read_only=True)
@@ -224,7 +227,7 @@ class StargramzRetrieveSerializerV2(StargramzRetrieveSerializer):
                 return True
             else:
                 return False
-        except Exception as e:
+        except:
             return False
 
     def get_has_rating(self, obj):

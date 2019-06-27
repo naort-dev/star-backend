@@ -534,6 +534,9 @@ class RecentActivityView(GenericViewSet, ResponseViewMixin):
     pagination_class = CustomOffsetPagination
     serializer_class = RecentActivitySerializer
 
+    def get_serializer_context(self):
+        return {"user": self.user}
+
     def list(self, request):
         filter_by_role = request.GET.get('role', None)
         filter_by_request = request.GET.get('booking_id', None)
@@ -571,6 +574,7 @@ class RecentActivityView(GenericViewSet, ResponseViewMixin):
 
         query_set = query_set.order_by('-created_date')
         page = self.paginate_queryset(query_set.distinct())
+        self.user = request.user
         serializer = self.get_serializer(page, many=True)
 
         return self.paginator.get_paginated_response(serializer.data, key_name='recent_activities')
