@@ -468,12 +468,14 @@ def create_rating_activity(sender, instance, **kwargs):
     if instance.fan == instance.starsona.celebrity:
         activity = RecentActivity(
             content_object=instance, activity_from_user=instance.fan, activity_to_user=instance.starsona.fan,
-            request=instance.starsona, activity_type=ACTIVITY_TYPES.rating, is_celebrity_activity=True
+            request=instance.starsona, activity_type=ACTIVITY_TYPES.rating, is_celebrity_activity=True,
+            public_visibility=False
         )
     else:
         activity = RecentActivity(
             content_object=instance, activity_from_user=instance.fan, activity_to_user=instance.celebrity,
-            request=instance.starsona, activity_type=ACTIVITY_TYPES.rating, is_celebrity_activity=False
+            request=instance.starsona, activity_type=ACTIVITY_TYPES.rating, is_celebrity_activity=False,
+            public_visibility=False
         )
         instance.starsona.recent_activity_date = datetime.datetime.now(pytz.UTC)
         instance.starsona.save()
