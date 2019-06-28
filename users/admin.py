@@ -19,7 +19,6 @@ import os
 from django.conf import settings
 
 
-
 class PayoutsTabular(ReadOnlyTabularInline):
     model = PaymentPayout
     fields = ('id', 'request_name', 'status', 'fan_charged', 'starsona_company_charges',
@@ -469,7 +468,6 @@ class CelebrityUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
             return [inline(self.model, self.admin_site) for inline in self.inlines2]
         return [inline(self.model, self.admin_site) for inline in self.inlines]
 
-
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         if '_migrate' in request.POST:
@@ -533,7 +531,6 @@ def save_data_in_production(obj):
             )
     except Exception as e:
         print(str(e))
-
 
     # Creating the Referral entry into production db
 
@@ -720,6 +717,7 @@ class CelebrityAvailabilityAlertAdmin(ReadOnlyModelAdmin):
     list_display = ('id', 'celebrity', 'fan', 'notification_send', 'created_date')
 
     list_per_page = 10
+
     class Media:
         js = (
             '//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js',  # jquery
@@ -753,6 +751,7 @@ class CelebrityGroupAccountTabular(ReadOnlyTabularInline):
 
         return False
 
+
 class CelebrityDisplayOrganizerForm(forms.ModelForm):
     class Meta:
         model = GroupAccountUser
@@ -768,8 +767,10 @@ class CelebrityDisplayOrganizerForm(forms.ModelForm):
                 if str(user.username) == str(self.cleaned_data['username']):
                     pass
                 else:
-                    raise forms.ValidationError("Error: Group name must be unique %s already exist" % self.cleaned_data['first_name'])
+                    raise forms.ValidationError(
+                        "Error: Group name must be unique %s already exist" % self.cleaned_data['first_name'])
         return self.cleaned_data
+
 
 class GroupAccountUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
     add_form = UserCreationForm
@@ -825,7 +826,8 @@ class GroupAccountUsersAdmin(UserAdmin, ReadOnlyModelAdmin):
 
 
 class JoinGroupAdmin(ReadOnlyModelAdmin):
-    list_display = ('celebrity_name', 'group_name', 'approved', 'celebrity_invite', 'order', 'created_date', 'modified_date')
+    list_display = ('celebrity_name', 'group_name', 'approved', 'celebrity_invite', 'order', 'created_date',
+                    'modified_date')
     readonly_fields = ('order', 'created_date', 'modified_date')
 
     def celebrity_name(self, obj):
@@ -890,7 +892,6 @@ class CelebrityFollowAdmin(ReadOnlyModelAdmin):
 
 class RecentActivityAdmin(admin.ModelAdmin):
     list_display = ('id', 'activity_from_user', 'activity_to_user', 'request', 'activity_type', 'created_date')
-
 
 
 admin.site.register(GroupType, GroupTypeAdmin)

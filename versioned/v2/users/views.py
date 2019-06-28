@@ -275,7 +275,8 @@ class UserDetailsV2(UserDetails):
 
     @detail_route(methods=['get'], permission_classes=[CustomPermission], authentication_classes=[])
     def get_details(self, request, pk=None, user_followed=None, user_logged_in=None):
-        response = UserDetails.get_details(self, request, pk, user_followed=user_followed, user_logged_in=user_logged_in)
+        response = UserDetails.get_details(
+            self, request, pk, user_followed=user_followed, user_logged_in=user_logged_in)
         response = self.append_profile_video(response, pk, user_logged_in)
         return response
 
@@ -370,6 +371,11 @@ class UserDetailsV2(UserDetails):
                     }
                 )
 
+        return response
+
+    def update(self, request, pk):
+        response = UserDetails.update(self, request, pk)
+        response = self.append_profile_video(response, pk, request.user)
         return response
 
 
