@@ -9,6 +9,7 @@ from .models import VideoFavorites
 from payments.models import TipPayment, PaymentPayout, StarsonaTransaction, PAYOUT_STATUS
 from config.models import Config
 from config.constants import *
+from users.models import FanRating
 import datetime
 
 
@@ -331,3 +332,25 @@ class MakeBookingPrivateSerializer(serializers.Serializer):
         self.validated_data['booking'].public_request = self.validated_data['public']
         self.validated_data['booking'].save()
 
+
+class CelebrityRatingSerializerV2(serializers.Serializer):
+    comments = serializers.CharField(required=False, allow_blank=True)
+    user = serializers.IntegerField(required=True)
+    celebrity = serializers.IntegerField(required=True)
+    booking = serializers.IntegerField(required=True)
+    reason = serializers.CharField(required=False, allow_blank=True)
+    fan_rate = serializers.DecimalField(required=False, max_digits=4, decimal_places=2, allow_null=True)
+
+    def validate(self, data):
+        user = data.get('user')
+        booking = data.get('booking')
+        if FanRating.objects.filter(starsona_id=booking, fan_id=user).count() > 0:
+            raise serializers.ValidationError('This user already rated this booking')
+        return data
+
+    def save(self):
+        rating = FanRating.objects.create(
+            fan_id=self.validated_data['user'], celebrity_id=self.validated_data['celebrity'],
+            starsona_id=self.validated_data['booking'], comments=self.validated_data['comments'],
+            reason=self.validated_data['reason'], fan_rate=self.validated_data['fan_rate'])
+        return rating
