@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo, CelebrityDashboard
+from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo, CelebrityDashboard, Tag
 from utilities.admin_utils import ReadOnlyModelAdmin
 from users.models import Profession, StargramzUser
 from django import forms
@@ -269,6 +269,7 @@ class HomePageVideoAdmin(admin.ModelAdmin):
         else:
             return True
 
+
 class CelebrityProfileShareAdmin(admin.ModelAdmin):
     list_display = ('id', 'username', 'share_type', 'video', 'created_date')
 
@@ -281,7 +282,26 @@ class CelebrityDashboardAdmin(admin.ModelAdmin):
     search_fields = ('user__first_name', 'user__last_name', 'user__nick_name', 'user__email',)
 
 
+class TagForm(forms.ModelForm):
+    class Meta:
+        model = Tag
+        fields = ('name',)
+
+    def clean(self):
+        tag_name = self.cleaned_data['name']
+        if tag_name and Tag.objects.filter(name__iexact=tag_name).exists():
+            raise forms.ValidationError('A tag with this name already exists.')
+
+
+class TagAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+    search_fields = ('name',)
+    ordering = ('id',)
+    form = TagForm
+
+
 admin.site.register(HomePageVideo, HomePageVideoAdmin)
 admin.site.register(CelebrityDisplay, CelebrityDisplayAdmin)
 admin.site.register(CelebrityDisplayOrganizer, CelebrityDisplayOrganizerAdmin)
 admin.site.register(CelebrityDashboard, CelebrityDashboardAdmin)
+admin.site.register(Tag, TagAdmin)

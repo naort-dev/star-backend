@@ -86,3 +86,34 @@ class CelebrityDashboard(models.Model):
     created_date = models.DateTimeField('Created Date', auto_now_add=True)
     modified_date = models.DateTimeField('Modified Date', auto_now=True)
     last_updated_by_update_API = models.DateTimeField('Last updated by update API', null=True, blank=True)
+
+
+class Tag(models.Model):
+    name = models.CharField('Tag name', max_length=120, unique=True)
+    created_date = models.DateTimeField('Created Date', auto_now_add=True)
+    modified_date = models.DateTimeField('Modified Date', auto_now=True)
+
+    def indexing(self):
+        from versioned.v2.users.search import tag_indexing
+
+        return tag_indexing(self)
+
+
+@receiver(post_save, sender=Tag)
+def index_tag(sender, instance, **kwargs):
+    from versioned.v2.users.search import get_elasticsearch_connection_params, connections, Elasticsearch, Tags, \
+        ES_TAG_INDEX
+
+    connection_params = get_elasticsearch_connection_params()
+    connections.create_connection(**connection_params)
+    Elasticsearch(**connection_params)
+    Tags.init(index=ES_TAG_INDEX)
+    instance.indexing()
+
+
+class CelebrityTag(models.Model):
+    user = models.ForeignKey(
+        'users.StargramzUser', related_name='tag_user', blank=False, on_delete=models.CASCADE
+    )
+    tag = models.ForeignKey('Tag', related_name='celebrity_tag', blank=False, on_delete=models.CASCADE)
+    created_date = models.DateTimeField(auto_now=True)

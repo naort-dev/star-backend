@@ -7,11 +7,13 @@ from utilities.utils import get_bucket_url, get_elasticsearch_connection_params
 from .constants import *
 from users.models import Profession, Celebrity, VanityUrl
 from utilities.utils import encode_pk
+from .models import Tag
 
 
 class Professions(DocType):
     title = Text()
     parent_id = Integer()
+    search_type = Text()
 
 
 class Celebrities(DocType):
@@ -27,6 +29,12 @@ class Celebrities(DocType):
     is_active = Boolean()
 
 
+class Tags(DocType):
+    tag_id = Text()
+    tag_name = Text()
+    search_type = Text()
+
+
 def bulk_indexing():
     connection_params = get_elasticsearch_connection_params()
     connections.create_connection(**connection_params)
@@ -37,6 +45,7 @@ def bulk_indexing():
     bulk(client=es, actions=(celebrity_indexing(celebrity) for celebrity in Celebrity.objects.filter(
         admin_approval=True, availability=True, star_approved=True, user__temp_password=False
     ).exclude(profile_video="").all().iterator()))
+    bulk(client=es, actions=(tag_indexing(tag) for tag in Tag.objects.all().iterator()))
 
 
 def profession_indexing(profession):
@@ -44,7 +53,8 @@ def profession_indexing(profession):
         meta={'id': profession.id},
         id=profession.id,
         title=profession.title,
-        parent_id=profession.parent_id
+        parent_id=profession.parent_id,
+        search_type='profession'
     )
     obj.save(index=ES_PROFESSION_INDEX, op_type='index')
 
@@ -85,3 +95,15 @@ def get_s3_thumbnail_url(obj):
         return '{}/{}'.format(get_bucket_url(), config+obj.thumbnail)
     else:
         return ''
+
+
+def tag_indexing(tag):
+    obj = Tags(
+        meta={'id': tag.id},
+        tag_id=encode_pk(tag.id),
+        tag_name=tag.name,
+        search_type='tag'
+    )
+    obj.save(index=ES_TAG_INDEX, op_type='index')
+
+    return obj.to_dict(include_meta=True)
