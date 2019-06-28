@@ -13,7 +13,7 @@ from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_para
     get_user_role_details, encode_pk
 from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo, CelebrityDashboard
 from users.models import StargramzUser, Profession, Celebrity, AdminReferral, FanRating, SettingsNotifications,\
-    REMINDER_MAIL_COUNT, ProfileImage, Referral, RecentActivity, ACTIVITY_TYPES
+    REMINDER_MAIL_COUNT, ProfileImage, Referral, RecentActivity, ACTIVITY_TYPES, SocialMediaLinks
 from users.utils import generate_random_code
 from users.fan_views import CelebrityList
 from django.db.models import Q, F, Value, Case, When
@@ -375,7 +375,28 @@ class UserDetailsV2(UserDetails):
 
     def update(self, request, pk):
         response = UserDetails.update(self, request, pk)
+        if request.data['user_details'].get('social_links', None):
+            response = self.save_social_links_of_user(
+                response, request.data['user_details']['social_links'], request.user)
         response = self.append_profile_video(response, pk, request.user)
+        return response
+
+    def save_social_links_of_user(self, response, links, user):
+        flag = True
+        for link in links:
+            try:
+                social_link, created = SocialMediaLinks.objects.get_or_create(
+                    user=user,
+                    social_link_key=link.get('social_link_key'),
+                )
+                social_link.social_link_value = link.get('social_link_value')
+                social_link.save()
+            except:
+                response.data['data']['user']['social_links'] = None
+                flag = False
+                break
+        if flag:
+            response.data['data']['user']['social_links'] = links
         return response
 
 
