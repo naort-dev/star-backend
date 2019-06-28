@@ -1,19 +1,21 @@
 from stargramz.views import FeaturedVideo, OccasionList, StargramzRequest, RequestList, BookingFeedbackView, CommentsView
 from .serializer import StargramzVideoSerializerV2, OccasionSerializerV2, ReactionListingSerializerV2,\
     StargramzSerializerV2, StargramzRetrieveSerializerV2, VideoFavoritesSerializer, VideoHideFromPublicSerializer,\
-    ReactionSerializerV2, CommentSerializerSavingV2, MakeBookingPrivateSerializer
+    ReactionSerializerV2, CommentSerializerSavingV2, MakeBookingPrivateSerializer, CelebrityRatingSerializerV2
 from rest_framework.viewsets import GenericViewSet
 from utilities.mixins import ResponseViewMixin
 from stargramz.models import Reaction, Stargramrequest, STATUS_TYPES, FILE_TYPES
 from utilities.pagination import CustomOffsetPagination
 from rest_framework.views import APIView
-from users.models import UserRoleMapping, ROLES
+from users.models import UserRoleMapping, ROLES, FanRating, Celebrity
 from .utils import high_cancel_check
 from utilities.authentication import CustomAuthentication
 from rest_framework.permissions import IsAuthenticated
 from utilities.permissions import CustomPermission
 from job.tasks import generate_reaction_videos, generate_reaction_image
-from utilities.utils import decode_pk
+from utilities.utils import decode_pk, average_rate_calculate
+from users.serializer import CelebrityRatingSerializerEncoder
+from stargramz.tasks import booking_feedback_celebrity_notification
 import datetime
 
 
@@ -179,6 +181,60 @@ class VideoHideFromPublic(APIView, ResponseViewMixin):
 
 class BookingFeedbackViewV2(BookingFeedbackView):
     reaction_serializer = ReactionSerializerV2
+    rating_serializer = CelebrityRatingSerializerV2
+    rating_serializer_encoder = CelebrityRatingSerializerEncoder
+
+    def post(self, request):
+
+        try:
+            booking, celebrity = Stargramrequest.objects.values_list('id', 'celebrity')\
+                .get(id=decode_pk(request.data['booking']))
+        except Exception as e:
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', str(e))
+
+        request.data['user'] = request.user.id
+        request.data['booking'] = booking
+        request.data['celebrity'] = celebrity
+        feeback_type = request.data.get('type', None)
+        if feeback_type == 'rating':
+            try:
+                FanRating.objects.get(starsona=booking, fan=request.user)
+            except Exception:
+                rating = self.rating_serializer(data=request.data)
+                if rating.is_valid():
+                    rating.save()
+                    fields = {
+                        'fan_rate': rating.validated_data.get('fan_rate'),
+                        'comments': rating.validated_data.get('comments', ''),
+                        'reason': rating.validated_data.get('reason', ''),
+                    }
+                    booking_feedback_celebrity_notification.delay(booking, fields)
+                else:
+                    return self.jp_error_response(
+                        'HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', self.error_msg_string(rating.errors)
+                    )
+        elif feeback_type == 'reaction':
+            try:
+                Reaction.objects.get(booking=booking, user=request.user)
+            except:
+                reaction = self.reaction_serializer(data=request.data)
+                if reaction.is_valid():
+                    reaction.save()
+                else:
+                    return self.jp_error_response(
+                        'HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', self.error_msg_string(reaction.errors)
+                    )
+        else:
+            return self.jp_error_response(
+                'HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', 'Type is in valid'
+            )
+        try:
+            celebrity_user = Celebrity.objects.get(user_id=celebrity)
+            average_rate_calculate(celebrity_user)
+        except:
+            pass
+
+        return self.jp_response(s_code='HTTP_200_OK', data='success')
 
 
 class CommentsViewV2(CommentsView):
