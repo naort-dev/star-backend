@@ -23,7 +23,7 @@ NOTIFICATION_REQUEST_SEVEN_DAY_BODY = 'Last day to complete Starsona'
 
 # Request Automatic Cancel
 REQUEST_CANCEL_DAYS = 7
-REQUEST_CANCEL_COMMENT = '%s was unable to fulfill your booking request'
+REQUEST_CANCEL_COMMENT = 'Unable to fulfill due to unforeseen circumstances'
 
 # Notification Automatic After 7 days
 NOTIICATION_AUTOMATIC_CANCEL_TITLE = 'Starsona'
