@@ -1,7 +1,7 @@
 import boto3
 from django.template import loader
 from django.conf import settings
-from users.models import UserRoleMapping
+from users.models import UserRoleMapping, Role, SocialMediaLinks
 from utilities.konstants import ROLES
 from utilities.mixins import ResponseViewMixin
 import string
@@ -21,7 +21,7 @@ from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 from config.models import Config
 from users.models import ProfileImage, Celebrity, SettingsNotifications, GroupAccount, StargramzUser, \
-    CelebrityGroupAccount, Representative
+    CelebrityGroupAccount, Representative, CelebrityProfession
 import datetime
 import re
 from tempfile import gettempdir
@@ -36,6 +36,7 @@ from urllib.parse import urlparse
 from elasticsearch import RequestsHttpConnection
 from decimal import Decimal
 from math import ceil
+from rest_framework.authtoken.models import Token
 
 hashids = Hashids(min_length=8)
 
@@ -52,6 +53,42 @@ def get_user_role_details(user):
             'is_complete': mapping.is_complete
         }
     return role
+
+
+def get_the_role_of_user(user):
+    try:
+        mapping = UserRoleMapping.objects.get(user=user)
+        return mapping.role
+    except:
+        return None
+
+
+def delete_celebrity_details_of_user(user):
+    from versioned.v2.users.tasks import remove_profile_images_from_s3, remove_existing_profile_video_from_s3
+
+    photo_ids = []
+    try:
+        celebrity = Celebrity.objects.get(user_id=user.id)
+        if celebrity.profile_video:
+            remove_existing_profile_video_from_s3.delay(celebrity.profile_video)
+        celebrity.delete()
+    except:
+        pass
+    try:
+        images = ProfileImage.objects.filter(user_id=user.id)
+        for image in images:
+            photo_ids.append(image.id)
+            image.delete()
+        remove_profile_images_from_s3.delay(photo_ids)
+    except:
+        pass
+    email = user.email
+    first_name = user.first_name
+    last_name = user.last_name
+    user.delete()
+    user = StargramzUser.objects.create(username=email, email=email, first_name=first_name, last_name=last_name)
+    Token.objects.get_or_create(user=user)
+    return user
 
 
 def check_user_role(user, role):

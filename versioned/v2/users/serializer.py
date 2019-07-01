@@ -124,16 +124,25 @@ class HomePageVideoSerializer(serializers.ModelSerializer):
         return VIDEO_TYPES.get_key(obj.video_type)
 
 
-class RegisterUserSerializer(serializers.ModelSerializer):
+class RegisterUserSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True, allow_blank=False)
     first_name = serializers.CharField(required=True, allow_blank=False)
     last_name = serializers.CharField(required=True, allow_blank=False)
     nick_name = serializers.CharField(required=False, allow_blank=True)
 
-    class Meta:
-        model = StargramzUser
-        fields = ('first_name', 'last_name', 'nick_name', 'email')
-        depth = 1
+    def validate(self, data):
+        if StargramzUser.objects.filter(email=data['email']).exclude(id=self.context['user'].id).exists():
+            raise serializers.ValidationError('Email already registered')
+        return data
+
+    def save(self):
+        user = self.context['user']
+        user.email = self.validated_data.get('email')
+        user.first_name = self.validated_data.get('first_name')
+        user.last_name = self.validated_data.get('last_name')
+        user.nick_name = self.validated_data.get('nick_name', '')
+        user.save()
+        return user
 
 
 class CelebrityApprovalSerializer(serializers.Serializer):

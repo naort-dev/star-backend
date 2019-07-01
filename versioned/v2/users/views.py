@@ -34,7 +34,8 @@ from .tasks import welcome_email_version_2, remove_profile_images_from_s3, celeb
 from .utils import date_format_conversion, recent_deposit_amount, apply_the_checks
 from rest_framework.permissions import IsAuthenticated
 from utilities.authentication import CustomAuthentication
-from utilities.utils import removefromdict, sent_email
+from utilities.utils import removefromdict, sent_email, get_the_role_of_user,\
+    delete_celebrity_details_of_user
 from utilities.pagination import CustomOffsetPagination
 from rest_framework.viewsets import GenericViewSet
 from datetime import datetime, timedelta
@@ -186,16 +187,16 @@ class Register(UserRegister):
 
     def put(self, request):
         try:
-            user = StargramzUser.objects.get(id=request.user.id)
-            serializer = RegisterUserSerializer(data=request.data)
+            old_user = StargramzUser.objects.get(id=request.user.id)
+            role = get_the_role_of_user(old_user)
+            if request.data.get('role', None) and role and request.data[
+                'role'] != role.code and role.code == ROLES.celebrity:
+                user = delete_celebrity_details_of_user(old_user)
+            else:
+                user = request.user
+            serializer = RegisterUserSerializer(data=request.data, context={'user': user})
             if serializer.is_valid():
-                if StargramzUser.objects.filter(email=serializer.validated_data['email']).exclude(id=user.id).exists():
-                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'USER_EXISTS', 'Email already registered')
-                user.email = serializer.validated_data['email']
-                user.first_name = serializer.validated_data['first_name']
-                user.last_name = serializer.validated_data['last_name']
-                user.nick_name = serializer.validated_data['nick_name']
-                user.save()
+                user = serializer.save()
                 role_details = get_user_role_details(user)
                 try:
                     user.authentication_token = Token.objects.get(user_id=user.id)
@@ -395,21 +396,14 @@ class UserDetailsV2(UserDetails):
         return response
 
     def save_social_links_of_user(self, response, links, user):
-        flag = True
         for link in links:
-            try:
-                social_link, created = SocialMediaLinks.objects.get_or_create(
-                    user=user,
-                    social_link_key=link.get('social_link_key'),
-                )
-                social_link.social_link_value = link.get('social_link_value')
-                social_link.save()
-            except:
-                response.data['data']['user']['social_links'] = None
-                flag = False
-                break
-        if flag:
-            response.data['data']['user']['social_links'] = links
+            social_link, created = SocialMediaLinks.objects.get_or_create(
+                user=user,
+                social_link_key=link.get('social_link_key'),
+            )
+            social_link.social_link_value = link.get('social_link_value')
+            social_link.save()
+        response.data['data']['user']['social_links'] = links
         return response
 
     def save_user_tags(self, response, tags, user):
