@@ -302,7 +302,8 @@ class CommentSerializerSavingV2(CommentSerializer):
         if request.celebrity.id == self.validated_data['user'].id:
             super().save()
         else:
-            comments = self.Meta.model.objects.filter(user_id=self.validated_data['user'].id).count()
+            comments = self.Meta.model.objects.filter(
+                user_id=self.validated_data['user'].id, video=self.validated_data['video']).count()
             if comments == 0:
                 super().save()
             else:
