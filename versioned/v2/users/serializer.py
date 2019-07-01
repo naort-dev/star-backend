@@ -2,7 +2,7 @@ from utilities.utils import encode_pk, get_pre_signed_get_url, get_s3_public_url
 from rest_framework import serializers
 from users.serializer import ProfessionSerializer, ProfessionFilterSerializer, ProfilePictureSerializer, \
     CelebrityRatingSerializerEncoder
-from .models import CelebrityDisplay, HomePageVideo, VIDEO_TYPES, CelebrityDashboard
+from .models import CelebrityDisplay, HomePageVideo, VIDEO_TYPES, CelebrityDashboard, Tag
 from users.serializer import UserSerializer
 from users.models import CelebrityProfession, Profession, VanityUrl, StargramzUser, Celebrity, RecentActivity, \
     ACTIVITY_TYPES
@@ -283,3 +283,27 @@ class ChangePasswordSerializerV2(serializers.Serializer):
         except Exception as e:
             raise serializers.ValidationError(str(e))
         return data
+
+
+class TagSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(required=True)
+
+    class Meta:
+        model = Tag
+        fields = ('id', 'name',)
+
+    def validate(self, data):
+        if data.get('name') and Tag.objects.filter(name__iexact=data.get('name')).exists():
+            raise serializers.ValidationError('A tag with this name already exists.')
+
+        return data
+
+
+class CelebrityTagSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True, source="tag.id")
+    name = serializers.CharField(read_only=True, source="tag.name")
+
+    class Meta:
+        model = Tag
+        fields = ('id', 'name',)
