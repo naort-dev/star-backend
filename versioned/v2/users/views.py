@@ -3,7 +3,8 @@ from users.authenticate_views import FilterProfessions, Professions, UserRegiste
 from .serializer import ProfessionFilterSerializerV2, ProfessionSerializerV2, SearchSerializer,\
     CelebrityDisplaySerializer, TrendingCelebritySerializer, HomePageVideoSerializer, RegisterUserSerializer, \
     ProfilePictureSerializer, CelebrityApprovalSerializer, CelebrityShareSerializer, CelebrityDashboardSerializer, \
-    RecentActivitySerializer, ActivityPublicVisibilitySerializer, ContactSupportSerializerV2, ChangePasswordSerializerV2
+    RecentActivitySerializer, ActivityPublicVisibilitySerializer, ContactSupportSerializerV2, \
+    ChangePasswordSerializerV2, TagSerializer, CelebrityTagSerializer
 from elasticsearch_dsl.connections import connections
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, Q
@@ -11,7 +12,7 @@ from .constants import *
 from rest_framework.views import APIView
 from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_params, get_pre_signed_get_url, decode_pk, \
     get_user_role_details, encode_pk
-from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo, CelebrityDashboard
+from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo, CelebrityDashboard, CelebrityTag
 from users.models import StargramzUser, Profession, Celebrity, AdminReferral, FanRating, SettingsNotifications,\
     REMINDER_MAIL_COUNT, ProfileImage, Referral, RecentActivity, ACTIVITY_TYPES, SocialMediaLinks
 from users.utils import generate_random_code
@@ -328,6 +329,12 @@ class UserDetailsV2(UserDetails):
         except:
             return None
 
+    def celebrity_tags(self, celebrity):
+        tags = CelebrityTag.objects.filter(user_id=celebrity)
+        serializer = CelebrityTagSerializer(tags, many=True)
+
+        return serializer.data
+
     def append_profile_video(self, response, pk, user_logged_in):
         if response.data.get("status") == 200:
             profile_video = None
@@ -356,6 +363,7 @@ class UserDetailsV2(UserDetails):
                 current_rating = response.data['data']['celebrity_details'].get('rating', None)
                 rating = self.rating_checking(pk, current_rating)
                 notification = celebrity.user.settings_user.all().first()
+                celebrity_tags = self.celebrity_tags(pk)
                 response.data['data']['celebrity_details'].update(
                     {
                         'profile_video': profile_video,
@@ -367,7 +375,8 @@ class UserDetailsV2(UserDetails):
                         'has_profile_video': True if profile_video else False,
                         'has_password': False if celebrity.user.temp_password else True,
                         'has_phone_number': True if notification and notification.mobile_number else False,
-                        'allow_booking': True if profile_video and not celebrity.user.temp_password else False
+                        'allow_booking': True if profile_video and not celebrity.user.temp_password else False,
+                        'tags': celebrity_tags
                     }
                 )
 
@@ -378,6 +387,10 @@ class UserDetailsV2(UserDetails):
         if request.data['user_details'].get('social_links', None):
             response = self.save_social_links_of_user(
                 response, request.data['user_details']['social_links'], request.user)
+
+        if request.data['celebrity_details'].get('tags', None):
+            response = self.save_user_tags(response, request.data['celebrity_details']['tags'], request.user)
+
         response = self.append_profile_video(response, pk, request.user)
         return response
 
@@ -397,6 +410,17 @@ class UserDetailsV2(UserDetails):
                 break
         if flag:
             response.data['data']['user']['social_links'] = links
+        return response
+
+    def save_user_tags(self, response, tags, user):
+        CelebrityTag.objects.filter(user=user).delete()
+        for tag in tags:
+            CelebrityTag.objects.create(user_id=user.id, tag_id=tag)
+        celebrity_tags = CelebrityTag.objects.filter(user=user)
+        tag_serializer = CelebrityTagSerializer(celebrity_tags, many=True)
+
+        response.data['data']['celebrity_details']['tags'] = tag_serializer.data
+
         return response
 
 
@@ -670,3 +694,19 @@ class SettingsViewed(APIView, ResponseViewMixin):
             return self.jp_response(s_code='HTTP_200_OK', data='successful')
         except Exception as e:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', str(e))
+
+
+class TagView(APIView, ResponseViewMixin):
+    authentication_classes = (CustomAuthentication,)
+    permission_classes = (IsAuthenticated, CustomPermission,)
+
+    def post(self, request):
+        serializer = TagSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+
+            return self.jp_response(s_code='HTTP_200_OK', data={'tag': serializer.data})
+        else:
+            return self.jp_error_response(
+                'HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', self.error_msg_string(serializer.errors)
+            )
