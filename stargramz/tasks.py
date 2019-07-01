@@ -55,7 +55,7 @@ def cancel_starsona_celebrity_no_response():
                 request.celebrity.save()
         Stargramrequest.objects.filter(pk=request.id).update(
             request_status=STATUS_TYPES.cancelled,
-            comment=REQUEST_CANCEL_COMMENT % request.celebrity.get_short_name()
+            comment=REQUEST_CANCEL_COMMENT
         )
         create_request_refund.delay()
         data = {'id': request.id, 'type': NOTIFICATION_TYPES.fan_myvideos_completed_details,
