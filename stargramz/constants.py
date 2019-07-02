@@ -1,5 +1,5 @@
 AUDIO_FILE_TYPES = ['video/mp4', 'audio/mp4']
-INPUT_FILE_LABELS = ['from_audio_file', 'to_audio_file']
+INPUT_FILE_LABELS = ['from_audio_file', 'to_audio_file', 'host_audio_file', 'honor_audio_file']
 REQUEST_STATUS_CHOICES = (3, 5, 6)
 AUDIO_SAVE = 'media/audios/'
 REQUEST_EDIT_ALLOWED_TIME = 15

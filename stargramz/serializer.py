@@ -168,6 +168,8 @@ class StargramzVideoSerializer(CustomModelSerializer):
 class StargramzSerializer(serializers.ModelSerializer):
     from_audio_file = serializers.FileField(required=False)
     to_audio_file = serializers.FileField(required=False)
+    host_audio_file = serializers.FileField(required=False)
+    honor_audio_file = serializers.FileField(required=False)
     request_video = StargramzVideoSerializer(read_only=True, many=True, fields=[
         's3_thumbnail_url', 's3_video_url', 'video_url', 'status', 'video_status', 'width', 'height', 'video_id',
         'comments_count', 'read_status', 'fan_view_count'
@@ -194,7 +196,8 @@ class StargramzSerializer(serializers.ModelSerializer):
         fields = ['id', 'fan', 'celebrity', 'occasion', 'request_details', 'from_audio_file', 'to_audio_file',
                   'request_status', 'created_date', 'request_video', 'comment', 'avatar_photo', 'public_request',
                   'professions', 'editable', 'fan_rating', 'celebrity_id', 'occasion_type', 'charity', 'booking_id',
-                  'order_details', 'fan_photo', 'occasion_id', 'remove_audios', 'request_type', 'booking_title']
+                  'order_details', 'fan_photo', 'occasion_id', 'remove_audios', 'request_type', 'booking_title',
+                  'host_audio_file', 'honor_audio_file']
 
     def create(self, data):
         fan = data.get('fan')
@@ -308,6 +311,8 @@ class StargramzSerializer(serializers.ModelSerializer):
 class StargramzRetrieveSerializer(StargramzSerializer):
     from_audio_file = serializers.SerializerMethodField()
     to_audio_file = serializers.SerializerMethodField()
+    host_audio_file = serializers.SerializerMethodField()
+    honor_audio_file = serializers.SerializerMethodField()
     request_details = serializers.SerializerMethodField()
     fan = serializers.CharField(read_only=True, source="fan.get_short_name")
     celebrity = serializers.CharField(read_only=True, source="celebrity.get_short_name")
@@ -330,6 +335,16 @@ class StargramzRetrieveSerializer(StargramzSerializer):
     def get_to_audio_file(self, obj):
         if obj.to_audio_file:
             return get_pre_signed_get_url(obj.to_audio_file, '')
+        return None
+
+    def get_host_audio_file(self, obj):
+        if obj.host_audio_file:
+            return get_pre_signed_get_url(obj.host_audio_file, '')
+        return None
+
+    def get_honor_audio_file(self, obj):
+        if obj.honor_audio_file:
+            return get_pre_signed_get_url(obj.honor_audio_file, '')
         return None
 
 
