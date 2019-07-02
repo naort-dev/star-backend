@@ -129,6 +129,8 @@ class Stargramrequest(models.Model):
     modified_date = models.DateTimeField(auto_now=True)
     from_audio_file = models.CharField(max_length=260, blank=True, null=True)
     to_audio_file = models.CharField(max_length=260, blank=True, null=True)
+    host_audio_file = models.CharField(max_length=260, blank=True, null=True)
+    honor_audio_file = models.CharField(max_length=260, blank=True, null=True)
     comment = models.CharField(max_length=260, blank=True, null=True)
     request_type = models.IntegerField(
         choices=REQUEST_TYPES.choices(),
