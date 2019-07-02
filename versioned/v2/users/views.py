@@ -229,6 +229,7 @@ class CelebrityListV2(CelebrityList):
         filter_by_lower_rate = request.GET.get('lrate')
         filter_by_upper_rate = request.GET.get('urate')
         filter_by_profession = request.GET.get('profession')
+        filter_by_tag = request.GET.get('tag')
         if filter_by_lower_rate and filter_by_upper_rate:
             try:
                 query_set = query_set.filter(
@@ -251,6 +252,15 @@ class CelebrityListV2(CelebrityList):
                 query_set = query_set.filter(celebrity_profession__profession_id__in=profession_ids)
             else:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'EXCEPTION', 'Must be a list of values')
+
+        if filter_by_tag:
+            try:
+                tag_id = decode_pk(filter_by_tag)
+            except:
+                pass
+            if tag_id:
+                query_set = query_set.filter(tag_user__tag_id=tag_id)
+
         if sort and sort in SORT_LIST:
             sort_list = [k for k in SORT_LIST[sort].split(',')]
             if sort == 'az':
