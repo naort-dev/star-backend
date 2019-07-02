@@ -237,6 +237,19 @@ def update_booking_in_dashboard(sender, instance, **kwargs):
         pass
 
 
+@receiver(post_save, sender=Stargramrequest)
+def create_video_activity(sender, instance, **kwargs):
+    from users.models import RecentActivity, ACTIVITY_TYPES
+
+    if instance.request_status == STATUS_TYPES.completed:
+        activity = RecentActivity(
+            content_object=instance, activity_from_user=instance.celebrity,
+            activity_to_user=instance.fan, request=instance,
+            activity_type=ACTIVITY_TYPES.video, is_celebrity_activity=True
+        )
+        activity.save()
+
+
 class StargramVideo(models.Model):
     stragramz_request = models.ForeignKey('Stargramrequest', related_name='request_video', on_delete=models.CASCADE)
     video = models.CharField('Request Video', max_length=600, null=True, blank=True)
@@ -274,19 +287,6 @@ def update_video_in_dashboard(sender, instance, **kwargs):
     except Exception as e:
         print(str(e))
         pass
-
-
-@receiver(post_save, sender=StargramVideo)
-def create_video_activity(sender, instance, **kwargs):
-    from users.models import RecentActivity, ACTIVITY_TYPES
-
-    if instance.stragramz_request.request_status == STATUS_TYPES.completed:
-        activity = RecentActivity(
-            content_object=instance, activity_from_user=instance.stragramz_request.celebrity,
-            activity_to_user=instance.stragramz_request.fan, request=instance.stragramz_request,
-            activity_type=ACTIVITY_TYPES.video, is_celebrity_activity=True
-        )
-        activity.save()
 
 
 class ReportAbuse(models.Model):
