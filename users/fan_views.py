@@ -176,6 +176,7 @@ class FanFavouriteStars(GenericViewSet, ResponseViewMixin):
                 'celebrity_profession__profession__parent__title'
             ]
             query_set = search_name(filter_by_name, search_query, filter_fields)
+        query_set = query_set.order_by('-celebrity_follow__created_date')
         page = self.paginate_queryset(query_set.distinct())
         serializer = self.get_serializer(page, many=True)
         return self.paginator.get_paginated_response(serializer.data, key_name='celebrity_list')
