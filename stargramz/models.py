@@ -280,7 +280,7 @@ def update_video_in_dashboard(sender, instance, **kwargs):
 def create_video_activity(sender, instance, **kwargs):
     from users.models import RecentActivity, ACTIVITY_TYPES
 
-    if instance.status == VIDEO_STATUS.completed:
+    if instance.stragramz_request.request_status == STATUS_TYPES.completed:
         activity = RecentActivity(
             content_object=instance, activity_from_user=instance.stragramz_request.celebrity,
             activity_to_user=instance.stragramz_request.fan, request=instance.stragramz_request,

@@ -165,18 +165,19 @@ def update_tip_in_dashboard(sender, instance, **kwargs):
 
 @receiver(post_save, sender=TipPayment)
 def create_tip_activity(sender, instance, **kwargs):
-    if instance.fan == instance.booking.celebrity:
-        activity = RecentActivity(
-            content_object=instance, activity_from_user=instance.fan, activity_to_user=instance.booking.fan,
-            request=instance.booking, activity_type=ACTIVITY_TYPES.tip, is_celebrity_activity=True,
-            public_visibility=False
-        )
-    else:
-        activity = RecentActivity(
-            content_object=instance, activity_from_user=instance.fan, activity_to_user=instance.celebrity,
-            request=instance.booking, activity_type=ACTIVITY_TYPES.tip, is_celebrity_activity=False,
-            public_visibility=False
-        )
-        instance.booking.recent_activity_date = datetime.datetime.now(pytz.UTC)
-        instance.booking.save()
-    activity.save()
+    if instance.transaction_status == TIP_STATUS.tip_payed_out:
+        if instance.fan == instance.booking.celebrity:
+            activity = RecentActivity(
+                content_object=instance, activity_from_user=instance.fan, activity_to_user=instance.booking.fan,
+                request=instance.booking, activity_type=ACTIVITY_TYPES.tip, is_celebrity_activity=True,
+                public_visibility=False
+            )
+        else:
+            activity = RecentActivity(
+                content_object=instance, activity_from_user=instance.fan, activity_to_user=instance.celebrity,
+                request=instance.booking, activity_type=ACTIVITY_TYPES.tip, is_celebrity_activity=False,
+                public_visibility=False
+            )
+            instance.booking.recent_activity_date = datetime.datetime.now(pytz.UTC)
+            instance.booking.save()
+        activity.save()
