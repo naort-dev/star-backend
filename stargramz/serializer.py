@@ -322,7 +322,7 @@ class StargramzRetrieveSerializer(StargramzSerializer):
     def get_request_details(self, obj):
         if obj.request_details:
             data = json.loads(obj.request_details)
-            if 'relationship' in data and not data['relationship']:
+            if 'relationship' in data and type(data['relationship']) == str:
                 data.update({'relationship': {'id': '', 'title': ''}})
             return data
         return None
