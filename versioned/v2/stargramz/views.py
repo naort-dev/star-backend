@@ -247,14 +247,15 @@ class ReactionProcess(APIView, ResponseViewMixin):
 
     def post(self, request):
         try:
-            reaction = Reaction.objects.get(
-                booking=decode_pk(request.data.get('booking')),
+            reactions = Reaction.objects.filter(
+                booking_id=decode_pk(request.data.get('booking')),
                 user=request.user
             )
-            if reaction.file_type == FILE_TYPES.video:
-                generate_reaction_videos.delay(reaction.id)
-            elif reaction.file_type == FILE_TYPES.image:
-                generate_reaction_image.delay(reaction.id)
+            for reaction in reactions:
+                if reaction.file_type == FILE_TYPES.video:
+                    generate_reaction_videos.delay(reaction.id)
+                elif reaction.file_type == FILE_TYPES.image:
+                    generate_reaction_image.delay(reaction.id)
         except Exception as e:
             print(str(e))
         return self.jp_response(s_code='HTTP_200_OK', data='success')
