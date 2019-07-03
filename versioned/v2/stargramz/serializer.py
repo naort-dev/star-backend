@@ -135,11 +135,14 @@ class StargramzRetrieveSerializerV2(StargramzRetrieveSerializer):
     has_reaction = serializers.SerializerMethodField(read_only=True)
     has_comment = serializers.SerializerMethodField(read_only=True)
     has_rating = serializers.SerializerMethodField(read_only=True)
+    fan_first_name = serializers.CharField(read_only=True, source="fan.first_name")
+    celebrity_first_name = serializers.CharField(read_only=True, source="celebrity.first_name")
 
     class Meta(StargramzRetrieveSerializer.Meta):
         fields = StargramzRetrieveSerializer.Meta.fields + [
             'comments', 'tip_amount', 'reaction_count', 'video_thumbnail', 'video_created_date', 'fund_payed_out',
-            'video_favorite', 'video_visibility', 'has_reaction', 'has_comment', 'has_rating'
+            'video_favorite', 'video_visibility', 'has_reaction', 'has_comment', 'has_rating', 'celebrity_first_name',
+            'fan_first_name'
         ]
 
     def __init__(self, *args, **kwargs):
