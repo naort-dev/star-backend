@@ -23,6 +23,7 @@ NOTIFICATION_REQUEST_SEVEN_DAY_BODY = 'Last day to complete Starsona'
 
 # Request Automatic Cancel
 REQUEST_CANCEL_DAYS = 7
+REQUEST_CANCEL_DAYS_INAPP = 30
 REQUEST_CANCEL_COMMENT = 'Unable to fulfill due to unforeseen circumstances'
 
 # Notification Automatic After 7 days
