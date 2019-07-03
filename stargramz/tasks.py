@@ -9,6 +9,7 @@ from notification.tasks import send_notification
 from utilities.konstants import NOTIFICATION_TYPES, ROLES
 from .constants import *
 from payments.tasks import create_request_refund
+from payments.models import PAYMENT_TYPES
 from config.models import Config
 from config.constants import *
 from utilities.utils import SendMail, generate_branch_io_url, sent_email, encode_pk
@@ -45,8 +46,30 @@ def cancel_starsona_celebrity_no_response():
     print('Cancel request in %s Days' % REQUEST_CANCEL_DAYS)
     requests = Stargramrequest.objects.filter(
         Q(request_status__in=[2, 3]) &
-        Q(created_date__lt=timezone.now() - datetime.timedelta(days=REQUEST_CANCEL_DAYS)))
-    non_expiring_request_count = Stargramrequest.objects.filter(request_status__in=[2, 3]).exclude(created_date__lt=timezone.now() - datetime.timedelta(days=REQUEST_CANCEL_DAYS)).count()
+        (
+                Q(request_transaction__payment_type=PAYMENT_TYPES.stripe) &
+                Q(request_transaction__ambassador_transaction=False) &
+                Q(created_date__lt=timezone.now() - datetime.timedelta(days=REQUEST_CANCEL_DAYS))
+        ) |
+        (
+                Q(request_transaction__payment_type=PAYMENT_TYPES.in_app) &
+                Q(request_transaction__ambassador_transaction=False) &
+                Q(created_date__lt=timezone.now() - datetime.timedelta(days=REQUEST_CANCEL_DAYS_INAPP))
+        )
+    )
+    non_expiring_request_count = Stargramrequest.objects.filter(
+        Q(request_status__in=[2, 3]) &
+        (
+                (
+                        Q(created_date__gt=timezone.now() - datetime.timedelta(days=REQUEST_CANCEL_DAYS)) &
+                        Q(request_transaction__payment_type=PAYMENT_TYPES.stripe)
+                ) |
+                (
+                        Q(created_date__gt=timezone.now() - datetime.timedelta(days=REQUEST_CANCEL_DAYS_INAPP)) &
+                        Q(request_transaction__payment_type=PAYMENT_TYPES.in_app)
+                )
+        )
+    ).count()
     for request in requests:
         print(request.id)
         if request.celebrity.unseen_bookings > 0:
