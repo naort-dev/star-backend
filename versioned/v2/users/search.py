@@ -39,6 +39,7 @@ def bulk_indexing():
     connection_params = get_elasticsearch_connection_params()
     connections.create_connection(**connection_params)
     es = Elasticsearch(**connection_params)
+    es.indices.delete(index=ES_CELEBRITY_INDEX, ignore=[400, 404])
     Professions.init(index=ES_PROFESSION_INDEX)
     Celebrities.init(index=ES_CELEBRITY_INDEX)
     bulk(client=es, actions=(profession_indexing(profession) for profession in Profession.objects.all().iterator()))
