@@ -39,12 +39,13 @@ def bulk_indexing():
     connection_params = get_elasticsearch_connection_params()
     connections.create_connection(**connection_params)
     es = Elasticsearch(**connection_params)
+    es.indices.delete(index=ES_CELEBRITY_INDEX, ignore=[400, 404])
     Professions.init(index=ES_PROFESSION_INDEX)
     Celebrities.init(index=ES_CELEBRITY_INDEX)
     bulk(client=es, actions=(profession_indexing(profession) for profession in Profession.objects.all().iterator()))
     bulk(client=es, actions=(celebrity_indexing(celebrity) for celebrity in Celebrity.objects.filter(
         admin_approval=True, availability=True, star_approved=True, user__temp_password=False
-    ).exclude(profile_video="").all().iterator()))
+    ).exclude(profile_video="").all().iterator())).extra(conflicts="proceed")
     bulk(client=es, actions=(tag_indexing(tag) for tag in Tag.objects.all().iterator()))
 
 
