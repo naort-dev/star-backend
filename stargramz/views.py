@@ -260,6 +260,13 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN',
                                           self.error_msg_string(serializer.errors))
 
+    def access_right_check(self, pk, user):
+        try:
+            star_request = Stargramrequest.objects.get(Q(id=pk), Q(fan_id=user.id) | Q(celebrity_id=user.id))
+            return star_request
+        except Stargramrequest.DoesNotExist:
+            return False
+
     def get(self, request, pk):
         """
             Get the details of Stargramz Request
@@ -273,9 +280,8 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
             user = StargramzUser.objects.get(username=request.user)
         except StargramzUser.DoesNotExist:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
-        try:
-            star_request = Stargramrequest.objects.get(Q(id=pk), Q(fan_id=user.id) | Q(celebrity_id=user.id))
-        except Stargramrequest.DoesNotExist:
+        star_request = self.access_right_check(pk, user)
+        if not star_request:
             return self.jp_error_response(
                 'HTTP_400_BAD_REQUEST',
                 'INVALID_CODE',

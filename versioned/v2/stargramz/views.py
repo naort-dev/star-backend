@@ -66,6 +66,13 @@ class StargramzRequestV2(StargramzRequest):
     retrieve_serializer = StargramzRetrieveSerializerV2
     update_data_in_booking = update_booking_v2
 
+    def access_right_check(self, pk, user):
+        try:
+            star_request = Stargramrequest.objects.get(id=pk)
+            return star_request
+        except Stargramrequest.DoesNotExist:
+            return False
+
 
 class VideoFavoritesView(APIView, ResponseViewMixin):
     def post(self, request):
