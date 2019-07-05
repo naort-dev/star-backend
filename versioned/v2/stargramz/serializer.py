@@ -137,12 +137,13 @@ class StargramzRetrieveSerializerV2(StargramzRetrieveSerializer):
     has_rating = serializers.SerializerMethodField(read_only=True)
     fan_first_name = serializers.CharField(read_only=True, source="fan.first_name")
     celebrity_first_name = serializers.CharField(read_only=True, source="celebrity.first_name")
+    celebrity_average_response_time = serializers.SerializerMethodField(read_only=True)
 
     class Meta(StargramzRetrieveSerializer.Meta):
         fields = StargramzRetrieveSerializer.Meta.fields + [
             'comments', 'tip_amount', 'reaction_count', 'video_thumbnail', 'video_created_date', 'fund_payed_out',
             'video_favorite', 'video_visibility', 'has_reaction', 'has_comment', 'has_rating', 'celebrity_first_name',
-            'fan_first_name'
+            'fan_first_name', 'celebrity_average_response_time'
         ]
 
     def __init__(self, *args, **kwargs):
@@ -242,6 +243,11 @@ class StargramzRetrieveSerializerV2(StargramzRetrieveSerializer):
             return False
         else:
             return True
+
+    def get_celebrity_average_response_time(self, obj):
+        from versioned.v2.users.views import UserDetailsV2
+        average_response_time, avg_response_value = UserDetailsV2.average_response_time(UserDetailsV2, obj.celebrity.id)
+        return average_response_time
 
 
 class TippingSerializerV2(TippingSerializer):
