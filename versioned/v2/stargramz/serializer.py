@@ -247,7 +247,7 @@ class StargramzRetrieveSerializerV2(StargramzRetrieveSerializer):
     def get_celebrity_average_response_time(self, obj):
         from versioned.v2.users.views import UserDetailsV2
         average_response_time, avg_response_value = UserDetailsV2.average_response_time(UserDetailsV2, obj.celebrity.id)
-        return average_response_time
+        return avg_response_value
 
 
 class TippingSerializerV2(TippingSerializer):
