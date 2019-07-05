@@ -183,7 +183,7 @@ def request_limit_notification(celebrity):
                 desc="The number of Starsona requests has reached its limits.",
                 canonical_url='%sapplinks/set_weekly_limit' % base_url,
                 mob_url='set_weekly_limit',
-                desktop_url='%ssettings' % web_url,
+                desktop_url='%smanage/profile/price-limits' % web_url,
                 image_url='%smedia/web-images/starsona_logo.png' % base_url,
             )}
     celebrity_email = celebrity.user.email
@@ -209,7 +209,7 @@ def booking_feedback_celebrity_notification(booking_id, fields):
                 title="New reaction received",
                 desc="Fan %s Reacted to your Starsona video." % booking.fan.get_short_name(),
                 mob_url=mob_link,
-                desktop_url='%suser/bookings?request_id=%s' % (web_url, encode_pk(booking.id)),
+                desktop_url='%smanage/bookings?request_id=%s' % (web_url, encode_pk(booking.id)),
                 image_url='%smedia/web-images/starsona_logo.png' % base_url,
                 nav_to='reactions',
                 canonical_url="%srequest/R1002/%s" % (web_url, encode_pk(booking.id))
@@ -275,7 +275,7 @@ def celebrity_request_notification():
                         title="Request reminder",
                         desc="Reminder of the Starsona Request from %s." % request.fan.get_short_name(),
                         mob_url=mob_link,
-                        desktop_url='%suser/bookings' % web_url,
+                        desktop_url='%smanage/bookings?type=open&selected=%s' % (web_url, encode_pk(request.id)),
                         canonical_url='%srequest/R1002/%s' % (web_url, encode_pk(request.id)),
                         image_url='%smedia/web-images/starsona_logo.png' % base_url
                     ),
