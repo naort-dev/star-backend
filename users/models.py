@@ -380,8 +380,7 @@ def index_celebrity(sender, instance, **kwargs):
     from versioned.v2.users.search import get_elasticsearch_connection_params, connections, Elasticsearch, \
         Celebrities, ES_CELEBRITY_INDEX
 
-    if instance.admin_approval and instance.availability and instance.star_approved and instance.profile_video and \
-            not instance.user.temp_password:
+    if instance.admin_approval and instance.availability and instance.star_approved and not instance.user.temp_password:
         connection_params = get_elasticsearch_connection_params()
         connections.create_connection(**connection_params)
         Elasticsearch(**connection_params)
