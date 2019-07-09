@@ -544,6 +544,12 @@ class TipPayments(APIView, ResponseViewMixin):
     authentication_classes = (CustomAuthentication,)
     permission_classes = (IsAuthenticated, CustomPermission,)
 
+    def query_check(self, request, customer):
+        booking, celebrity = Stargramrequest.objects.values_list('id', 'celebrity').get(
+            Q(id=request.data['booking']) &
+            Q(fan_id=customer.id))
+        return booking, celebrity
+
     def post(self, request):
         """
             Create a Charge for a customer
@@ -562,8 +568,7 @@ class TipPayments(APIView, ResponseViewMixin):
         serializer = BookingValidate(data=request.data)
         if serializer.is_valid():
             try:
-                booking, celebrity = Stargramrequest.objects.values_list('id', 'celebrity').get(Q(id=request.data['booking']) &
-                                                               Q(fan_id=customer.id))
+                booking, celebrity = self.query_check(request, customer)
             except Stargramrequest.DoesNotExist:
                 return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_UPDATE',
                                               'Request does not exist for this user')
