@@ -720,12 +720,16 @@ class TagView(APIView, ResponseViewMixin):
     permission_classes = (IsAuthenticated, CustomPermission,)
 
     def post(self, request):
-        serializer = TagSerializer(data=request.data)
+        tags = request.data.get('tags', None)
+        serializer = TagSerializer(data=tags, many=True)
         if serializer.is_valid():
             serializer.save()
 
-            return self.jp_response(s_code='HTTP_200_OK', data={'tag': serializer.data})
+            return self.jp_response(s_code='HTTP_200_OK', data={'tags': serializer.data})
         else:
-            return self.jp_error_response(
-                'HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', self.error_msg_string(serializer.errors)
-            )
+            error_list = []
+            for error in serializer.errors:
+                if error:
+                    error_list.append(self.error_msg_string(error))
+
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_LOGIN', error_list)
