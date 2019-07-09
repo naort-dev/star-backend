@@ -277,6 +277,12 @@ class LoginSerializer(serializers.ModelSerializer):
         user = authenticate(username=data.get('username'), password=data['password'])
         if user is not None:
             # the password verified for the user
+            try:
+                role_code = UserRoleMapping.objects.get(user=user).role.code
+            except:
+                role_code = None
+            if self.context.get('booking_condition', None) and role_code and role_code == ROLES.celebrity:
+                raise serializers.ValidationError('Booking a video is only available for Starsona fan accounts.')
             if user.is_active:
                 (token, created) = Token.objects.get_or_create(user=user)  # token.key has the key
                 user.authentication_token = token.key
