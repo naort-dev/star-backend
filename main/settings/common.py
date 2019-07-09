@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'versioned.v2.stargramz',
     'dal',
     'dal_select2',
+    'versioned.v2.payments',
 ]
 
 MIDDLEWARE = [
