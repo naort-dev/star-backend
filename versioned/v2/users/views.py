@@ -39,6 +39,7 @@ from utilities.utils import removefromdict, sent_email, get_the_role_of_user,\
 from utilities.pagination import CustomOffsetPagination
 from rest_framework.viewsets import GenericViewSet
 from datetime import datetime, timedelta
+from stargramz.models import Stargramrequest
 import pytz
 hashids = Hashids(min_length=8)
 
@@ -593,35 +594,48 @@ class RecentActivityView(GenericViewSet, ResponseViewMixin):
         return {"user": self.user}
 
     @detail_route(methods=['get'], permission_classes=[CustomPermission], authentication_classes=[])
-    def public_list(self, request, pk=None):
-        is_public = request.GET.get('is_public', None)
-        page_no = request.GET.get('page', None)
-        try:
-            booking_id = decode_pk(pk)
-        except:
-            pass
-        if booking_id:
-            query_set = RecentActivity.objects.filter(request_id=booking_id).exclude(
-                activity_type=ACTIVITY_TYPES.video
-            )
-
-        if is_public:
-            query_set = query_set.filter(public_visibility=True)
-        query_set = query_set.order_by('-created_date')
-
+    def public_list(self, request, query_set=None, pk=None):
+        page_no = request.GET.get('offset', None)
+        booking_id = None
+        if pk:
+            try:
+                booking_id = decode_pk(pk)
+            except:
+                pass
+            if booking_id:
+                try:
+                    booking = Stargramrequest.objects.get(id=booking_id)
+                except Stargramrequest.DoesNotExist:
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Booking')
+                if booking:
+                    query_set = RecentActivity.objects.filter(request_id=booking_id).exclude(
+                        activity_type=ACTIVITY_TYPES.video
+                    )
+                    if request.user.id:
+                        if request.user == booking.celebrity or request.user == booking.fan:
+                            query_set = query_set
+                        else:
+                            query_set = query_set.filter(public_visibility=True)
+                    else:
+                        query_set = query_set.filter(public_visibility=True)
         if request.user:
             self.user = request.user
 
-        if page_no:
-            page = self.paginate_queryset(query_set.distinct())
-            serializer = self.get_serializer(page, many=True)
-            response = self.paginator.get_paginated_response(serializer.data, key_name='recent_activities')
+        if query_set:
+            query_set = query_set.order_by('-created_date')
+            if page_no:
+                page = self.paginate_queryset(query_set.distinct())
+                serializer = self.get_serializer(page, many=True)
+                response = self.paginator.get_paginated_response(serializer.data, key_name='recent_activities')
+            else:
+                query_set = query_set.distinct()
+                serializer = self.get_serializer(query_set, many=True)
+                response = self.jp_response(
+                    s_code='HTTP_200_OK', data={'recent_activities': serializer.data, 'count': query_set.count()}
+                )
+            return response
         else:
-            query_set = query_set.distinct()
-            serializer = self.get_serializer(query_set, many=True)
-            response = self.jp_response(s_code='HTTP_200_OK', data={'recent_activities': serializer.data})
-
-        return response
+            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'No activities yet')
 
     def list(self, request):
         filter_by_role = request.GET.get('role', None)
@@ -644,10 +658,10 @@ class RecentActivityView(GenericViewSet, ResponseViewMixin):
                 )
                 query_set = comment_activity | video_activity
 
-        return self.public_list(request, query_set)
+        return self.public_list(request, query_set, pk=None)
 
     def retrieve(self, request, pk):
-        return self.public_list(request, pk)
+        return self.public_list(request, query_set=None, pk=pk)
 
 
 class ActivityPublicVisibility(APIView, ResponseViewMixin):
