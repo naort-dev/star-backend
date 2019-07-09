@@ -72,7 +72,8 @@ class UserLogin(APIView, ResponseViewMixin):
         """
             User Login
         """
-        serializer = LoginSerializer(data=request.data)
+        booking_condition = True if request.data.get('booking', None) else False
+        serializer = LoginSerializer(data=request.data, context={'booking_condition': booking_condition})
         if serializer.is_valid():
             user = serializer.validated_data
             role_details = get_user_role_details(user)
