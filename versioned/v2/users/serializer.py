@@ -15,6 +15,7 @@ from versioned.v2.stargramz.serializer import StargramzRetrieveSerializerV2, Rea
 from stargramz.serializer import CommentReplySerializer
 from config.constants import *
 import django.contrib.auth.password_validation as validators
+from django.utils.translation import gettext_lazy as _
 
 
 class ProfessionSerializerV2(ProfessionSerializer):
@@ -304,7 +305,7 @@ class TagSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if data.get('name') and Tag.objects.filter(name__iexact=data.get('name')).exists():
-            raise serializers.ValidationError('A tag with this name already exists.')
+            raise serializers.ValidationError(_('%s: A tag with this name already exists.') % data.get('name'))
 
         return data
 
