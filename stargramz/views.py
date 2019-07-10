@@ -267,6 +267,9 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
         except Stargramrequest.DoesNotExist:
             return False
 
+    def check_user(self, request):
+        return request.user
+
     def get(self, request, pk):
         """
             Get the details of Stargramz Request
@@ -277,7 +280,7 @@ class StargramzRequest(viewsets.ViewSet, ResponseViewMixin):
             pk = pk
 
         try:
-            user = StargramzUser.objects.get(username=request.user)
+            user = self.check_user(request)
         except StargramzUser.DoesNotExist:
             return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'Invalid Signup User')
         star_request = self.access_right_check(pk, user)
