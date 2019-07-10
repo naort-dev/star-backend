@@ -635,7 +635,7 @@ class RecentActivityView(GenericViewSet, ResponseViewMixin):
                 )
             return response
         else:
-            return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_SIGNUP', 'No activities yet')
+            return self.jp_response( s_code='HTTP_200_OK', data={'recent_activities': {}, 'count': 0})
 
     def list(self, request):
         filter_by_role = request.GET.get('role', None)
