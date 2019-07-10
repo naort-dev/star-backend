@@ -120,7 +120,12 @@ class SocialSignup(APIView, ResponseViewMixin):
         """
             Social Sign up
         """
-        serializer = SocialSignupSerializer(data=request.data)
+        booking_condition = True if request.data.get('booking', None) else False
+        serializer = SocialSignupSerializer(
+            data=request.data, context={
+                'booking_condition': booking_condition
+            }
+        )
         if serializer.is_valid():
             user = serializer.save()
             if type(user) is dict:
