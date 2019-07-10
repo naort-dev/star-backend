@@ -16,6 +16,7 @@ from job.tasks import generate_reaction_videos, generate_reaction_image
 from utilities.utils import decode_pk, average_rate_calculate
 from users.serializer import CelebrityRatingSerializerEncoder
 from stargramz.tasks import booking_feedback_celebrity_notification
+from rest_framework.decorators import detail_route
 import datetime
 
 
@@ -72,6 +73,13 @@ class StargramzRequestV2(StargramzRequest):
             return star_request
         except Stargramrequest.DoesNotExist:
             return False
+
+    def check_user(self, request):
+        return None
+
+    @detail_route(methods=['get'], permission_classes=[CustomPermission], authentication_classes=[])
+    def get(self, request, pk):
+        return StargramzRequest.get(self, request, pk)
 
 
 class VideoFavoritesView(APIView, ResponseViewMixin):
