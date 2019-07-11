@@ -384,7 +384,7 @@ class SocialSignupSerializer(serializers.ModelSerializer):
             except:
                 role_code = None
             if self.context.get('booking_condition', None) and role_code and role_code == ROLES.celebrity:
-                raise serializers.ValidationError('Booking a video is only available for Starsona fan accounts.')
+                return {'code': 'booking', 'message': 'Booking a video is only available for Starsona fan accounts.'}
         except StargramzUser.DoesNotExist:
             try:
                 if not roles:

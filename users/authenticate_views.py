@@ -138,6 +138,8 @@ class SocialSignup(APIView, ResponseViewMixin):
                 if user['code'] == FIRST_NAME_ERROR_CODE:
                     return self.jp_error_response('HTTP_200_OK', 'INVALID_CREATE',
                                                   user['message'], str(user['code']))
+                if user['code'] == 'booking':
+                    return self.jp_error_response('HTTP_400_BAD_REQUEST', 'INVALID_CREATE', user['message'])
             if user:
                 role_details = get_user_role_details(user)
                 data = RegisterSerializer(user).data
