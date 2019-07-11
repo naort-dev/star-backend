@@ -176,6 +176,9 @@ Parameters:
     Type: Number
     Default: 2
 
+  MasterPassword:
+    Type: String
+
 Conditions:
   ManagedBucket: !Not [ !Equals [!Ref 'BucketName', 'starsona'] ]
   ManagedIdentityPool:  !Equals [!Ref 'IdentityPoolId', '']
@@ -524,6 +527,7 @@ Resources:
           - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
           - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
           - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint']] }
+          - { Name: MASTER_PASSWORD, Value: !Ref 'MasterPassword' }
 
   BackendService:
     Type: AWS::ECS::Service
@@ -676,6 +680,7 @@ Resources:
           - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
           - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
           - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint']] }
+          - { Name: MASTER_PASSWORD, Value: !Ref 'MasterPassword' }
 
   CeleryBeatService:
     Type: AWS::ECS::Service
@@ -756,6 +761,7 @@ Resources:
           - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
           - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
           - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint']] }
+          - { Name: MASTER_PASSWORD, Value: !Ref 'MasterPassword' }
 
   CeleryWorkerService:
     Type: AWS::ECS::Service
@@ -843,6 +849,7 @@ Resources:
                Fn::ImportValue:
                  !Join [':', [!Ref 'StackName', 'ClusterName']]
            - { Name: ECS_SERVICE, Value: !Join ['-', [!Ref 'AWS::StackName', 'celery-videos']] }
+           - { Name: MASTER_PASSWORD, Value: !Ref 'MasterPassword' }
 
   CeleryVideosService:
     Type: AWS::ECS::Service
@@ -974,6 +981,7 @@ Resources:
           - { Name: DATABASE_PASSWORD, Value: !Ref 'DatabasePassword' }
           - { Name: AWS_STORAGE_BUCKET_NAME, Value: !Ref 'BucketName' }
           - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint']] }
+          - { Name: MASTER_PASSWORD, Value: !Ref 'MasterPassword' }
 
   LoadDataTaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -1008,6 +1016,7 @@ Resources:
           - { Name: ADMIN_USERNAME, Value: !Ref 'AdminUsername' }
           - { Name: ADMIN_PASSWORD, Value: !Ref 'AdminPassword' }
           - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint']] }
+          - { Name: MASTER_PASSWORD, Value: !Ref 'MasterPassword' }
 
   RunTestsTaskDefinition:
     Type: AWS::ECS::TaskDefinition
@@ -1063,6 +1072,7 @@ Resources:
         - { Name: TWITTER_CONSUMER_KEY, Value: !Ref 'TwitterConsumerKey' }
         - { Name: TWITTER_CONSUMER_SECRET, Value: !Ref 'TwitterConsumerSecret' }
         - { Name: ELASTICSEARCH_ENDPOINT, Value: !Join ['', ['https://', !GetAtt 'ElasticsearchDomain.DomainEndpoint']] }
+        - { Name: MASTER_PASSWORD, Value: !Ref 'MasterPassword' }
 
   #--------------------------------------------------------------------------------------------------------------------
   # S3 Bucket
