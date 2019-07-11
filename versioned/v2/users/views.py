@@ -14,7 +14,7 @@ from utilities.utils import ResponseViewMixin, get_elasticsearch_connection_para
     get_user_role_details, encode_pk
 from .models import CelebrityDisplay, CelebrityDisplayOrganizer, HomePageVideo, CelebrityDashboard, CelebrityTag
 from users.models import StargramzUser, Profession, Celebrity, AdminReferral, FanRating, SettingsNotifications,\
-    REMINDER_MAIL_COUNT, ProfileImage, Referral, RecentActivity, ACTIVITY_TYPES, SocialMediaLinks
+    REMINDER_MAIL_COUNT, ProfileImage, Referral, RecentActivity, ACTIVITY_TYPES, SocialMediaLinks, UserRoleMapping
 from users.utils import generate_random_code
 from users.fan_views import CelebrityList
 from django.db.models import Q, F, Value, Case, When
@@ -41,6 +41,9 @@ from rest_framework.viewsets import GenericViewSet
 from datetime import datetime, timedelta
 from stargramz.models import Stargramrequest
 import pytz
+from role.models import Role
+from users.tasks import welcome_email
+from job.tasks import send_message_to_slack
 hashids = Hashids(min_length=8)
 
 
@@ -198,6 +201,28 @@ class Register(UserRegister):
             serializer = RegisterUserSerializer(data=request.data, context={'user': user})
             if serializer.is_valid():
                 user = serializer.save()
+
+                is_complete = False
+                roles = request.data.get('role', None)
+                if roles:
+                    role = Role.objects.get(code=roles)
+                if roles == ROLES.fan:
+                    is_complete = True
+
+                user_role, created = UserRoleMapping.objects.get_or_create(
+                    user=user,
+                    role=role,
+                    is_complete=is_complete
+                )
+                if is_complete:
+                    welcome_email.delay(user.pk)
+                    # when a fan created, a message will send to the slack
+                    slack_template = "new_user_fan"
+                    slack_ctx = {
+                        "fan_name": user.get_short_name()
+                    }
+                    send_message_to_slack.delay(slack_template, slack_ctx)
+
                 role_details = get_user_role_details(user)
                 try:
                     user.authentication_token = Token.objects.get(user_id=user.id)
